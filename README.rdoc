@@ -1,0 +1,3 @@
+== Healer Core
+
+Core API for the Healer ecosystem.
