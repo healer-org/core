@@ -21,11 +21,12 @@ describe "profiles", type: :api do
 
       response.code.should == "200"
       results = JSON.parse(response.body)
-      results.size.should == 2
-      results.map{ |r| r["id"] }.any?{ |id| id.nil? }.should == false
+      profiles = results["profiles"]
+      profiles.size.should == 2
+      profiles.map{ |p| p["id"] }.any?{ |id| id.nil? }.should == false
 
-      juan = results.detect{ |r| r["name"] == "Juan" }
-      juana = results.detect{ |r| r["name"] == "Juana" }
+      juan = profiles.detect{ |r| r["name"] == "Juan" }
+      juana = profiles.detect{ |r| r["name"] == "Juana" }
       juan["birth"].should == "1975-05-28"
       juana["birth"].should == "1977-08-12"
     end
@@ -41,7 +42,8 @@ describe "profiles", type: :api do
       get "/profiles/#{juan.id}", {}, valid_attributes
 
       response.code.should == "200"
-      result = JSON.parse(response.body)
+      result = JSON.parse(response.body)["profile"]
+      result["id"].should == juan.id
       result["name"].should == "Juan"
       result["birth"].should == "1975-05-28"
     end
@@ -71,7 +73,7 @@ describe "profiles", type: :api do
       post "/profiles", { :profile => attributes }
 
       response.code.should == "201"
-      result = JSON.parse(response.body)
+      result = JSON.parse(response.body)["profile"]
       result["name"].should == "Juan"
       result["birth"].should == "1975-05-28"
     end
@@ -102,7 +104,7 @@ describe "profiles", type: :api do
       put "/profiles/#{profile.id}", { :profile => attributes }
 
       response.code.should == "200"
-      result = JSON.parse(response.body)
+      result = JSON.parse(response.body)["profile"]
       result["name"].should == "Juana"
       result["birth"].should == "1977-08-12"
     end

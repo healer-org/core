@@ -6,23 +6,27 @@ class ProfilesController < ApplicationController
 
   def index
     profiles = Profile.all
-    render json: profiles
+    presented_profiles = profiles.map{ |p| ProfilePresenter.new(p).present }
+    render(
+      json: Response.new(:data => presented_profiles, :root => "profiles"),
+      status: :ok
+    )
   end
 
   def show
     profile = Profile.find(params[:id])
-    render json: profile
+    render_one(profile)
   end
 
   def create
     profile = Profile.create!(profile_params)
-    render json: profile, status: :created
+    render_one(profile, :created)
   end
 
   def update
     profile = Profile.find(params[:id])
     profile.update_attributes!(profile_params)
-    render json: profile
+    render_one(profile)
   end
 
 
@@ -30,6 +34,16 @@ class ProfilesController < ApplicationController
 
   def profile_params
     params.require(:profile).permit(:name, :birth)
+  end
+
+  def render_one(profile, status = :ok)
+    render(
+      json: Response.new(
+        :data => ProfilePresenter.new(profile).present,
+        :root => "profile"
+      ),
+      status: status
+    )
   end
 
   # TODO move this out of the controller into a responder class
