@@ -55,8 +55,6 @@ describe "profiles", type: :api do
       result = JSON.parse(response.body)
       result["error"]["message"].should == "Not Found"
     end
-
-    it "returns 400 bad request on absent client id"
   end
 
   describe "POST create" do

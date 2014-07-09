@@ -6,9 +6,9 @@ class ProfilePresenter
 
   def present
     {}.tap do |presented|
-      presented[:id] = profile.id
-      presented[:name] = profile.name
-      presented[:birth] = profile.birth
+      presented[:id] = profile["id"]
+      presented[:name] = profile["name"]
+      presented[:birth] = profile["birth"]
     end
   end
 
