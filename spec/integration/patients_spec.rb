@@ -49,4 +49,59 @@ describe "patients", type: :api do
     end
   end
 
+  describe "GET show" do
+    it "returns a single patient as JSON" do
+      profile = Profile.create!(
+        name: "Juan",
+        birth: Date.parse("1975-05-28")
+      )
+      patient = Patient.create!(
+        profile_id: profile.id,
+        gender: "M"
+      )
+
+      get "/patients/#{profile.id}", {}, valid_attributes
+
+      response.code.should == "200"
+      result = JSON.parse(response.body)["patient"]
+      result["id"].should == profile.id
+      result["name"].should == "Juan"
+      result["birth"].should == "1975-05-28"
+    end
+
+    it "returns 404 if there is no patient record for the profile" do
+      profile = Profile.create!(
+        name: "Juan",
+        birth: Date.parse("1975-05-28")
+      )
+
+      get "/patients/#{profile.id}"
+
+      response.code.should == "404"
+      result = JSON.parse(response.body)
+      result["error"]["message"].should == "Not Found"
+    end
+
+    it "returns 404 if there is no profile record for the patient" do
+      patient = Patient.create!(
+        profile_id: 1,
+        gender: "M"
+      )
+
+      get "/patients/1"
+
+      response.code.should == "404"
+      result = JSON.parse(response.body)
+      result["error"]["message"].should == "Not Found"
+    end
+
+    it "returns 404 if patient does not exist" do
+      get "/patients/does_not_exist"
+
+      response.code.should == "404"
+      result = JSON.parse(response.body)
+      result["error"]["message"].should == "Not Found"
+    end
+  end
+
 end
