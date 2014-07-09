@@ -3,4 +3,5 @@ Rails.application.routes.draw do
   get   "profiles/:id" => "profiles#show"
   post  "profiles" => "profiles#create"
   put   "profiles/:id" => "profiles#update"
+  get   "patients" => "patients#index"
 end
