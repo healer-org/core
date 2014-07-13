@@ -13,17 +13,13 @@
 
 ActiveRecord::Schema.define(version: 20140707133102) do
 
-  create_table "patients", id: false, force: true do |t|
-    t.integer "profile_id"
-    t.string  "gender",     limit: 10
-    t.date    "death"
-  end
-
-  add_index "patients", ["profile_id"], name: "index_patients_profile", unique: true
-
-  create_table "profiles", force: true do |t|
+  create_table "patients", force: true do |t|
     t.string "name"
     t.date   "birth"
+    t.string "gender", limit: 10
+    t.date   "death"
   end
+
+  add_index "patients", ["name", "birth"], name: "index_patients_on_name_and_birth"
 
 end

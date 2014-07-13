@@ -4,6 +4,10 @@ class ApplicationController < ActionController::API
     render_error(code: :not_found, message: "Not Found")
   end
 
+  rescue_from ActiveRecord::RecordInvalid do |exception|
+    render_error(code: :bad_request, message: exception.message)
+  end
+
   # TODO move this out of the controller into a separate file
   class Response
 

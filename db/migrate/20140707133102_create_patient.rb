@@ -1,10 +1,11 @@
 class CreatePatient < ActiveRecord::Migration
   def change
-    create_table :patients, id: false do |t|
-      t.integer :profile_id
+    create_table :patients do |t|
+      t.string  :name
+      t.date    :birth
       t.string  :gender, limit: 10
       t.date    :death
     end
-    add_index :patients, :profile_id, name: "index_patients_profile", unique: true
+    add_index :patients, [:name, :birth]
   end
 end

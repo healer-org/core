@@ -8,20 +8,14 @@ describe "patients", type: :api do
 
   describe "GET index" do
     it "returns all patients as JSON" do
-      profile1 = Profile.create!(
-        name: "Juan",
-        birth: Date.parse("1975-05-28")
-      )
-      profile2 = Profile.create!(
-        name: "Juana",
-        birth: Date.parse("1977-08-12")
-      )
       patient1 = Patient.create!(
-        profile_id: profile1.id,
-        gender: "M"
+        name: "Juan",
+        birth: Date.parse("1975-05-28"),
+        gender: "M",
       )
       patient2 = Patient.create!(
-        profile_id: profile2.id,
+        name: "Juana",
+        birth: Date.parse("1977-08-12"),
         gender: "F",
         death: Date.parse("2014-07-04")
       )
@@ -34,8 +28,8 @@ describe "patients", type: :api do
       patients.size.should == 2
       patients.map{ |p| p["id"] }.any?{ |id| id.nil? }.should == false
 
-      juan = patients.detect{ |p| p["id"] == profile1.id }
-      juana = patients.detect{ |p| p["id"] == profile2.id }
+      juan = patients.detect{ |p| p["id"] == patient1.id }
+      juana = patients.detect{ |p| p["id"] == patient2.id }
 
       juan["name"].should == "Juan"
       juan["birth"].should == "1975-05-28"
@@ -51,52 +45,116 @@ describe "patients", type: :api do
 
   describe "GET show" do
     it "returns a single patient as JSON" do
-      profile = Profile.create!(
-        name: "Juan",
-        birth: Date.parse("1975-05-28")
-      )
       patient = Patient.create!(
-        profile_id: profile.id,
+        name: "Juan",
+        birth: Date.parse("1975-05-28"),
         gender: "M"
       )
 
-      get "/patients/#{profile.id}", {}, valid_attributes
+      get "/patients/#{patient.id}", {}, valid_attributes
 
       response.code.should == "200"
       result = JSON.parse(response.body)["patient"]
-      result["id"].should == profile.id
+      result["id"].should == patient.id
       result["name"].should == "Juan"
       result["birth"].should == "1975-05-28"
     end
 
-    it "returns 404 if there is no patient record for the profile" do
-      profile = Profile.create!(
-        name: "Juan",
-        birth: Date.parse("1975-05-28")
-      )
-
-      get "/patients/#{profile.id}"
-
-      response.code.should == "404"
-      result = JSON.parse(response.body)
-      result["error"]["message"].should == "Not Found"
-    end
-
-    it "returns 404 if there is no profile record for the patient" do
-      patient = Patient.create!(
-        profile_id: 1,
-        gender: "M"
-      )
-
+    it "returns 404 if there is no record for the patient" do
       get "/patients/1"
 
       response.code.should == "404"
       result = JSON.parse(response.body)
       result["error"]["message"].should == "Not Found"
     end
+  end
+
+  describe "POST create" do
+    it "creates a new patient" do
+      attributes = {
+        name: "Juan",
+        birth: Date.parse("1975-05-28"),
+        gender: "M"
+      }
+
+      expect {
+        post "/patients", { patient: attributes }
+      }.to change(Patient, :count).by(1)
+    end
+
+    it "returns the created patient as JSON" do
+      attributes = {
+        name: "Juan",
+        birth: Date.parse("1975-05-28"),
+        gender: "M"
+      }
+
+      post "/patients", { patient: attributes }
+
+      response.code.should == "201"
+      result = JSON.parse(response.body)["patient"]
+      result["name"].should == "Juan"
+      result["birth"].should == "1975-05-28"
+      result["gender"].should == "M"
+    end
+
+    it "returns 400 if name is not supplied" do
+      attributes = {
+        birth: Date.parse("1975-05-28"),
+        gender: "M"
+      }
+
+      post "/patients", { patient: attributes }
+
+      response.code.should == "400"
+      result = JSON.parse(response.body)
+      result["error"]["message"].should match(/name/i)
+    end
+  end
+
+  describe "PUT update" do
+    it "updates an existing patient record" do
+      patient = Patient.create!(name: "Juan")
+      attributes = {
+        name: "Juan Marco",
+        birth: Date.parse("1977-08-12"),
+        gender: "M",
+        death: Date.parse("2014-07-12")
+      }
+
+      put "/patients/#{patient.id}", { patient: attributes }
+
+      patient.reload
+      patient.name.should == "Juan Marco"
+      patient.gender.should == "M"
+      patient.birth.to_s.should == Date.parse("1977-08-12").to_s
+      patient.death.to_s.should == Date.parse("2014-07-12").to_s
+    end
+
+    it "returns the updated patient as JSON" do
+      patient = Patient.create!(
+        name: "Juan",
+        birth: Date.parse("1975-05-28")
+      )
+
+      attributes = {
+        name: "Juana",
+        birth: Date.parse("1977-08-12")
+      }
+      put "/patients/#{patient.id}", { patient: attributes }
+
+      response.code.should == "200"
+      result = JSON.parse(response.body)["patient"]
+      result["name"].should == "Juana"
+      result["birth"].should == "1977-08-12"
+    end
 
     it "returns 404 if patient does not exist" do
-      get "/patients/does_not_exist"
+      attributes = {
+        name: "Juana",
+        birth: Date.parse("1977-08-12")
+      }
+      put "/patients/1", { patient: attributes }
 
       response.code.should == "404"
       result = JSON.parse(response.body)

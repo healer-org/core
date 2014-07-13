@@ -2,11 +2,7 @@ class PatientsController < ApplicationController
 
   def index
     patients = Patient.all
-    profiles = Profile.all.where(:id => patients.map(&:profile_id))
-    presented_patients = patients.map do |patient|
-      profile = profiles.detect{ |p| p.id == patient.profile_id }
-      PatientPresenter.new(patient.attributes, profile.attributes).present
-    end
+    presented_patients = patients.map { |patient| presented(patient) }
 
     render(
       json: Response.new(:data => presented_patients, :root => "patients"),
@@ -15,38 +11,41 @@ class PatientsController < ApplicationController
   end
 
   def show
-    patient = Patient.find_by_profile_id(params[:id])
-    profile = Profile.find_by_id(params[:id])
+    patient = Patient.find(params[:id])
 
-    raise ActiveRecord::RecordNotFound unless patient && profile
-    render_one(patient, profile)
+    render_one(patient)
+  end
+
+  def create
+    patient = Patient.create!(patient_params)
+
+    render_one(patient, :created)
+  end
+
+  def update
+    patient = Patient.find(params[:id])
+    patient.update_attributes!(patient_params)
+
+    render_one(patient)
   end
 
 
   private
 
-  def render_one(patient, profile, status = :ok)
-    render(
-      json: Response.new(
-        :data =>  PatientPresenter.new(patient.attributes, profile.attributes).present,
-        :root => "patient"
-      ),
-      status: status
-    )
+  def presented(patient)
+    PatientPresenter.new(patient.attributes).present
   end
 
-  def merge_patient_and_profile_attributes(patients, profiles)
-    patients.map do |patient|
-      profile = profiles.detect{ |p| p.id == patient.profile_id }
+  def patient_params
+    # require 'pry'; binding.pry
+    params.require(:patient).permit(:name, :birth, :death, :gender)
+  end
 
-      {
-       id: profile.id,
-       name: profile.name,
-       birth: profile.birth,
-       death: patient.death,
-       gender: patient.gender
-      }
-    end
+  def render_one(patient, status = :ok)
+    render(
+      json: Response.new(:data => presented(patient), :root => "patient"),
+      status: status
+    )
   end
 
 end
