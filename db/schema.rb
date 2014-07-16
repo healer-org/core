@@ -11,7 +11,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140707133102) do
+ActiveRecord::Schema.define(version: 20140713174113) do
+
+  create_table "cases", force: true do |t|
+    t.integer "patient_id"
+    t.string  "anatomy"
+    t.string  "side"
+  end
 
   create_table "patients", force: true do |t|
     t.string "name"

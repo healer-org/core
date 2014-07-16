@@ -8,6 +8,10 @@ class ApplicationController < ActionController::API
     render_error(code: :bad_request, message: exception.message)
   end
 
+  rescue_from ActionController::ParameterMissing do |exception|
+    render_error(code: :bad_request, message: exception.message)
+  end
+
   # TODO move this out of the controller into a separate file
   class Response
 
