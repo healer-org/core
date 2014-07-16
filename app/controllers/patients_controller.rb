@@ -37,7 +37,6 @@ class PatientsController < ApplicationController
   end
 
   def patient_params
-    # require 'pry'; binding.pry
     params.require(:patient).permit(:name, :birth, :death, :gender)
   end
 
