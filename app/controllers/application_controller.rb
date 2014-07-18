@@ -12,34 +12,6 @@ class ApplicationController < ActionController::API
     render_error(code: :bad_request, message: exception.message)
   end
 
-  # TODO move this out of the controller into a separate file
-  class Response
-
-    def initialize(data: {}, root: nil)#, pagination: nil)
-      @data = data
-      @root = root
-      # @pagination = pagination
-    end
-
-    def to_json(options = {})
-      body = if @data
-        @root.present? ? { @root => @data } : @data
-      end
-
-      # if body && body.is_a?(Hash)
-      #   if @pagination
-      #     body[:pagination] = @pagination
-      #   elsif @data.respond_to?(:current_page)
-      #     body[:pagination] = { :page => @data.current_page, :perPage => @data.per_page, :total => @data.total_entries }
-      #   end
-      # end
-
-      body ? body.to_json : ""
-    end
-
-  end
-
-  # TODO move this out of the controller into a responder class
   def render_error(code: nil, message: nil)
     raise ArgumentError unless code
 
@@ -52,6 +24,32 @@ class ApplicationController < ActionController::API
       json: Response.new(:data => data, :root => "error"),
       status: code
     )
+  end
+
+end
+
+class Response
+
+  def initialize(data: {}, root: nil)#, pagination: nil)
+    @data = data
+    @root = root
+    # @pagination = pagination
+  end
+
+  def to_json(options = {})
+    body = if @data
+      @root.present? ? { @root => @data } : @data
+    end
+
+    # if body && body.is_a?(Hash)
+    #   if @pagination
+    #     body[:pagination] = @pagination
+    #   elsif @data.respond_to?(:current_page)
+    #     body[:pagination] = { :page => @data.current_page, :perPage => @data.per_page, :total => @data.total_entries }
+    #   end
+    # end
+
+    body ? body.to_json : ""
   end
 
 end
