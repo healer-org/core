@@ -32,6 +32,16 @@ class CasesController < ApplicationController
     render_one(case_record, :created)
   end
 
+  def update
+    case_record = Case.find(params[:id])
+    params = case_params
+    params.delete(:patient_id) if params[:patient_id]
+
+    case_record.update_attributes!(params)
+
+    render_one(case_record)
+  end
+
 
   private
 

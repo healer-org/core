@@ -219,4 +219,62 @@ describe "cases", type: :api do
     end
   end#create
 
+  describe "PUT update" do
+    it "updates an existing case record" do
+      patient = Patient.create!(
+        name: "Juan",
+        birth: Date.parse("1975-05-28"),
+        gender: "M",
+      )
+      case_record = Case.create!(
+        patient_id: patient.id,
+        anatomy: "knee",
+        side: "left"
+      )
+
+      attributes = {
+        anatomy: "hip",
+        side: "right"
+      }
+
+      put "/cases/#{case_record.id}", { case: attributes }
+
+      case_record.reload
+      case_record.anatomy.should == "hip"
+      case_record.side.should == "right"
+    end
+
+    it "does not update patient information" do
+      patient = Patient.create!(
+        name: "Juan",
+        birth: Date.parse("1975-05-28"),
+        gender: "M",
+      )
+      other_patient = Patient.create!(
+        name: "Juana",
+        birth: Date.parse("1977-05-28"),
+        gender: "F",
+      )
+      case_record = Case.create!(
+        patient_id: patient.id,
+        anatomy: "knee",
+        side: "left"
+      )
+
+      attributes = {
+        anatomy: "hip",
+        side: "right",
+        patient_id: patient.id,
+        patient: {
+          name: "Juanita"
+        }
+      }
+
+      put "/cases/#{case_record.id}", { case: attributes }
+
+      case_record.reload
+      case_record.patient.should == patient
+    end
+  end#update
+
 end
