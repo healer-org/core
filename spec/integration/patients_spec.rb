@@ -7,19 +7,21 @@ describe "patients", type: :api do
   let(:valid_attributes) { { "client_id" => "healer_spec" } }
 
   describe "GET index" do
-    it "returns all patients as JSON" do
-      patient1 = Patient.create!(
+    before(:each) do
+      @patient1 = Patient.create!(
         name: "Juan",
         birth: Date.parse("1975-05-28"),
         gender: "M",
       )
-      patient2 = Patient.create!(
+      @patient2 = Patient.create!(
         name: "Juana",
         birth: Date.parse("1977-08-12"),
         gender: "F",
         death: Date.parse("2014-07-04")
       )
+    end
 
+    it "returns all patients as JSON" do
       get "/patients", {}, valid_attributes
 
       response.code.should == "200"
@@ -28,8 +30,8 @@ describe "patients", type: :api do
       patients.size.should == 2
       patients.map{ |p| p["id"] }.any?{ |id| id.nil? }.should == false
 
-      juan = patients.detect{ |p| p["id"] == patient1.id }
-      juana = patients.detect{ |p| p["id"] == patient2.id }
+      juan = patients.detect{ |p| p["id"] == @patient1.id }
+      juana = patients.detect{ |p| p["id"] == @patient2.id }
 
       juan["name"].should == "Juan"
       juan["birth"].should == "1975-05-28"
@@ -41,33 +43,96 @@ describe "patients", type: :api do
       juana["death"].should == "2014-07-04"
       juana["gender"].should == "F"
     end
-  end
+
+    context "when showCases param is true" do
+      it "returns cases as additional JSON" do
+        case1 = Case.create!(
+          patient_id: @patient1.id,
+          anatomy: "hip",
+          side: "left"
+        )
+        case2 = Case.create!(
+          patient_id: @patient2.id,
+          anatomy: "knee",
+          side: "right"
+        )
+
+        get "/patients?showCases=true", {}, valid_attributes
+
+        response.code.should == "200"
+        results = JSON.parse(response.body)
+        patients = results["patients"]
+        patients.size.should == 2
+
+        juan = patients.detect{ |p| p["id"] == @patient1.id }
+        juana = patients.detect{ |p| p["id"] == @patient2.id }
+
+        juan_case = juan["cases"].first
+        juana_case = juana["cases"].first
+
+        juan_case["anatomy"].should == "hip"
+        juan_case["side"].should == "left"
+
+        juana_case["anatomy"].should == "knee"
+        juana_case["side"].should == "right"
+      end
+    end
+  end#index
 
   describe "GET show" do
-    it "returns a single patient as JSON" do
-      patient = Patient.create!(
+    before(:each) do
+      @patient = Patient.create!(
         name: "Juan",
         birth: Date.parse("1975-05-28"),
         gender: "M"
       )
+    end
 
-      get "/patients/#{patient.id}", {}, valid_attributes
+    it "returns a single patient as JSON" do
+      get "/patients/#{@patient.id}", {}, valid_attributes
 
       response.code.should == "200"
       result = JSON.parse(response.body)["patient"]
-      result["id"].should == patient.id
+      result["id"].should == @patient.id
       result["name"].should == "Juan"
       result["birth"].should == "1975-05-28"
     end
 
     it "returns 404 if there is no record for the patient" do
-      get "/patients/1"
+      get "/patients/#{@patient.id + 1}"
 
       response.code.should == "404"
       result = JSON.parse(response.body)
       result["error"]["message"].should == "Not Found"
     end
-  end
+
+    context "when showCases param is true" do
+      it "returns all cases as JSON" do
+        case1 = Case.create!(
+          patient_id: @patient.id,
+          anatomy: "knee",
+          side: "left"
+        )
+        case1 = Case.create!(
+          patient_id: @patient.id,
+          anatomy: "knee",
+          side: "right"
+        )
+
+        get "/patients/#{@patient.id}?showCases=true", {}, valid_attributes
+
+        response.code.should == "200"
+        result = JSON.parse(response.body)["patient"]
+        result["id"].should == @patient.id
+        result["name"].should == "Juan"
+        result["birth"].should == "1975-05-28"
+        result["gender"].should == "M"
+        cases = result["cases"]
+        cases.map{ |c| c["anatomy"] }.uniq.should == ["knee"]
+        cases.map{ |c| c["side"] }.should =~ ["left", "right"]
+      end
+    end
+  end#show
 
   describe "POST create" do
     it "creates a new patient" do
@@ -110,7 +175,7 @@ describe "patients", type: :api do
       result = JSON.parse(response.body)
       result["error"]["message"].should match(/name/i)
     end
-  end
+  end#create
 
   describe "PUT update" do
     it "updates an existing patient record" do
@@ -160,6 +225,6 @@ describe "patients", type: :api do
       result = JSON.parse(response.body)
       result["error"]["message"].should == "Not Found"
     end
-  end
+  end#update
 
 end

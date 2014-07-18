@@ -2,7 +2,22 @@ class PatientsController < ApplicationController
 
   def index
     patients = Patient.all
-    presented_patients = patients.map { |patient| presented(patient) }
+    if params[:showCases]
+      cases_records = Case.where(:patient_id => patients.map(&:id))
+    end
+
+    # TODO there's probably a nice simple way to do this via AR, but avoiding
+    # that dependency for now. decide whether to depend on AR or refactor as is.
+    presented_patients = patients.map do |patient|
+      patient_attributes = patient.attributes
+      if cases_records
+        patient_attributes[:cases] = cases_records.select do |c|
+          c.patient_id == patient.id
+        end.map(&:attributes)
+      end
+
+      present(patient_attributes)
+    end
 
     render(
       json: Response.new(:data => presented_patients, :root => "patients"),
@@ -12,37 +27,45 @@ class PatientsController < ApplicationController
 
   def show
     patient = Patient.find(params[:id])
+    patient_attributes = patient.attributes
 
-    render_one(patient)
+    # TODO there's probably a nice simple way to do this via AR, but avoiding
+    # that dependency for now. decide whether to depend on AR or refactor as is.
+    if params[:showCases]
+      case_records = Case.where(:patient_id => patient.id)
+      patient_attributes[:cases] = case_records.map(&:attributes)
+    end
+
+    render_one(patient_attributes)
   end
 
   def create
     patient = Patient.create!(patient_params)
 
-    render_one(patient, :created)
+    render_one(patient.attributes, :created)
   end
 
   def update
     patient = Patient.find(params[:id])
     patient.update_attributes!(patient_params)
 
-    render_one(patient)
+    render_one(patient.attributes)
   end
 
 
   private
 
-  def presented(patient)
-    PatientPresenter.new(patient.attributes).present
+  def present(patient_attributes)
+    PatientPresenter.new(patient_attributes).present
   end
 
   def patient_params
     params.require(:patient).permit(:name, :birth, :death, :gender)
   end
 
-  def render_one(patient, status = :ok)
+  def render_one(attributes, status = :ok)
     render(
-      json: Response.new(:data => presented(patient), :root => "patient"),
+      json: Response.new(:data => present(attributes), :root => "patient"),
       status: status
     )
   end
