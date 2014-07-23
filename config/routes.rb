@@ -1,8 +1,9 @@
 Rails.application.routes.draw do
-  get   "patients"      => "patients#index"
-  get   "patients/:id"  => "patients#show"
-  post  "patients"      => "patients#create"
-  put   "patients/:id"  => "patients#update"
+  get     "patients"      => "patients#index"
+  get     "patients/:id"  => "patients#show"
+  post    "patients"      => "patients#create"
+  put     "patients/:id"  => "patients#update"
+  delete  "patients/:id"  => "patients#delete"
 
   get   "cases"         => "cases#index"
   get   "cases/:id"     => "cases#show"

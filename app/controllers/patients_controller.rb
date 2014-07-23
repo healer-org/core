@@ -1,7 +1,7 @@
 class PatientsController < ApplicationController
 
   def index
-    patients = Patient.all
+    patients = Patient.where(status: "active")
     if params[:showCases]
       cases_records = Case.where(:patient_id => patients.map(&:id))
     end
@@ -26,7 +26,7 @@ class PatientsController < ApplicationController
   end
 
   def show
-    patient = Patient.find(params[:id])
+    patient = Patient.find_by!(id: params[:id], status: "active")
     patient_attributes = patient.attributes
 
     # TODO there's probably a nice simple way to do this via AR, but avoiding
@@ -50,6 +50,16 @@ class PatientsController < ApplicationController
     patient.update_attributes!(patient_params)
 
     render_one(patient.attributes)
+  end
+
+  def delete
+    patient = Patient.find(params[:id])
+    patient.delete!
+
+    render(
+      json: Response.new(:data => { message: "Deleted" }),
+      status: :ok
+    )
   end
 
 

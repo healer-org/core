@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140713174113) do
+ActiveRecord::Schema.define(version: 20140723031921) do
 
   create_table "cases", force: true do |t|
     t.integer "patient_id"
@@ -24,8 +24,10 @@ ActiveRecord::Schema.define(version: 20140713174113) do
     t.date   "birth"
     t.string "gender", limit: 10
     t.date   "death"
+    t.string "status",            default: "active"
   end
 
   add_index "patients", ["name", "birth"], name: "index_patients_on_name_and_birth"
+  add_index "patients", ["status"], name: "index_patients_on_status"
 
 end

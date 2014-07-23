@@ -1,6 +1,8 @@
 require "spec_helper"
 
 # TODO client id validation
+# TODO messaging & logging behavior
+# TODO undelete functionality for administrator clients
 
 describe "patients", type: :api do
 
@@ -42,6 +44,24 @@ describe "patients", type: :api do
       juana["birth"].should == "1977-08-12"
       juana["death"].should == "2014-07-04"
       juana["gender"].should == "F"
+    end
+
+    it "does not return deleted patients" do
+      @patient2.delete!
+
+      get "/patients", {}, valid_attributes
+
+      response.code.should == "200"
+      results = JSON.parse(response.body)
+      patients = results["patients"]
+      patients.size.should == 1
+
+      juan = patients.first
+
+      juan["name"].should == "Juan"
+      juan["birth"].should == "1975-05-28"
+      juan["death"].should be_nil
+      juan["gender"].should == "M"
     end
 
     context "when showCases param is true" do
@@ -100,6 +120,28 @@ describe "patients", type: :api do
 
     it "returns 404 if there is no record for the patient" do
       get "/patients/#{@patient.id + 1}"
+
+      response.code.should == "404"
+      result = JSON.parse(response.body)
+      result["error"]["message"].should == "Not Found"
+    end
+
+    it "does not return status attribute" do
+      get "/patients/#{@patient.id}", {}, valid_attributes
+
+      response.code.should == "200"
+      result = JSON.parse(response.body)["patient"]
+      result.keys.should_not include("status")
+      result.keys.should_not include("active")
+    end
+
+    it "returns 404 if the patient is deleted" do
+      patient = Patient.create!(
+        name: "Juan",
+        status: "deleted"
+      )
+
+      get "/patients/#{patient.id}"
 
       response.code.should == "404"
       result = JSON.parse(response.body)
@@ -175,6 +217,27 @@ describe "patients", type: :api do
       result = JSON.parse(response.body)
       result["error"]["message"].should match(/name/i)
     end
+
+    it "creates new patient as active" do
+      post "/patients", { patient: { name: "Juan" } }
+
+      response.code.should == "201"
+      patient = Patient.last
+      patient.active?.should == true
+    end
+
+    it "ignores status input" do
+      attributes = {
+        name: "Juan",
+        status: "deleted"
+      }
+
+      post "/patients", { patient: attributes }
+
+      response.code.should == "201"
+      patient = Patient.last
+      patient.active?.should == true
+    end
   end#create
 
   describe "PUT update" do
@@ -225,6 +288,47 @@ describe "patients", type: :api do
       result = JSON.parse(response.body)
       result["error"]["message"].should == "Not Found"
     end
+
+    it "ignores status input" do
+      patient = Patient.create!(name: "Juan", status: "deleted")
+      attributes = {
+        name: "Juan Marco",
+        status: "active"
+      }
+
+      put "/patients/#{patient.id}", { patient: attributes }
+
+      patient.reload
+      patient.name.should == "Juan Marco"
+      patient.active?.should == false
+    end
   end#update
+
+  describe "DELETE" do
+    it "soft-deletes an existing patient record" do
+      patient = Patient.create!(
+        name: "Juan",
+        status: "active"
+      )
+
+      delete "/patients/#{patient.id}"
+
+      response.code.should == "200"
+      result = JSON.parse(response.body)
+      result["message"].should == "Deleted"
+
+      patient.reload
+      patient.name.should == "Juan"
+      patient.active?.should == false
+    end
+
+    it "returns 404 if patient does not exist" do
+      delete "/patients/1"
+
+      response.code.should == "404"
+      result = JSON.parse(response.body)
+      result["error"]["message"].should == "Not Found"
+    end
+  end#delete
 
 end
