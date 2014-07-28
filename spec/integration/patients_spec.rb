@@ -3,9 +3,6 @@ require "spec_helper"
 # TODO client id validation
 # TODO messaging & logging behavior
 # TODO undelete functionality for administrator clients
-PATIENT_ATTRIBUTES = %w(name birth death gender)
-CASE_ATTRIBUTES = %w(anatomy side)
-
 describe "patients", type: :api do
 
   let(:valid_request_attributes) { { "client_id" => "healer_spec" } }

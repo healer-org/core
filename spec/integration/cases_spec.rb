@@ -1,9 +1,6 @@
 require "spec_helper"
 
 # TODO client id validation
-PATIENT_ATTRIBUTES = %w(name birth death gender)
-CASE_ATTRIBUTES = %w(anatomy side)
-
 describe "cases", type: :api do
 
   let(:valid_attributes) { { "client_id" => "healer_spec" } }
