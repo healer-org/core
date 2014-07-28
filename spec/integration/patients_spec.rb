@@ -3,12 +3,12 @@ require "spec_helper"
 # TODO client id validation
 # TODO messaging & logging behavior
 # TODO undelete functionality for administrator clients
-VALID_PATIENT_ATTRIBUTES = %w(id name birth death gender)
-VALID_CASE_ATTRIBUTES = %w(anatomy side)
+PATIENT_ATTRIBUTES = %w(id name birth death gender)
+CASE_ATTRIBUTES = %w(anatomy side)
 
 describe "patients", type: :api do
 
-  let(:valid_PATIENT_attributes) { { "client_id" => "healer_spec" } }
+  let(:valid_request_attributes) { { "client_id" => "healer_spec" } }
 
   describe "GET index" do
     before(:each) do
@@ -19,7 +19,7 @@ describe "patients", type: :api do
     end
 
     it "returns all patients as JSON" do
-      get "/patients", {}, valid_PATIENT_attributes
+      get "/patients", {}, valid_request_attributes
 
       response.code.should == "200"
       results = JSON.parse(response.body)
@@ -30,7 +30,7 @@ describe "patients", type: :api do
       patient1 = patients.detect{ |p| p["id"] == @patient1.id }
       patient2 = patients.detect{ |p| p["id"] == @patient2.id }
 
-      VALID_PATIENT_ATTRIBUTES.each do |attr|
+      PATIENT_ATTRIBUTES.each do |attr|
         patient1[attr].to_s.should == @patient1.send(attr).to_s
         patient2[attr].to_s.should == @patient2.send(attr).to_s
       end
@@ -39,7 +39,7 @@ describe "patients", type: :api do
     it "does not return deleted patients" do
       @patient2.delete!
 
-      get "/patients", {}, valid_PATIENT_attributes
+      get "/patients", {}, valid_request_attributes
 
       response.code.should == "200"
       results = JSON.parse(response.body)
@@ -48,7 +48,7 @@ describe "patients", type: :api do
 
       patient = patients.first
 
-      VALID_PATIENT_ATTRIBUTES.each do |attr|
+      PATIENT_ATTRIBUTES.each do |attr|
         patient[attr].to_s.should == @patient1.send(attr).to_s
       end
     end
@@ -58,7 +58,7 @@ describe "patients", type: :api do
         case1 = FactoryGirl.create(:case, patient: @patient1)
         case2 = FactoryGirl.create(:case, patient: @patient2)
 
-        get "/patients?showCases=true", {}, valid_PATIENT_attributes
+        get "/patients?showCases=true", {}, valid_request_attributes
 
         response.code.should == "200"
         results = JSON.parse(response.body)
@@ -71,7 +71,7 @@ describe "patients", type: :api do
         case1_result = patient1["cases"].first
         case2_result = patient2["cases"].first
 
-        VALID_CASE_ATTRIBUTES.each do |attr|
+        CASE_ATTRIBUTES.each do |attr|
           case1_result[attr].to_s.should == case1.send(attr).to_s
           case2_result[attr].to_s.should == case2.send(attr).to_s
         end
@@ -85,7 +85,7 @@ describe "patients", type: :api do
     end
 
     it "returns a single patient as JSON" do
-      get "/patients/#{@patient.id}", {}, valid_PATIENT_attributes
+      get "/patients/#{@patient.id}", {}, valid_request_attributes
 
       response.code.should == "200"
       result = JSON.parse(response.body)["patient"]
@@ -103,7 +103,7 @@ describe "patients", type: :api do
     end
 
     it "does not return status attribute" do
-      get "/patients/#{@patient.id}", {}, valid_PATIENT_attributes
+      get "/patients/#{@patient.id}", {}, valid_request_attributes
 
       response.code.should == "200"
       result = JSON.parse(response.body)["patient"]
@@ -126,18 +126,18 @@ describe "patients", type: :api do
         case1 = FactoryGirl.create(:case, patient: @patient)
         case2 = FactoryGirl.create(:case, patient: @patient)
 
-        get "/patients/#{@patient.id}?showCases=true", {}, valid_PATIENT_attributes
+        get "/patients/#{@patient.id}?showCases=true", {}, valid_request_attributes
 
         response.code.should == "200"
         result = JSON.parse(response.body)["patient"]
 
-        VALID_PATIENT_ATTRIBUTES.each do |attr|
+        PATIENT_ATTRIBUTES.each do |attr|
           result[attr].to_s.should == @patient.send(attr).to_s
         end
 
         cases = result["cases"]
         cases.size.should == 2
-        VALID_CASE_ATTRIBUTES.each do |attr|
+        CASE_ATTRIBUTES.each do |attr|
           cases[0][attr].to_s.should == case1.send(attr).to_s
           cases[1][attr].to_s.should == case2.send(attr).to_s
         end
@@ -163,7 +163,7 @@ describe "patients", type: :api do
 
       result = JSON.parse(response.body)["patient"]
       new_record = Patient.last
-      VALID_PATIENT_ATTRIBUTES.each do |attr|
+      PATIENT_ATTRIBUTES.each do |attr|
         result[attr].to_s.should == new_record.send(attr).to_s
       end
     end
