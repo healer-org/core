@@ -7,7 +7,6 @@ describe "patients", type: :api do
 
   let(:valid_request_attributes) { { "client_id" => "healer_spec" } }
 
-
   describe "GET index" do
     before(:each) do
       @persisted_1 = FactoryGirl.create(:patient)
@@ -21,10 +20,10 @@ describe "patients", type: :api do
       response_body = JSON.parse(response.body)
       response_records = response_body["patients"]
       response_records.size.should == 2
-      response_records.map{ |p| p["id"] }.any?{ |id| id.nil? }.should == false
+      response_records.map{ |r| r["id"] }.any?{ |id| id.nil? }.should == false
 
-      response_record_1 = response_records.detect{ |p| p["id"] == @persisted_1.id }
-      response_record_2 = response_records.detect{ |p| p["id"] == @persisted_2.id }
+      response_record_1 = response_records.detect{ |r| r["id"] == @persisted_1.id }
+      response_record_2 = response_records.detect{ |r| r["id"] == @persisted_2.id }
 
       PATIENT_ATTRIBUTES.each do |attr|
         response_record_1[attr].to_s.should == @persisted_1.send(attr).to_s
@@ -142,23 +141,18 @@ describe "patients", type: :api do
   end#show
 
   describe "POST create" do
-    it "creates a new persisted record" do
+    it "creates a new active persisted record and returns JSON" do
       attributes = FactoryGirl.attributes_for(:patient)
 
       expect {
         post "/patients", { patient: attributes }
       }.to change(Patient, :count).by(1)
-    end
-
-    it "returns the created record as JSON" do
-      attributes = FactoryGirl.attributes_for(:patient)
-
-      post "/patients", { patient: attributes }
 
       response.code.should == "201"
 
       response_record = JSON.parse(response.body)["patient"]
       persisted_record = Patient.last
+      persisted_record.active?.should == true
       PATIENT_ATTRIBUTES.each do |attr|
         response_record[attr].to_s.should == persisted_record.send(attr).to_s
       end
@@ -173,17 +167,6 @@ describe "patients", type: :api do
       response.code.should == "400"
       response_body = JSON.parse(response.body)
       response_body["error"]["message"].should match(/name/i)
-    end
-
-    it "creates new record with active status" do
-      attributes = FactoryGirl.attributes_for(:patient)
-      attributes.delete(:status)
-
-      post "/patients", { patient: attributes }
-
-      response.code.should == "201"
-      persisted_record = Patient.last
-      persisted_record.active?.should == true
     end
 
     it "ignores status in request input" do
@@ -272,7 +255,7 @@ describe "patients", type: :api do
     end
 
     it "returns 404 if persisted record does not exist" do
-      delete "/patients/1"
+      delete "/patients/100"
 
       response.code.should == "404"
       response_body = JSON.parse(response.body)

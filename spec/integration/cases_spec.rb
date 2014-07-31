@@ -9,8 +9,8 @@ describe "cases", type: :api do
     before(:each) do
       @patient1 = FactoryGirl.create(:patient)
       @patient2 = FactoryGirl.create(:deceased_patient)
-      @case1 = FactoryGirl.create(:case, patient: @patient1)
-      @case2 = FactoryGirl.create(:case, patient: @patient2)
+      @persisted_1 = FactoryGirl.create(:case, patient: @patient1)
+      @persisted_2 = FactoryGirl.create(:case, patient: @patient2)
     end
 
     it "returns all records as JSON" do
@@ -20,37 +20,75 @@ describe "cases", type: :api do
       response_body = JSON.parse(response.body)
       response_records = response_body["cases"]
       response_records.size.should == 2
-      response_records.map{ |c| c["id"] }.any?{ |id| id.nil? }.should == false
+      response_records.map{ |r| r["id"] }.any?{ |id| id.nil? }.should == false
 
-      response_record_1 = response_records.detect{ |c| c["id"] == @case1.id }
-      response_record_2 = response_records.detect{ |c| c["id"] == @case2.id }
+      response_record_1 = response_records.detect{ |r| r["id"] == @persisted_1.id }
+      response_record_2 = response_records.detect{ |r| r["id"] == @persisted_2.id }
 
       PATIENT_ATTRIBUTES.each do |attr|
         response_record_1["patient"][attr].to_s.should == @patient1.send(attr).to_s
         response_record_2["patient"][attr].to_s.should == @patient2.send(attr).to_s
       end
     end
+
+    it "does not return deleted records" do
+      @persisted_2.delete!
+
+      get "/cases", {}, valid_request_attributes
+
+      response.code.should == "200"
+      response_body = JSON.parse(response.body)
+      response_records = response_body["cases"]
+      response_records.size.should == 1
+
+      response_record = response_records.first["patient"]
+
+      PATIENT_ATTRIBUTES.each do |attr|
+        response_record[attr].to_s.should == @patient1.send(attr).to_s
+      end
+    end
   end#index
 
   describe "GET show" do
-    it "returns a single record as JSON" do
-      patient = FactoryGirl.create(:patient)
-      the_case = FactoryGirl.create(:case, patient: patient)
+    before(:each) do
+      @persisted_patient = FactoryGirl.create(:patient)
+      @persisted_case = FactoryGirl.create(:case, patient: @persisted_patient)
+    end
 
-      get "/cases/#{the_case.id}", {}, valid_request_attributes
+    it "returns a single persisted record as JSON" do
+      get "/cases/#{@persisted_case.id}", {}, valid_request_attributes
 
       response.code.should == "200"
       response_record = JSON.parse(response.body)["case"]
       CASE_ATTRIBUTES.each do |attr|
-        response_record[attr].to_s.should == the_case.send(attr).to_s
+        response_record[attr].to_s.should == @persisted_case.send(attr).to_s
       end
       PATIENT_ATTRIBUTES.each do |attr|
-        response_record["patient"][attr].to_s.should == patient.send(attr).to_s
+        response_record["patient"][attr].to_s.should == @persisted_patient.send(attr).to_s
       end
     end
 
-    it "returns 404 if there is no record for the case" do
-      get "/cases/100"
+    it "returns 404 if there is no persisted record" do
+      get "/cases/#{@persisted_case.id + 1}"
+
+      response.code.should == "404"
+      response_body = JSON.parse(response.body)
+      response_body["error"]["message"].should == "Not Found"
+    end
+
+    it "does not return status attribute" do
+      get "/cases/#{@persisted_case.id}", {}, valid_request_attributes
+
+      response.code.should == "200"
+      response_record = JSON.parse(response.body)["case"]
+      response_record.keys.should_not include("status")
+      response_record.keys.should_not include("active")
+    end
+
+    it "returns 404 if the record is deleted" do
+      persisted_record = FactoryGirl.create(:deleted_case)
+
+      get "/cases/#{persisted_record.id}", {}, valid_request_attributes
 
       response.code.should == "404"
       response_body = JSON.parse(response.body)
@@ -60,7 +98,7 @@ describe "cases", type: :api do
 
   describe "POST create" do
     context "when patient is posted as nested attribute" do
-      it "creates a new persisted record for the case" do
+      it "creates a new active persisted record for the case and returns JSON" do
         case_attributes = FactoryGirl.attributes_for(:case)
         patient_attributes = FactoryGirl.attributes_for(:patient)
         case_attributes[:patient] = patient_attributes
@@ -69,13 +107,18 @@ describe "cases", type: :api do
           post "/cases", { case: case_attributes }
         }.to change(Case, :count).by(1)
 
+        response.code.should == "201"
+
+        response_record = JSON.parse(response.body)["case"]
         persisted_record = Case.last
+        persisted_record.active?.should == true
         CASE_ATTRIBUTES.each do |attr|
           case_attributes[attr.to_sym].to_s.should == persisted_record.send(attr).to_s
+          response_record[attr].to_s.should == persisted_record.send(attr).to_s
         end
       end
 
-      it "creates a new persisted record for the patient" do
+      it "creates a new active persisted record for the patient" do
         case_attributes = FactoryGirl.attributes_for(:case)
         patient_attributes = FactoryGirl.attributes_for(:patient)
         case_attributes[:patient] = patient_attributes
@@ -84,9 +127,12 @@ describe "cases", type: :api do
           post "/cases", { case: case_attributes }
         }.to change(Patient, :count).by(1)
 
-        new_patient = Patient.last
+        response_record = JSON.parse(response.body)["case"]["patient"]
+        persisted_record = Patient.last
+        persisted_record.active?.should == true
         PATIENT_ATTRIBUTES.each do |attr|
-          patient_attributes[attr.to_sym].to_s.should == new_patient.send(attr).to_s
+          patient_attributes[attr.to_sym].to_s.should == persisted_record.send(attr).to_s
+          response_record[attr].to_s.should == persisted_record.send(attr).to_s
         end
       end
 
@@ -103,6 +149,22 @@ describe "cases", type: :api do
         response.code.should == "400"
         response_body = JSON.parse(response.body)
         response_body["error"]["message"].should match(/name/i)
+      end
+
+      it "ignores status in request input" do
+        case_attributes = FactoryGirl.attributes_for(:deleted_case)
+        patient_attributes = FactoryGirl.attributes_for(:deleted_patient)
+        case_attributes[:patient] = patient_attributes
+
+        expect {
+          post "/cases", { case: case_attributes }
+        }.to change(Case, :count).by(1)
+
+        response.code.should == "201"
+        persisted_case_record = Case.last
+        persisted_patient_record = Patient.last
+        persisted_case_record.active?.should == true
+        persisted_patient_record.active?.should == true
       end
     end
 
@@ -135,13 +197,18 @@ describe "cases", type: :api do
           original_patient_name = @patient.name
           case_attributes = FactoryGirl.attributes_for(:case)
           case_attributes[:patient_id] = @patient.id
-          case_attributes[:patient] = { name: "Changed #{original_patient_name}" }
+          case_attributes[:patient] = {
+            name: "Changed #{original_patient_name}",
+            status: "deleted"
+          }
 
           expect {
             post "/cases", { case: case_attributes }
           }.to change(Case, :count).by(1)
 
-          @patient.reload.name.should == original_patient_name
+          @patient.reload
+          @patient.name.should == original_patient_name
+          @patient.active?.should == true
           persisted_record = Case.last
           CASE_ATTRIBUTES.each do |attr|
             case_attributes[attr.to_sym].to_s.should == persisted_record.send(attr).to_s
@@ -187,9 +254,7 @@ describe "cases", type: :api do
 
   describe "PUT update" do
     it "updates an existing case record" do
-      patient = FactoryGirl.create(:patient)
       case_record = FactoryGirl.create(:case,
-        patient: patient,
         anatomy: "knee",
         side: "left"
       )
@@ -228,6 +293,37 @@ describe "cases", type: :api do
       case_record.patient.reload.should == patient
       case_record.patient.name.should == original_patient_name
     end
+
+    it "ignores status in request input" do
+      persisted_record = FactoryGirl.create(:deleted_case)
+
+      put "/cases/#{persisted_record.id}", { case: { status: "active" } }
+
+      persisted_record.reload
+      persisted_record.active?.should == false
+    end
   end#update
+
+  describe "DELETE" do
+    it "soft-deletes an existing persisted record" do
+      persisted_record = FactoryGirl.create(:case)
+
+      delete "/cases/#{persisted_record.id}"
+
+      response.code.should == "200"
+      response_body = JSON.parse(response.body)
+      response_body["message"].should == "Deleted"
+
+      persisted_record.reload.active?.should == false
+    end
+
+    it "returns 404 if persisted record does not exist" do
+      delete "/cases/100"
+
+      response.code.should == "404"
+      response_body = JSON.parse(response.body)
+      response_body["error"]["message"].should == "Not Found"
+    end
+  end#delete
 
 end

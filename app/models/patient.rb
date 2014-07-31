@@ -8,7 +8,7 @@ class Patient < ActiveRecord::Base
 
   def delete!
     # TODO fire event
-    Rails.logger.info("action=delete patient_id=#{self.id}")
+    Rails.logger.info("id=#{self.id} object=#{self.class.name} action=delete")
     update_attributes!(status: "deleted")
   end
 

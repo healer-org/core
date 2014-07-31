@@ -11,13 +11,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140723031921) do
+ActiveRecord::Schema.define(version: 20140731064354) do
 
   create_table "cases", force: true do |t|
     t.integer "patient_id"
     t.string  "anatomy"
     t.string  "side"
+    t.string  "status",     default: "active"
   end
+
+  add_index "cases", ["status"], name: "index_cases_on_status"
 
   create_table "patients", force: true do |t|
     t.string "name"

@@ -1,7 +1,7 @@
 class CasesController < ApplicationController
 
   def index
-    cases = Case.includes(:patient).all
+    cases = Case.includes(:patient).where(status: "active")
     presented = cases.map { |c| presented(c) }
 
     render(
@@ -11,7 +11,7 @@ class CasesController < ApplicationController
   end
 
   def show
-    case_record = Case.find(params[:id])
+    case_record = Case.find_by!(id: params[:id], status: "active")
 
     render_one(case_record)
   end
@@ -40,6 +40,16 @@ class CasesController < ApplicationController
     case_record.update_attributes!(params)
 
     render_one(case_record)
+  end
+
+  def delete
+    case_record = Case.find(params[:id])
+    case_record.delete!
+
+    render(
+      json: Response.new(:data => { message: "Deleted" }),
+      status: :ok
+    )
   end
 
 
