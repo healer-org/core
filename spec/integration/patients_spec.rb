@@ -7,12 +7,11 @@ describe "patients", type: :api do
 
   let(:valid_request_attributes) { { "client_id" => "healer_spec" } }
 
+
   describe "GET index" do
     before(:each) do
-      @patient1 = FactoryGirl.create(:patient)
-      @patient2 = FactoryGirl.create(:patient)
-
-      @patient1.name.should_not == @patient2.name
+      @persisted_1 = FactoryGirl.create(:patient)
+      @persisted_2 = FactoryGirl.create(:patient)
     end
 
     it "returns all records as JSON" do
@@ -24,17 +23,17 @@ describe "patients", type: :api do
       response_records.size.should == 2
       response_records.map{ |p| p["id"] }.any?{ |id| id.nil? }.should == false
 
-      response_record_1 = response_records.detect{ |p| p["id"] == @patient1.id }
-      response_record_2 = response_records.detect{ |p| p["id"] == @patient2.id }
+      response_record_1 = response_records.detect{ |p| p["id"] == @persisted_1.id }
+      response_record_2 = response_records.detect{ |p| p["id"] == @persisted_2.id }
 
       PATIENT_ATTRIBUTES.each do |attr|
-        response_record_1[attr].to_s.should == @patient1.send(attr).to_s
-        response_record_2[attr].to_s.should == @patient2.send(attr).to_s
+        response_record_1[attr].to_s.should == @persisted_1.send(attr).to_s
+        response_record_2[attr].to_s.should == @persisted_2.send(attr).to_s
       end
     end
 
     it "does not return deleted records" do
-      @patient2.delete!
+      @persisted_2.delete!
 
       get "/patients", {}, valid_request_attributes
 
@@ -46,14 +45,14 @@ describe "patients", type: :api do
       response_record = response_records.first
 
       PATIENT_ATTRIBUTES.each do |attr|
-        response_record[attr].to_s.should == @patient1.send(attr).to_s
+        response_record[attr].to_s.should == @persisted_1.send(attr).to_s
       end
     end
 
     context "when showCases param is true" do
       it "returns cases as additional JSON" do
-        case1 = FactoryGirl.create(:case, patient: @patient1)
-        case2 = FactoryGirl.create(:case, patient: @patient2)
+        case1 = FactoryGirl.create(:case, patient: @persisted_1)
+        case2 = FactoryGirl.create(:case, patient: @persisted_2)
 
         get "/patients?showCases=true", {}, valid_request_attributes
 
@@ -62,8 +61,8 @@ describe "patients", type: :api do
         response_records = response_body["patients"]
         response_records.size.should == 2
 
-        response_record_1 = response_records.detect{ |p| p["id"] == @patient1.id }
-        response_record_2 = response_records.detect{ |p| p["id"] == @patient2.id }
+        response_record_1 = response_records.detect{ |p| p["id"] == @persisted_1.id }
+        response_record_2 = response_records.detect{ |p| p["id"] == @persisted_2.id }
 
         case1_result = response_record_1["cases"].first
         case2_result = response_record_2["cases"].first
@@ -78,21 +77,21 @@ describe "patients", type: :api do
 
   describe "GET show" do
     before(:each) do
-      @patient = FactoryGirl.create(:patient)
+      @persisted = FactoryGirl.create(:patient)
     end
 
     it "returns a single persisted record as JSON" do
-      get "/patients/#{@patient.id}", {}, valid_request_attributes
+      get "/patients/#{@persisted.id}", {}, valid_request_attributes
 
       response.code.should == "200"
       response_record = JSON.parse(response.body)["patient"]
-      response_record["id"].should == @patient.id
-      response_record["name"].should == @patient.name
-      response_record["birth"].to_s.should == @patient.birth.to_s
+      response_record["id"].should == @persisted.id
+      response_record["name"].should == @persisted.name
+      response_record["birth"].to_s.should == @persisted.birth.to_s
     end
 
     it "returns 404 if there is no persisted record" do
-      get "/patients/#{@patient.id + 1}"
+      get "/patients/#{@persisted.id + 1}"
 
       response.code.should == "404"
       response_body = JSON.parse(response.body)
@@ -100,7 +99,7 @@ describe "patients", type: :api do
     end
 
     it "does not return status attribute" do
-      get "/patients/#{@patient.id}", {}, valid_request_attributes
+      get "/patients/#{@persisted.id}", {}, valid_request_attributes
 
       response.code.should == "200"
       response_record = JSON.parse(response.body)["patient"]
@@ -120,16 +119,16 @@ describe "patients", type: :api do
 
     context "when showCases param is true" do
       it "returns all cases as JSON" do
-        case1 = FactoryGirl.create(:case, patient: @patient)
-        case2 = FactoryGirl.create(:case, patient: @patient)
+        case1 = FactoryGirl.create(:case, patient: @persisted)
+        case2 = FactoryGirl.create(:case, patient: @persisted)
 
-        get "/patients/#{@patient.id}?showCases=true", {}, valid_request_attributes
+        get "/patients/#{@persisted.id}?showCases=true", {}, valid_request_attributes
 
         response.code.should == "200"
         response_record = JSON.parse(response.body)["patient"]
 
         PATIENT_ATTRIBUTES.each do |attr|
-          response_record[attr].to_s.should == @patient.send(attr).to_s
+          response_record[attr].to_s.should == @persisted.send(attr).to_s
         end
 
         cases = response_record["cases"]
