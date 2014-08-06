@@ -1,6 +1,9 @@
 require "spec_helper"
 
-# TODO client id validation
+# TODO client id validation, e.g.:
+# it_behaves_like "an endpoint that requires a valid client ID"
+# it_behaves_like "an endpoint that requires a <special type of> client ID"
+
 # TODO messaging & logging behavior
 # TODO undelete functionality for administrator clients
 describe "patients", type: :api do
