@@ -10,6 +10,16 @@ class AppointmentsController < ApplicationController
     )
   end
 
+  def delete
+    persisted_record = Appointment.find(params[:id])
+    persisted_record.destroy
+
+    render(
+      json: Response.new(:data => { message: "Deleted" }),
+      status: :ok
+    )
+  end
+
 
   private
 

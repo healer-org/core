@@ -70,4 +70,26 @@ describe "appointments", type: :api do
     end
   end
 
+  describe "DELETE" do
+    it "hard-deletes an existing persisted record" do
+      persisted_record = FactoryGirl.create(:appointment)
+
+      delete "/appointments/#{persisted_record.id}"
+
+      response.code.should == "200"
+      response_body = JSON.parse(response.body)
+      response_body["message"].should == "Deleted"
+
+      persisted_record.class.find_by_id(persisted_record.id).should be_nil
+    end
+
+    it "returns 404 if persisted record does not exist" do
+      delete "/appointments/100"
+
+      response.code.should == "404"
+      response_body = JSON.parse(response.body)
+      response_body["error"]["message"].should == "Not Found"
+    end
+  end#delete
+
 end
