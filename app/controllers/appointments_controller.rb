@@ -10,6 +10,16 @@ class AppointmentsController < ApplicationController
     )
   end
 
+  def create
+    appointment_record = Appointment.new(appointment_params)
+    raise ActionController::ParameterMissing.new("Missing patient id") unless appointment_record.patient_id
+
+    patient_record = Patient.find(appointment_record.patient_id)
+
+    appointment_record.save!
+    render_one(appointment_record, :created)
+  end
+
   def delete
     persisted_record = Appointment.find(params[:id])
     persisted_record.destroy
@@ -27,6 +37,17 @@ class AppointmentsController < ApplicationController
     attributes = appointment.attributes
     attributes[:patient] = appointment.patient.attributes
     AppointmentPresenter.new(attributes).present
+  end
+
+  def render_one(appointment_record, status = :ok)
+    render(
+      json: Response.new(:data => presented(appointment_record), :root => "appointment"),
+      status: status
+    )
+  end
+
+  def appointment_params
+    params.require(:appointment).permit(:patient_id)#, :anatomy, :side)
   end
 
   def filter_params

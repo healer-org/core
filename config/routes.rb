@@ -13,7 +13,7 @@ Rails.application.routes.draw do
 
   get     "appointments"     => "appointments#index"
   # get     "appointments/:id" => "appointments#show"
-  # post    "appointments"     => "appointments#create"
+  post    "appointments"     => "appointments#create"
   # put     "appointments/:id" => "appointments#update"
   delete  "appointments/:id" => "appointments#delete"
 end
