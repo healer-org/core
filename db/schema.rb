@@ -11,18 +11,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140805231434) do
+ActiveRecord::Schema.define(version: 20140807233336) do
 
   create_table "appointments", force: true do |t|
-    t.integer "patient_id"
-    t.integer "trip_id"
-    t.date    "start_date"
-    t.time    "start_time"
-    t.integer "start_ordinal"
-    t.date    "end_date"
-    t.time    "end_time"
-    t.string  "location"
+    t.integer  "patient_id"
+    t.integer  "trip_id"
+    t.datetime "start_time"
+    t.integer  "start_ordinal"
+    t.datetime "end_time"
+    t.string   "location"
   end
+
+  add_index "appointments", ["patient_id"], name: "index_appointments_on_patient_id"
+  add_index "appointments", ["trip_id", "start_time", "location"], name: "index_appointments_on_trip_id_and_start_time_and_location"
 
   create_table "cases", force: true do |t|
     t.integer "patient_id"

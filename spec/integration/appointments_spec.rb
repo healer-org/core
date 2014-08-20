@@ -23,12 +23,22 @@ describe "appointments", type: :api do
       response_record_2 = response_records.detect{ |r| r["id"] == @persisted_2.id }
 
       APPOINTMENT_ATTRIBUTES.each do |attr|
-        response_record_1[attr].to_s.should == @persisted_1.send(attr).to_s
-        response_record_2[attr].to_s.should == @persisted_2.send(attr).to_s
+        if %w(start_time end_time).include? attr
+          Time.parse(response_record_1[attr]).iso8601.should == @persisted_1.send(attr).iso8601
+          Time.parse(response_record_2[attr]).iso8601.should == @persisted_2.send(attr).iso8601
+        else
+          response_record_1[attr].should == @persisted_1.send(attr)
+          response_record_2[attr].should == @persisted_2.send(attr)
+        end
       end
       PATIENT_ATTRIBUTES.each do |attr|
-        response_record_1["patient"][attr].to_s.should == @persisted_1.patient.send(attr).to_s
-        response_record_2["patient"][attr].to_s.should == @persisted_2.patient.send(attr).to_s
+        if attr == "birth"
+          response_record_1["patient"][attr].should == @persisted_1.patient.send(attr).to_s(:db)
+          response_record_2["patient"][attr].should == @persisted_2.patient.send(attr).to_s(:db)
+        else
+          response_record_1["patient"][attr].should == @persisted_1.patient.send(attr)
+          response_record_2["patient"][attr].should == @persisted_2.patient.send(attr)
+        end
       end
     end
 
@@ -82,10 +92,12 @@ describe "appointments", type: :api do
       response.code.should == "201"
 
       response_record = JSON.parse(response.body)["appointment"]
+
       persisted_record = Appointment.last
+
       persisted_record.patient_id.should == patient.id
       APPOINTMENT_ATTRIBUTES.each do |attr|
-        attributes[attr.to_sym].to_s.should == persisted_record.send(attr).to_s
+        attributes[attr.to_sym].should == persisted_record.send(attr)
       end
       PATIENT_ATTRIBUTES.each do |attr|
         response_record["patient"][attr].to_s.should == patient.send(attr).to_s

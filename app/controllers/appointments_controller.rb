@@ -35,6 +35,9 @@ class AppointmentsController < ApplicationController
 
   def presented(appointment)
     attributes = appointment.attributes
+    %w(start_time end_time).each do |k|
+      attributes[k] = attributes[k].to_s(:iso8601) if attributes[k]
+    end
     attributes[:patient] = appointment.patient.attributes
     AppointmentPresenter.new(attributes).present
   end
@@ -47,7 +50,17 @@ class AppointmentsController < ApplicationController
   end
 
   def appointment_params
-    params.require(:appointment).permit(:patient_id)#, :anatomy, :side)
+    filtered_params = params.require(:appointment).permit(
+      :patient_id,
+      :start_time,
+      :start_ordinal,
+      :location,
+      :end_time)
+
+    [:start_time, :end_time].each do |param|
+      filtered_params[param] = DateTime.parse(filtered_params[param]) if filtered_params[param]
+    end
+    filtered_params
   end
 
   def filter_params
