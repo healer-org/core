@@ -2,6 +2,9 @@ require "spec_helper"
 
 describe "appointments", type: :api do
 
+  # TODO: decide whether to allow appointment write to write patient info.
+  #       is there a case where that's useful?
+
   let(:valid_request_attributes) { { "client_id" => "healer_spec" } }
 
   describe "GET index" do
@@ -129,9 +132,9 @@ describe "appointments", type: :api do
       response_body = JSON.parse(response.body)
       response_body["error"]["message"].should == "Not Found"
     end
+  end
 
-    # TODO: decide whether to allow appointment creation to update patient info.
-    #       is there a case where that's useful?
+  describe "PUT update" do
   end
 
   describe "DELETE" do

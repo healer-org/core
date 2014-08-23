@@ -2,8 +2,7 @@ class CasesController < ApplicationController
 
   def index
     cases = Case.includes(:patient).
-      where(status: filtered_param_status).
-      where.not(status: "deleted")
+      where(status: filtered_param_status)
     presented = cases.map { |c| presented(c) }
 
     render(
@@ -13,8 +12,7 @@ class CasesController < ApplicationController
   end
 
   def show
-    case_record = Case.where.not(status: "deleted").
-      find_by!(id: params[:id])
+    case_record = Case.find_by!(id: params[:id])
 
     render_one(case_record)
   end
