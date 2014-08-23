@@ -47,6 +47,32 @@ describe "cases", type: :api do
         response_record[attr].to_s.should == @patient1.send(attr).to_s
       end
     end
+
+    it "filters by status" do
+      @persisted_1.update_attributes!(:status => "pending")
+
+      get "/cases?status=pending", {}, valid_request_attributes
+
+      response.code.should == "200"
+      response_body = JSON.parse(response.body)
+      response_records = response_body["cases"]
+      response_records.size.should == 1
+
+      response_record = response_records.first["patient"]
+
+      response_record["id"].to_s.should == @persisted_1.id.to_s
+    end
+
+    it "excludes deleted status from filter" do
+      @persisted_1.update_attributes!(:status => "deleted")
+
+      get "/cases?status=deleted", {}, valid_request_attributes
+
+      response.code.should == "200"
+      response_body = JSON.parse(response.body)
+      response_records = response_body["cases"]
+      response_records.size.should == 0
+    end
   end#index
 
   describe "GET show" do
@@ -66,6 +92,16 @@ describe "cases", type: :api do
       PATIENT_ATTRIBUTES.each do |attr|
         response_record["patient"][attr].to_s.should == @persisted_patient.send(attr).to_s
       end
+    end
+
+    it "returns pending cases" do
+      @persisted_case.update_attributes!(status: "pending")
+
+      get "/cases/#{@persisted_case.id}", {}, valid_request_attributes
+
+      response.code.should == "200"
+      response_record = JSON.parse(response.body)["case"]
+      response_record["id"].should == @persisted_case.id
     end
 
     it "returns 404 if there is no persisted record" do

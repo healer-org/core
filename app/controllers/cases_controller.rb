@@ -1,7 +1,9 @@
 class CasesController < ApplicationController
 
   def index
-    cases = Case.includes(:patient).where(status: "active")
+    cases = Case.includes(:patient).
+      where(status: filtered_param_status).
+      where.not(status: "deleted")
     presented = cases.map { |c| presented(c) }
 
     render(
@@ -11,7 +13,8 @@ class CasesController < ApplicationController
   end
 
   def show
-    case_record = Case.find_by!(id: params[:id], status: "active")
+    case_record = Case.where.not(status: "deleted").
+      find_by!(id: params[:id])
 
     render_one(case_record)
   end
@@ -54,6 +57,10 @@ class CasesController < ApplicationController
 
 
   private
+
+  def filtered_param_status
+    params[:status] || "active"
+  end
 
   def presented(case_record)
     attributes = case_record.attributes
