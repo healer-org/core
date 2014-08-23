@@ -290,7 +290,7 @@ describe "cases", type: :api do
 
   describe "PUT update" do
     it "updates an existing case record" do
-      case_record = FactoryGirl.create(:case,
+      persisted_record = FactoryGirl.create(:case,
         anatomy: "knee",
         side: "left"
       )
@@ -299,17 +299,17 @@ describe "cases", type: :api do
         side: "right"
       }
 
-      put "/cases/#{case_record.id}", { case: new_attributes }
+      put "/cases/#{persisted_record.id}", { case: new_attributes }
 
-      case_record.reload
-      case_record.anatomy.should == "hip"
-      case_record.side.should == "right"
+      persisted_record.reload
+      persisted_record.anatomy.should == "hip"
+      persisted_record.side.should == "right"
     end
 
     it "does not update patient information" do
       patient = FactoryGirl.create(:patient)
       original_patient_name = patient.name
-      case_record = FactoryGirl.create(:case,
+      persisted_record = FactoryGirl.create(:case,
         patient: patient,
         anatomy: "knee",
         side: "left"
@@ -323,11 +323,11 @@ describe "cases", type: :api do
         }
       }
 
-      put "/cases/#{case_record.id}", { case: new_attributes }
+      put "/cases/#{persisted_record.id}", { case: new_attributes }
 
-      case_record.reload
-      case_record.patient.reload.should == patient
-      case_record.patient.name.should == original_patient_name
+      persisted_record.reload
+      persisted_record.patient.reload.should == patient
+      persisted_record.patient.name.should == original_patient_name
     end
 
     it "ignores status in request input" do
@@ -337,6 +337,17 @@ describe "cases", type: :api do
 
       persisted_record.reload
       persisted_record.active?.should == false
+    end
+
+    it "returns 404 and does not update when attempting to update a deleted record" do
+      persisted_record = FactoryGirl.create(:deleted_case, anatomy: "knee")
+      new_attributes = { anatomy: "hip" }
+
+      put "/cases/#{persisted_record.id}", { case: new_attributes }
+
+      response.code.should == "404"
+      persisted_record.reload
+      persisted_record.anatomy.should == "knee"
     end
   end#update
 
@@ -359,6 +370,14 @@ describe "cases", type: :api do
       response.code.should == "404"
       response_body = JSON.parse(response.body)
       response_body["error"]["message"].should == "Not Found"
+    end
+
+    it "returns 404 if record is already deleted" do
+      persisted_record = FactoryGirl.create(:deleted_case)
+
+      delete "/cases/#{persisted_record.id}"
+
+      response.code.should == "404"
     end
   end#delete
 
