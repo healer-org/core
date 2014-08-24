@@ -81,6 +81,21 @@ describe "appointments", type: :api do
       response_records.size.should == 1
       response_records.first["id"].should == @persisted_2.id
     end
+
+    it "does not include records belonging to deleted patients" do
+      persisted_3 = FactoryGirl.create(
+        :appointment,
+        :patient => FactoryGirl.create(:deleted_patient)
+      )
+
+      get "/appointments", {}, valid_request_attributes
+
+      response.code.should == "200"
+      response_body = JSON.parse(response.body)
+      response_records = response_body["appointments"]
+
+      response_records.map{ |r| r["id"] }.should_not include(persisted_3.id)
+    end
   end
 
   describe "POST create" do
@@ -132,9 +147,30 @@ describe "appointments", type: :api do
       response_body = JSON.parse(response.body)
       response_body["error"]["message"].should == "Not Found"
     end
+
+    it "returns 404 if patient is deleted" do
+      patient = FactoryGirl.create(:deleted_patient)
+      attributes = FactoryGirl.attributes_for(:appointment).merge!(:patient_id => patient.id)
+
+      expect {
+        post "/appointments", { appointment: attributes }
+      }.to_not change(Appointment, :count)
+
+      response.code.should == "404"
+    end
   end
 
   describe "PUT update" do
+    it "returns 404 if patient is deleted" do
+      patient = FactoryGirl.create(:deleted_patient)
+      attributes = FactoryGirl.attributes_for(:appointment).merge!(:patient_id => patient.id)
+
+      expect {
+        post "/appointments", { appointment: attributes }
+      }.to_not change(Appointment, :count)
+
+      response.code.should == "404"
+    end
   end
 
   describe "DELETE" do

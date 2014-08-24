@@ -51,6 +51,19 @@ describe "patients", type: :api do
       end
     end
 
+    it "does not return results for deleted records, even if asked" do
+      @persisted_2.delete!
+
+      get "/patients?status=deleted", {}, valid_request_attributes
+
+      response.code.should == "200"
+      response_body = JSON.parse(response.body)
+      response_records = response_body["patients"]
+      response_records.size.should == 1
+
+      response_records.map{ |r| r["id"] }.should_not include(@persisted_2.id)
+    end
+
     context "when showCases param is true" do
       it "returns cases as additional JSON" do
         case1 = FactoryGirl.create(:case, patient: @persisted_1)
@@ -229,18 +242,30 @@ describe "patients", type: :api do
       response_body["error"]["message"].should == "Not Found"
     end
 
-    it "ignores status in request input" do
+    it "returns 404 if the record is deleted" do
       persisted_record = FactoryGirl.create(:deleted_patient)
+
+      put "/patients/#{persisted_record.id}", {
+        patient: { name: "Changed attributes" }
+      }
+
+      response.code.should == "404"
+      response_body = JSON.parse(response.body)
+      response_body["error"]["message"].should == "Not Found"
+    end
+
+    it "ignores status in request input" do
+      persisted_record = FactoryGirl.create(:patient)
       attributes = {
         name: "Juan Marco",
-        status: "active"
+        status: "should_not_change"
       }
 
       put "/patients/#{persisted_record.id}", { patient: attributes }
 
       persisted_record.reload
       persisted_record.name.should == "Juan Marco"
-      persisted_record.active?.should == false
+      persisted_record.status.should == "active"
     end
   end#update
 

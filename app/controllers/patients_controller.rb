@@ -1,7 +1,7 @@
 class PatientsController < ApplicationController
 
   def index
-    patients = Patient.where(status: "active")
+    patients = Patient.all
     if params[:showCases]
       cases_records = Case.where(:patient_id => patients.map(&:id))
     end
@@ -26,7 +26,7 @@ class PatientsController < ApplicationController
   end
 
   def show
-    patient = Patient.find_by!(id: params[:id], status: "active")
+    patient = Patient.find_by!(id: params[:id])
     patient_attributes = patient.attributes
 
     # TODO there's probably a nice simple way to do this via AR, but avoiding

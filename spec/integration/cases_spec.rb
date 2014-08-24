@@ -7,10 +7,10 @@ describe "cases", type: :api do
 
   describe "GET index" do
     before(:each) do
-      @patient1 = FactoryGirl.create(:patient)
-      @patient2 = FactoryGirl.create(:deceased_patient)
-      @persisted_1 = FactoryGirl.create(:case, patient: @patient1)
-      @persisted_2 = FactoryGirl.create(:case, patient: @patient2)
+      @patient_1 = FactoryGirl.create(:patient)
+      @patient_2 = FactoryGirl.create(:deceased_patient)
+      @persisted_1 = FactoryGirl.create(:case, patient: @patient_1)
+      @persisted_2 = FactoryGirl.create(:case, patient: @patient_2)
     end
 
     it "returns all records as JSON" do
@@ -26,13 +26,13 @@ describe "cases", type: :api do
       response_record_2 = response_records.detect{ |r| r["id"] == @persisted_2.id }
 
       PATIENT_ATTRIBUTES.each do |attr|
-        response_record_1["patient"][attr].to_s.should == @patient1.send(attr).to_s
-        response_record_2["patient"][attr].to_s.should == @patient2.send(attr).to_s
+        response_record_1["patient"][attr].to_s.should == @patient_1.send(attr).to_s
+        response_record_2["patient"][attr].to_s.should == @patient_2.send(attr).to_s
       end
     end
 
     it "does not return deleted records" do
-      @persisted_2.delete!
+      delete "/cases/#{@persisted_2.id}"
 
       get "/cases", {}, valid_request_attributes
 
@@ -41,11 +41,7 @@ describe "cases", type: :api do
       response_records = response_body["cases"]
       response_records.size.should == 1
 
-      response_record = response_records.first["patient"]
-
-      PATIENT_ATTRIBUTES.each do |attr|
-        response_record[attr].to_s.should == @patient1.send(attr).to_s
-      end
+      response_records.map{ |r| r["id"] }.should_not include(@persisted_2.id)
     end
 
     it "filters by status" do
@@ -63,7 +59,7 @@ describe "cases", type: :api do
       response_record["id"].to_s.should == @persisted_1.id.to_s
     end
 
-    it "excludes deleted status from filter" do
+    it "does not return results for deleted records, even if asked" do
       @persisted_1.update_attributes!(:status => "deleted")
 
       get "/cases?status=deleted", {}, valid_request_attributes

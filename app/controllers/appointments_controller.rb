@@ -1,7 +1,10 @@
 class AppointmentsController < ApplicationController
 
   def index
-    appointments = Appointment.includes(:patient).where(filter_params)
+    appointments = Appointment.includes(:patient).
+      where(filter_params).
+      where.not(patients: { status: "deleted" })
+
     presented = appointments.map { |r| presented(r) }
 
     render(

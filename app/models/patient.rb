@@ -1,18 +1,16 @@
-class Patient < ActiveRecord::Base
+class Patient < HealerRecord
+  include SoftDelete
+
+  def self.default_scope
+    where.not(status: "deleted")
+  end
+
   validates_presence_of :name
 
-  def to_json(options = {})
-    Rails.logger.warn("* using ActiveRecord to_json *")
-    super
-  end
 
-  def delete!
-    # TODO fire event
-    Rails.logger.info("id=#{self.id} object=#{self.class.name} action=delete")
-    update_attributes!(status: "deleted")
-  end
+  private
 
-  def active?
-    status == "active"
+  def delete_associations!
+    Case.where(patient_id: self.id).map(&:delete!)
   end
 end
