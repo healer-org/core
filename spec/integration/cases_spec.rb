@@ -142,10 +142,14 @@ describe "cases", type: :api do
 
   describe "POST create" do
     it "returns 400 if no client_id is supplied" do
-      post "/cases", case: FactoryGirl.attributes_for(:case)
+      post "/cases",
+           { case: FactoryGirl.attributes_for(:case) }.to_json,
+           "Content-Type" => "application/json"
 
       expect_missing_client_response
     end
+
+    it "returns 400 if JSON content-type not specified"
 
     context "when patient is posted as nested attribute" do
       it "creates a new active persisted record for the case and returns JSON" do
@@ -154,7 +158,9 @@ describe "cases", type: :api do
         case_attributes[:patient] = patient_attributes
 
         expect {
-          post "/cases", valid_request_attributes.merge(case: case_attributes)
+          post "/cases",
+               valid_request_attributes.merge(case: case_attributes).to_json,
+               "Content-Type" => "application/json"
         }.to change(Case, :count).by(1)
 
         response.code.should == "201"
@@ -174,7 +180,9 @@ describe "cases", type: :api do
         case_attributes[:patient] = patient_attributes
 
         expect {
-          post "/cases", valid_request_attributes.merge(case: case_attributes)
+          post "/cases",
+               valid_request_attributes.merge(case: case_attributes).to_json,
+               "Content-Type" => "application/json"
         }.to change(Patient, :count).by(1)
 
         response_record = JSON.parse(response.body)["case"]["patient"]
@@ -193,7 +201,9 @@ describe "cases", type: :api do
         case_attributes[:patient] = patient_attributes
 
         expect {
-          post "/cases", valid_request_attributes.merge(case: case_attributes)
+          post "/cases",
+               valid_request_attributes.merge(case: case_attributes).to_json,
+               "Content-Type" => "application/json"
         }.to_not change(Case, :count)
 
         response.code.should == "400"
@@ -206,7 +216,9 @@ describe "cases", type: :api do
         case_attributes[:patient] = patient_attributes
 
         expect {
-          post "/cases", valid_request_attributes.merge(case: case_attributes)
+          post "/cases",
+               valid_request_attributes.merge(case: case_attributes).to_json,
+               "Content-Type" => "application/json"
         }.to change(Case, :count).by(1)
 
         response.code.should == "201"
@@ -227,7 +239,9 @@ describe "cases", type: :api do
         case_attributes[:patient_id] = @patient.id
 
         expect {
-          post "/cases", valid_request_attributes.merge(case: case_attributes)
+          post "/cases",
+               valid_request_attributes.merge(case: case_attributes).to_json,
+               "Content-Type" => "application/json"
         }.to change(Case, :count).by(1)
 
         persisted_record = Case.last
@@ -252,7 +266,9 @@ describe "cases", type: :api do
           }
 
           expect {
-            post "/cases", valid_request_attributes.merge(case: case_attributes)
+            post "/cases",
+                 valid_request_attributes.merge(case: case_attributes).to_json,
+                 "Content-Type" => "application/json"
           }.to change(Case, :count).by(1)
 
           @patient.reload
@@ -270,7 +286,9 @@ describe "cases", type: :api do
           case_attributes[:patient] = { name: "New Patient Info" }
 
           expect {
-            post "/cases", valid_request_attributes.merge(case: case_attributes)
+            post "/cases",
+                 valid_request_attributes.merge(case: case_attributes).to_json,
+                 "Content-Type" => "application/json"
           }.to_not change(Patient, :count)
         end
       end
@@ -280,7 +298,9 @@ describe "cases", type: :api do
         case_attributes[:patient_id] = 100
         case_attributes[:patient] = { name: "Patient Info" }
 
-        post "/cases", valid_request_attributes.merge(case: case_attributes)
+        post "/cases",
+             valid_request_attributes.merge(case: case_attributes).to_json,
+             "Content-Type" => "application/json"
 
         expect_not_found_response
       end
@@ -290,7 +310,9 @@ describe "cases", type: :api do
       it "returns 400 on absent patient or patient id" do
         case_attributes = FactoryGirl.attributes_for(:case)
 
-        post "/cases", valid_request_attributes.merge(case: case_attributes)
+        post "/cases",
+             valid_request_attributes.merge(case: case_attributes).to_json,
+             "Content-Type" => "application/json"
 
         response.code.should == "400"
         json["error"]["message"].should match(/patient/i)
@@ -303,10 +325,14 @@ describe "cases", type: :api do
       persisted_record = FactoryGirl.create(:case)
       new_attributes = { anatomy: "hip" }
 
-      put "/cases/#{persisted_record.id}", case: new_attributes
+      put "/cases/#{persisted_record.id}",
+          { case: new_attributes }.to_json,
+          "Content-Type" => "application/json"
 
       expect_missing_client_response
     end
+
+    it "returns 400 if JSON content-type not specified"
 
     it "updates an existing case record" do
       persisted_record = FactoryGirl.create(:case,
@@ -318,9 +344,9 @@ describe "cases", type: :api do
         side: "right"
       }
 
-      put "/cases/#{persisted_record.id}", valid_request_attributes.merge(
-        case: new_attributes
-      )
+      put "/cases/#{persisted_record.id}",
+          valid_request_attributes.merge(case: new_attributes).to_json,
+          "Content-Type" => "application/json"
 
       persisted_record.reload
       persisted_record.anatomy.should == "hip"
@@ -344,9 +370,9 @@ describe "cases", type: :api do
         }
       }
 
-      put "/cases/#{persisted_record.id}", valid_request_attributes.merge(
-        case: new_attributes
-      )
+      put "/cases/#{persisted_record.id}",
+          valid_request_attributes.merge(case: new_attributes).to_json,
+          "Content-Type" => "application/json"
 
       persisted_record.reload
       persisted_record.patient.reload.should == patient
@@ -356,9 +382,9 @@ describe "cases", type: :api do
     it "ignores status in request input" do
       persisted_record = FactoryGirl.create(:deleted_case)
 
-      put "/cases/#{persisted_record.id}", valid_request_attributes.merge(
-        case: { status: "active" }
-      )
+      put "/cases/#{persisted_record.id}",
+          valid_request_attributes.merge(case: { status: "active" }).to_json,
+          "Content-Type" => "application/json"
 
       persisted_record.reload
       persisted_record.active?.should == false
@@ -368,9 +394,9 @@ describe "cases", type: :api do
       persisted_record = FactoryGirl.create(:deleted_case, anatomy: "knee")
       new_attributes = { anatomy: "hip" }
 
-      put "/cases/#{persisted_record.id}", valid_request_attributes.merge(
-        case: new_attributes
-      )
+      put "/cases/#{persisted_record.id}",
+          valid_request_attributes.merge(case: new_attributes).to_json,
+          "Content-Type" => "application/json"
 
       expect_not_found_response
       persisted_record.reload

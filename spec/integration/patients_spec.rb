@@ -166,16 +166,22 @@ describe "patients", type: :api do
     it "returns 400 if no client_id is supplied" do
       attributes = FactoryGirl.attributes_for(:patient)
 
-      post "/patients", { patient: attributes }
+      post "/patients",
+            patient: attributes.to_json,
+           "Content-Type" => "application/json"
 
       expect_missing_client_response
     end
+
+    it "returns 400 if JSON content-type not specified"
 
     it "creates a new active persisted record and returns JSON" do
       attributes = FactoryGirl.attributes_for(:patient)
 
       expect {
-        post "/patients", valid_request_attributes.merge( patient: attributes )
+        post "/patients",
+             valid_request_attributes.merge( patient: attributes ).to_json,
+             "Content-Type" => "application/json"
       }.to change(Patient, :count).by(1)
 
       response.code.should == "201"
@@ -192,7 +198,9 @@ describe "patients", type: :api do
       attributes = FactoryGirl.attributes_for(:patient)
       attributes.delete(:name)
 
-      post "/patients", valid_request_attributes.merge(patient: attributes)
+      post "/patients",
+           valid_request_attributes.merge(patient: attributes).to_json,
+           "Content-Type" => "application/json"
 
       response.code.should == "400"
       json["error"]["message"].should match(/name/i)
@@ -201,7 +209,9 @@ describe "patients", type: :api do
     it "ignores status in request input" do
       attributes = FactoryGirl.attributes_for(:deleted_patient)
 
-      post "/patients", valid_request_attributes.merge(patient: attributes)
+      post "/patients",
+           valid_request_attributes.merge(patient: attributes).to_json,
+           "Content-Type" => "application/json"
 
       response.code.should == "201"
       persisted_record = Patient.last
@@ -214,10 +224,14 @@ describe "patients", type: :api do
       persisted_record = FactoryGirl.create(:patient)
       attributes = { name: "Juan Marco" }
 
-      put "/patients/#{persisted_record.id}", { patient: attributes }
+      put "/patients/#{persisted_record.id}",
+          patient: attributes.to_json,
+          "Content-Type" => "application/json"
 
       expect_missing_client_response
     end
+
+    it "returns 400 if JSON content-type not specified"
 
     it "updates an existing persisted record" do
       persisted_record = FactoryGirl.create(:patient)
@@ -228,9 +242,9 @@ describe "patients", type: :api do
         death: Date.parse("2014-07-12")
       }
 
-      put "/patients/#{persisted_record.id}", valid_request_attributes.merge(
-        patient: attributes
-      )
+      put "/patients/#{persisted_record.id}",
+          valid_request_attributes.merge(patient: attributes).to_json,
+          "Content-Type" => "application/json"
 
       persisted_record.reload
       persisted_record.name.should == "Juan Marco"
@@ -246,9 +260,9 @@ describe "patients", type: :api do
         birth: Date.parse("1977-08-12")
       }
 
-      put "/patients/#{persisted_record.id}", valid_request_attributes.merge(
-        patient: attributes
-      )
+      put "/patients/#{persisted_record.id}",
+          valid_request_attributes.merge(patient: attributes).to_json,
+          "Content-Type" => "application/json"
 
       response.code.should == "200"
       response_record = JSON.parse(response.body)["patient"]
@@ -261,17 +275,20 @@ describe "patients", type: :api do
         name: "Juana",
         birth: Date.parse("1977-08-12")
       }
-      put "/patients/1", valid_request_attributes.merge(patient: attributes)
+      put "/patients/1",
+          valid_request_attributes.merge(patient: attributes).to_json,
+          "Content-Type" => "application/json"
 
       expect_not_found_response
     end
 
     it "returns 404 if the record is deleted" do
       persisted_record = FactoryGirl.create(:deleted_patient)
+      attributes = { name: "Changed attributes" }
 
-      put "/patients/#{persisted_record.id}", valid_request_attributes.merge(
-        patient: { name: "Changed attributes" }
-      )
+      put "/patients/#{persisted_record.id}",
+          valid_request_attributes.merge(patient: attributes).to_json,
+          "Content-Type" => "application/json"
 
       expect_not_found_response
     end
@@ -283,9 +300,9 @@ describe "patients", type: :api do
         status: "should_not_change"
       }
 
-      put "/patients/#{persisted_record.id}", valid_request_attributes.merge(
-        patient: attributes
-      )
+      put "/patients/#{persisted_record.id}",
+          valid_request_attributes.merge(patient: attributes).to_json,
+          "Content-Type" => "application/json"
 
       persisted_record.reload
       persisted_record.name.should == "Juan Marco"

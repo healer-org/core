@@ -144,10 +144,14 @@ describe "appointments", type: :api do
         patient_id: patient.id
       )
 
-      post "/appointments", appointment: attributes
+      post "/appointments",
+           appointment: attributes.to_json,
+           "Content-Type" => "application/json"
 
       expect_missing_client_response
     end
+
+    it "returns 400 if JSON content-type not specified"
 
     it "persists a new patient-associated record and returns JSON" do
       patient = FactoryGirl.create(:patient)
@@ -156,9 +160,9 @@ describe "appointments", type: :api do
       )
 
       expect {
-        post "/appointments", valid_request_attributes.merge(
-          appointment: attributes
-        )
+        post "/appointments",
+             valid_request_attributes.merge(appointment: attributes).to_json,
+             "Content-Type" => "application/json"
       }.to change(Appointment, :count).by(1)
 
       response.code.should == "201"
@@ -181,9 +185,9 @@ describe "appointments", type: :api do
       attributes.should_not include(:patient_id)
 
       expect {
-        post "/appointments", valid_request_attributes.merge(
-          appointment: attributes
-        )
+        post "/appointments",
+             valid_request_attributes.merge(appointment: attributes).to_json,
+             "Content-Type" => "application/json"
       }.to_not change(Appointment, :count)
 
       response.code.should == "400"
@@ -195,9 +199,9 @@ describe "appointments", type: :api do
       Patient.find_by_id(1).should be_nil
 
       expect {
-        post "/appointments", valid_request_attributes.merge(
-          appointment: attributes
-        )
+        post "/appointments",
+             valid_request_attributes.merge(appointment: attributes).to_json,
+             "Content-Type" => "application/json"
       }.to_not change(Appointment, :count)
 
       expect_not_found_response
@@ -208,9 +212,9 @@ describe "appointments", type: :api do
       attributes = FactoryGirl.attributes_for(:appointment).merge!(patient_id: patient.id)
 
       expect {
-        post "/appointments", valid_request_attributes.merge(
-          appointment: attributes
-        )
+        post "/appointments",
+             valid_request_attributes.merge(appointment: attributes).to_json,
+             "Content-Type" => "application/json"
       }.to_not change(Appointment, :count)
 
       expect_not_found_response
@@ -222,10 +226,14 @@ describe "appointments", type: :api do
       persisted_record = FactoryGirl.create(:appointment)
       new_attributes = { start_time: Time.now.utc + 1.week }
 
-      put "/appointments/#{persisted_record.id}", appointment: new_attributes
+      put "/appointments/#{persisted_record.id}",
+          appointment: new_attributes.to_json,
+          "Content-Type" => "application/json"
 
       expect_missing_client_response
     end
+
+    it "returns 400 if JSON content-type not specified"
 
     it "updates an existing appointment record" do
       persisted_record = FactoryGirl.create(:appointment)
@@ -240,9 +248,9 @@ describe "appointments", type: :api do
         persisted_record.send(k).should_not == v
       end
 
-      put "/appointments/#{persisted_record.id}", valid_request_attributes.merge(
-        appointment: new_attributes
-      )
+      put "/appointments/#{persisted_record.id}",
+          valid_request_attributes.merge(appointment: new_attributes).to_json,
+          "Content-Type" => "application/json"
 
       response_record = JSON.parse(response.body)["appointment"]
       persisted_record.reload
@@ -271,9 +279,9 @@ describe "appointments", type: :api do
         patient_id: different_patient.id
       }
 
-      put "/appointments/#{persisted_record.id}", valid_request_attributes.merge(
-        appointment: new_attributes
-      )
+      put "/appointments/#{persisted_record.id}",
+          valid_request_attributes.merge(appointment: new_attributes).to_json,
+          "Content-Type" => "application/json"
 
       persisted_record.reload
       persisted_record.patient_id.should == patient.id
@@ -290,9 +298,9 @@ describe "appointments", type: :api do
         }
       }
 
-      put "/appointments/#{persisted_record.id}", valid_request_attributes.merge(
-        appointment: new_attributes
-      )
+      put "/appointments/#{persisted_record.id}",
+          valid_request_attributes.merge(appointment: new_attributes).to_json,
+          "Content-Type" => "application/json"
 
       persisted_record.reload
       persisted_record.patient.reload.should == patient
@@ -307,9 +315,9 @@ describe "appointments", type: :api do
         start_ordinal: 5
       }
 
-      put "/appointments/#{persisted_record.id}", valid_request_attributes.merge(
-        appointment: new_attributes
-      )
+      put "/appointments/#{persisted_record.id}",
+          valid_request_attributes.merge(appointment: new_attributes).to_json,
+          "Content-Type" => "application/json"
 
       expect_not_found_response
     end
