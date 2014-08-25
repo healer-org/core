@@ -123,8 +123,7 @@ describe "appointments", type: :api do
     it "returns 404 if there is no persisted record" do
       get "/appointments/#{@persisted_record.id + 1}", valid_request_attributes
 
-      response.code.should == "404"
-      json["error"]["message"].should == "Not Found"
+      expect_not_found_response
     end
 
     it "returns 404 if patient is deleted" do
@@ -134,8 +133,7 @@ describe "appointments", type: :api do
 
       get "/appointments/#{persisted_record.id}", valid_request_attributes
 
-      response.code.should == "404"
-      json["error"]["message"].should == "Not Found"
+      expect_not_found_response
     end
   end#show
 
@@ -202,8 +200,7 @@ describe "appointments", type: :api do
         )
       }.to_not change(Appointment, :count)
 
-      response.code.should == "404"
-      json["error"]["message"].should == "Not Found"
+      expect_not_found_response
     end
 
     it "returns 404 if patient is deleted" do
@@ -216,7 +213,7 @@ describe "appointments", type: :api do
         )
       }.to_not change(Appointment, :count)
 
-      response.code.should == "404"
+      expect_not_found_response
     end
   end
 
@@ -314,7 +311,7 @@ describe "appointments", type: :api do
         appointment: new_attributes
       )
 
-      response.code.should == "404"
+      expect_not_found_response
     end
   end
 
@@ -341,8 +338,7 @@ describe "appointments", type: :api do
     it "returns 404 if persisted record does not exist" do
       delete "/appointments/100", valid_request_attributes
 
-      response.code.should == "404"
-      json["error"]["message"].should == "Not Found"
+      expect_not_found_response
     end
   end#delete
 

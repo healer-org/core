@@ -110,8 +110,7 @@ describe "cases", type: :api do
     it "returns 404 if there is no persisted record" do
       get "/cases/#{@persisted_case.id + 1}", valid_request_attributes
 
-      response.code.should == "404"
-      json["error"]["message"].should == "Not Found"
+      expect_not_found_response
     end
 
     it "does not return status attribute" do
@@ -128,8 +127,7 @@ describe "cases", type: :api do
 
       get "/cases/#{persisted_record.id}", valid_request_attributes
 
-      response.code.should == "404"
-      json["error"]["message"].should == "Not Found"
+      expect_not_found_response
     end
 
     it "returns 404 if the patient is deleted" do
@@ -138,8 +136,7 @@ describe "cases", type: :api do
 
       get "/cases/#{persisted_record.id}", valid_request_attributes
 
-      response.code.should == "404"
-      json["error"]["message"].should == "Not Found"
+      expect_not_found_response
     end
   end#show
 
@@ -285,8 +282,7 @@ describe "cases", type: :api do
 
         post "/cases", valid_request_attributes.merge(case: case_attributes)
 
-        response.code.should == "404"
-        json["error"]["message"].should == "Not Found"
+        expect_not_found_response
       end
     end
 
@@ -376,7 +372,7 @@ describe "cases", type: :api do
         case: new_attributes
       )
 
-      response.code.should == "404"
+      expect_not_found_response
       persisted_record.reload
       persisted_record.anatomy.should == "knee"
     end
@@ -405,8 +401,7 @@ describe "cases", type: :api do
     it "returns 404 if persisted record does not exist" do
       delete "/cases/100", valid_request_attributes
 
-      response.code.should == "404"
-      json["error"]["message"].should == "Not Found"
+      expect_not_found_response
     end
 
     it "returns 404 if record is already deleted" do
@@ -414,7 +409,7 @@ describe "cases", type: :api do
 
       delete "/cases/#{persisted_record.id}", valid_request_attributes
 
-      response.code.should == "404"
+      expect_not_found_response
     end
   end#delete
 

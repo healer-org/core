@@ -116,8 +116,7 @@ describe "patients", type: :api do
     it "returns 404 if there is no persisted record" do
       get "/patients/#{@persisted.id + 1}", valid_request_attributes
 
-      response.code.should == "404"
-      json["error"]["message"].should == "Not Found"
+      expect_not_found_response
     end
 
     it "does not return status attribute" do
@@ -134,8 +133,7 @@ describe "patients", type: :api do
 
       get "/patients/#{persisted_record.id}", valid_request_attributes
 
-      response.code.should == "404"
-      json["error"]["message"].should == "Not Found"
+      expect_not_found_response
     end
 
     context "when showCases param is true" do
@@ -265,8 +263,7 @@ describe "patients", type: :api do
       }
       put "/patients/1", valid_request_attributes.merge(patient: attributes)
 
-      response.code.should == "404"
-      json["error"]["message"].should == "Not Found"
+      expect_not_found_response
     end
 
     it "returns 404 if the record is deleted" do
@@ -276,8 +273,7 @@ describe "patients", type: :api do
         patient: { name: "Changed attributes" }
       )
 
-      response.code.should == "404"
-      json["error"]["message"].should == "Not Found"
+      expect_not_found_response
     end
 
     it "ignores status in request input" do
@@ -320,8 +316,7 @@ describe "patients", type: :api do
     it "returns 404 if persisted record does not exist" do
       delete "/patients/100", valid_request_attributes
 
-      response.code.should == "404"
-      json["error"]["message"].should == "Not Found"
+      expect_not_found_response
     end
   end#delete
 

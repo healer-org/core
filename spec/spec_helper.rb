@@ -60,10 +60,5 @@ RSpec.configure do |config|
   config.infer_spec_type_from_file_location!
 
   config.include Requests::JsonHelpers
-end
-
-def expect_missing_client_response
-  response.code.should == "400"
-  response_body = JSON.parse(response.body)
-  response_body["error"]["message"].should match(/client_id/i)
+  config.include Requests::ResponseHelpers
 end
