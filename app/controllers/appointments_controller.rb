@@ -23,6 +23,17 @@ class AppointmentsController < ApplicationController
     render_one(appointment_record, :created)
   end
 
+  def update
+    appointment_record = Appointment.includes(:patient).
+      where.not(patients: { status: "deleted" }).find(params[:id])
+
+    params = appointment_params
+    params.delete(:patient_id) if params[:patient_id]
+
+    appointment_record.update_attributes!(params)
+    render_one(appointment_record)
+  end
+
   def delete
     persisted_record = Appointment.find(params[:id])
     persisted_record.destroy

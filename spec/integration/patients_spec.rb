@@ -29,8 +29,8 @@ describe "patients", type: :api do
       response_record_2 = response_records.detect{ |r| r["id"] == @persisted_2.id }
 
       PATIENT_ATTRIBUTES.each do |attr|
-        response_record_1[attr].to_s.should == @persisted_1.send(attr).to_s
-        response_record_2[attr].to_s.should == @persisted_2.send(attr).to_s
+        response_record_1[attr.to_s].to_s.should == @persisted_1.send(attr).to_s
+        response_record_2[attr.to_s].to_s.should == @persisted_2.send(attr).to_s
       end
     end
 
@@ -47,7 +47,7 @@ describe "patients", type: :api do
       response_record = response_records.first
 
       PATIENT_ATTRIBUTES.each do |attr|
-        response_record[attr].to_s.should == @persisted_1.send(attr).to_s
+        response_record[attr.to_s].to_s.should == @persisted_1.send(attr).to_s
       end
     end
 
@@ -83,8 +83,8 @@ describe "patients", type: :api do
         case2_result = response_record_2["cases"].first
 
         CASE_ATTRIBUTES.each do |attr|
-          case1_result[attr].to_s.should == case1.send(attr).to_s
-          case2_result[attr].to_s.should == case2.send(attr).to_s
+          case1_result[attr.to_s].to_s.should == case1.send(attr).to_s
+          case2_result[attr.to_s].to_s.should == case2.send(attr).to_s
         end
       end
     end
@@ -143,14 +143,14 @@ describe "patients", type: :api do
         response_record = JSON.parse(response.body)["patient"]
 
         PATIENT_ATTRIBUTES.each do |attr|
-          response_record[attr].to_s.should == @persisted.send(attr).to_s
+          response_record[attr.to_s].to_s.should == @persisted.send(attr).to_s
         end
 
         cases = response_record["cases"]
         cases.size.should == 2
         CASE_ATTRIBUTES.each do |attr|
-          cases[0][attr].to_s.should == case1.send(attr).to_s
-          cases[1][attr].to_s.should == case2.send(attr).to_s
+          cases[0][attr.to_s].to_s.should == case1.send(attr).to_s
+          cases[1][attr.to_s].to_s.should == case2.send(attr).to_s
         end
       end
     end
@@ -170,7 +170,7 @@ describe "patients", type: :api do
       persisted_record = Patient.last
       persisted_record.active?.should == true
       PATIENT_ATTRIBUTES.each do |attr|
-        response_record[attr].to_s.should == persisted_record.send(attr).to_s
+        response_record[attr.to_s].to_s.should == persisted_record.send(attr).to_s
       end
     end
 

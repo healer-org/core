@@ -26,21 +26,21 @@ describe "appointments", type: :api do
       response_record_2 = response_records.detect{ |r| r["id"] == @persisted_2.id }
 
       APPOINTMENT_ATTRIBUTES.each do |attr|
-        if %w(start_time end_time).include? attr
-          Time.parse(response_record_1[attr]).iso8601.should == @persisted_1.send(attr).iso8601
-          Time.parse(response_record_2[attr]).iso8601.should == @persisted_2.send(attr).iso8601
+        if %i(start_time end_time).include?(attr)
+          Time.parse(response_record_1[attr.to_s]).iso8601.should == @persisted_1.send(attr).iso8601
+          Time.parse(response_record_2[attr.to_s]).iso8601.should == @persisted_2.send(attr).iso8601
         else
-          response_record_1[attr].should == @persisted_1.send(attr)
-          response_record_2[attr].should == @persisted_2.send(attr)
+          response_record_1[attr.to_s].should == @persisted_1.send(attr)
+          response_record_2[attr.to_s].should == @persisted_2.send(attr)
         end
       end
       PATIENT_ATTRIBUTES.each do |attr|
-        if attr == "birth"
-          response_record_1["patient"][attr].should == @persisted_1.patient.send(attr).to_s(:db)
-          response_record_2["patient"][attr].should == @persisted_2.patient.send(attr).to_s(:db)
+        if attr == :birth
+          response_record_1["patient"][attr.to_s].should == @persisted_1.patient.send(attr).to_s(:db)
+          response_record_2["patient"][attr.to_s].should == @persisted_2.patient.send(attr).to_s(:db)
         else
-          response_record_1["patient"][attr].should == @persisted_1.patient.send(attr)
-          response_record_2["patient"][attr].should == @persisted_2.patient.send(attr)
+          response_record_1["patient"][attr.to_s].should == @persisted_1.patient.send(attr)
+          response_record_2["patient"][attr.to_s].should == @persisted_2.patient.send(attr)
         end
       end
     end
@@ -115,10 +115,10 @@ describe "appointments", type: :api do
 
       persisted_record.patient_id.should == patient.id
       APPOINTMENT_ATTRIBUTES.each do |attr|
-        attributes[attr.to_sym].should == persisted_record.send(attr)
+        attributes[attr].should == persisted_record.send(attr)
       end
       PATIENT_ATTRIBUTES.each do |attr|
-        response_record["patient"][attr].to_s.should == patient.send(attr).to_s
+        response_record["patient"][attr.to_s].to_s.should == patient.send(attr).to_s
       end
     end
 
@@ -161,13 +161,81 @@ describe "appointments", type: :api do
   end
 
   describe "PUT update" do
+    it "updates an existing appointment record" do
+      persisted_record = FactoryGirl.create(:appointment)
+      new_attributes = {
+        start_time: Time.now.utc + 1.week,
+        start_ordinal: 5,
+        location: "room 1",
+        end_time: Time.now.utc + 2.weeks
+      }
+
+      new_attributes.each do |k,v|
+        persisted_record.send(k).should_not == v
+      end
+
+      put "/appointments/#{persisted_record.id}", { appointment: new_attributes }
+
+      response_record = JSON.parse(response.body)["appointment"]
+      persisted_record.reload
+
+      response.code.should == "200"
+      attribute_keys = new_attributes.keys
+      APPOINTMENT_ATTRIBUTES.each do |attr|
+        if attribute_keys.include?(attr)
+          if %i(start_time end_time).include?(attr)
+            Time.parse(response_record[attr.to_s]).iso8601.should == persisted_record.send(attr).iso8601
+            Time.parse(response_record[attr.to_s]).iso8601.should == new_attributes[attr].iso8601
+          else
+            response_record[attr.to_s].should == persisted_record.send(attr)
+            response_record[attr.to_s].should == new_attributes[attr]
+          end
+        end
+      end
+    end
+
+    it "does not allow transfer to another patient" do
+      patient = FactoryGirl.create(:patient)
+      different_patient = FactoryGirl.create(:patient)
+      persisted_record = FactoryGirl.create(:appointment, patient: patient)
+      new_attributes = {
+        start_ordinal: 5,
+        patient_id: different_patient.id
+      }
+
+      put "/appointments/#{persisted_record.id}", { appointment: new_attributes }
+
+      persisted_record.reload
+      persisted_record.patient_id.should == patient.id
+    end
+
+    it "does not update patient information" do
+      patient = FactoryGirl.create(:patient)
+      original_patient_name = patient.name
+      persisted_record = FactoryGirl.create(:appointment, patient: patient)
+      new_attributes = {
+        start_ordinal: 500,
+        patient: {
+          name: "New Patient Name"
+        }
+      }
+
+      put "/appointments/#{persisted_record.id}", { appointment: new_attributes }
+
+      persisted_record.reload
+      persisted_record.patient.reload.should == patient
+      persisted_record.patient.name.should == original_patient_name
+    end
+
     it "returns 404 if patient is deleted" do
       patient = FactoryGirl.create(:deleted_patient)
-      attributes = FactoryGirl.attributes_for(:appointment).merge!(:patient_id => patient.id)
+      persisted_record = FactoryGirl.create(:appointment, patient: patient)
+      new_attributes = {
+        start_time: Time.now + 1.week,
+        start_ordinal: 5
+      }
 
-      expect {
-        post "/appointments", { appointment: attributes }
-      }.to_not change(Appointment, :count)
+      put "/appointments/#{persisted_record.id}", { appointment: new_attributes }
 
       response.code.should == "404"
     end

@@ -26,8 +26,8 @@ describe "cases", type: :api do
       response_record_2 = response_records.detect{ |r| r["id"] == @persisted_2.id }
 
       PATIENT_ATTRIBUTES.each do |attr|
-        response_record_1["patient"][attr].to_s.should == @patient_1.send(attr).to_s
-        response_record_2["patient"][attr].to_s.should == @patient_2.send(attr).to_s
+        response_record_1["patient"][attr.to_s].to_s.should == @patient_1.send(attr).to_s
+        response_record_2["patient"][attr.to_s].to_s.should == @patient_2.send(attr).to_s
       end
     end
 
@@ -83,10 +83,10 @@ describe "cases", type: :api do
       response.code.should == "200"
       response_record = JSON.parse(response.body)["case"]
       CASE_ATTRIBUTES.each do |attr|
-        response_record[attr].to_s.should == @persisted_case.send(attr).to_s
+        response_record[attr.to_s].to_s.should == @persisted_case.send(attr).to_s
       end
       PATIENT_ATTRIBUTES.each do |attr|
-        response_record["patient"][attr].to_s.should == @persisted_patient.send(attr).to_s
+        response_record["patient"][attr.to_s].to_s.should == @persisted_patient.send(attr).to_s
       end
     end
 
@@ -145,8 +145,8 @@ describe "cases", type: :api do
         persisted_record = Case.last
         persisted_record.active?.should == true
         CASE_ATTRIBUTES.each do |attr|
-          case_attributes[attr.to_sym].to_s.should == persisted_record.send(attr).to_s
-          response_record[attr].to_s.should == persisted_record.send(attr).to_s
+          case_attributes[attr].to_s.should == persisted_record.send(attr).to_s
+          response_record[attr.to_s].to_s.should == persisted_record.send(attr).to_s
         end
       end
 
@@ -163,8 +163,8 @@ describe "cases", type: :api do
         persisted_record = Patient.last
         persisted_record.active?.should == true
         PATIENT_ATTRIBUTES.each do |attr|
-          patient_attributes[attr.to_sym].to_s.should == persisted_record.send(attr).to_s
-          response_record[attr].to_s.should == persisted_record.send(attr).to_s
+          patient_attributes[attr].to_s.should == persisted_record.send(attr).to_s
+          response_record[attr.to_s].to_s.should == persisted_record.send(attr).to_s
         end
       end
 
@@ -217,10 +217,10 @@ describe "cases", type: :api do
         response_record = JSON.parse(response.body)["case"]["patient"]
 
         CASE_ATTRIBUTES.each do |attr|
-          case_attributes[attr.to_sym].to_s.should == persisted_record.send(attr).to_s
+          case_attributes[attr].to_s.should == persisted_record.send(attr).to_s
         end
         PATIENT_ATTRIBUTES.each do |attr|
-          response_record[attr].to_s.should == @patient.send(attr).to_s
+          response_record[attr.to_s].to_s.should == @patient.send(attr).to_s
         end
       end
 
@@ -243,7 +243,7 @@ describe "cases", type: :api do
           @patient.active?.should == true
           persisted_record = Case.last
           CASE_ATTRIBUTES.each do |attr|
-            case_attributes[attr.to_sym].to_s.should == persisted_record.send(attr).to_s
+            case_attributes[attr].to_s.should == persisted_record.send(attr).to_s
           end
         end
 
