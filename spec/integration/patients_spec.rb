@@ -16,6 +16,10 @@ describe "patients", type: :api do
       get "/patients"
 
       expect_missing_client_response
+
+      get "/patients", { client_id: "" }
+
+      expect_missing_client_response
     end
 
     it "returns all records as JSON" do
