@@ -1,5 +1,22 @@
 require "spec_helper"
 
+def validate_response_matches_persisted(response, persisted)
+  APPOINTMENT_ATTRIBUTES.each do |attr|
+    if %i(start_time end_time).include?(attr)
+      Time.parse(response[attr.to_s]).iso8601.should == persisted.send(attr).iso8601
+    else
+      response[attr.to_s].should == persisted.send(attr)
+    end
+  end
+  PATIENT_ATTRIBUTES.each do |attr|
+    if attr == :birth
+      response["patient"][attr.to_s].should == persisted.patient.send(attr).to_s(:db)
+    else
+      response["patient"][attr.to_s].should == persisted.patient.send(attr)
+    end
+  end
+end
+
 describe "appointments", type: :api do
 
   # TODO: decide whether to allow appointment write to write patient info.
@@ -25,24 +42,8 @@ describe "appointments", type: :api do
       response_record_1 = response_records.detect{ |r| r["id"] == @persisted_1.id }
       response_record_2 = response_records.detect{ |r| r["id"] == @persisted_2.id }
 
-      APPOINTMENT_ATTRIBUTES.each do |attr|
-        if %i(start_time end_time).include?(attr)
-          Time.parse(response_record_1[attr.to_s]).iso8601.should == @persisted_1.send(attr).iso8601
-          Time.parse(response_record_2[attr.to_s]).iso8601.should == @persisted_2.send(attr).iso8601
-        else
-          response_record_1[attr.to_s].should == @persisted_1.send(attr)
-          response_record_2[attr.to_s].should == @persisted_2.send(attr)
-        end
-      end
-      PATIENT_ATTRIBUTES.each do |attr|
-        if attr == :birth
-          response_record_1["patient"][attr.to_s].should == @persisted_1.patient.send(attr).to_s(:db)
-          response_record_2["patient"][attr.to_s].should == @persisted_2.patient.send(attr).to_s(:db)
-        else
-          response_record_1["patient"][attr.to_s].should == @persisted_1.patient.send(attr)
-          response_record_2["patient"][attr.to_s].should == @persisted_2.patient.send(attr)
-        end
-      end
+      validate_response_matches_persisted(response_record_1, @persisted_1)
+      validate_response_matches_persisted(response_record_2, @persisted_2)
     end
 
     it "filters by location" do
@@ -97,6 +98,42 @@ describe "appointments", type: :api do
       response_records.map{ |r| r["id"] }.should_not include(persisted_3.id)
     end
   end
+
+  describe "GET show" do
+    before(:each) do
+      @persisted_patient = FactoryGirl.create(:patient)
+      @persisted_record = FactoryGirl.create(:appointment, patient: @persisted_patient)
+    end
+
+    it "returns a single persisted record as JSON" do
+      get "/appointments/#{@persisted_record.id}", {}, valid_request_attributes
+
+      response.code.should == "200"
+      response_record = JSON.parse(response.body)["appointment"]
+
+      validate_response_matches_persisted(response_record, @persisted_record)
+    end
+
+    it "returns 404 if there is no persisted record" do
+      get "/appointments/#{@persisted_record.id + 1}"
+
+      response.code.should == "404"
+      response_body = JSON.parse(response.body)
+      response_body["error"]["message"].should == "Not Found"
+    end
+
+    it "returns 404 if patient is deleted" do
+      persisted_record = FactoryGirl.create(:appointment,
+        patient: FactoryGirl.create(:deleted_patient)
+      )
+
+      get "/appointments/#{persisted_record.id}", {}, valid_request_attributes
+
+      response.code.should == "404"
+      response_body = JSON.parse(response.body)
+      response_body["error"]["message"].should == "Not Found"
+    end
+  end#show
 
   describe "POST create" do
     it "persists a new patient-associated record and returns JSON" do

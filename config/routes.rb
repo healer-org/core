@@ -12,7 +12,7 @@ Rails.application.routes.draw do
   delete  "cases/:id" => "cases#delete"
 
   get     "appointments"     => "appointments#index"
-  # get     "appointments/:id" => "appointments#show"
+  get     "appointments/:id" => "appointments#show"
   post    "appointments"     => "appointments#create"
   put     "appointments/:id" => "appointments#update"
   delete  "appointments/:id" => "appointments#delete"

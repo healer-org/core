@@ -13,6 +13,14 @@ class AppointmentsController < ApplicationController
     )
   end
 
+  def show
+    record = Appointment.includes(:patient).
+      where.not(patients: { status: "deleted" }).
+      find_by!(id: params[:id])
+
+    render_one(record)
+  end
+
   def create
     appointment_record = Appointment.new(appointment_params)
     raise ActionController::ParameterMissing.new("Missing patient id") unless appointment_record.patient_id

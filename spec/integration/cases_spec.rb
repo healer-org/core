@@ -126,6 +126,17 @@ describe "cases", type: :api do
       response_body = JSON.parse(response.body)
       response_body["error"]["message"].should == "Not Found"
     end
+
+    it "returns 404 if the patient is deleted" do
+      persisted_patient = FactoryGirl.create(:deleted_patient)
+      persisted_record = FactoryGirl.create(:case, patient: persisted_patient)
+
+      get "/cases/#{persisted_record.id}", {}, valid_request_attributes
+
+      response.code.should == "404"
+      response_body = JSON.parse(response.body)
+      response_body["error"]["message"].should == "Not Found"
+    end
   end#show
 
   describe "POST create" do

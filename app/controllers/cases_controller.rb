@@ -12,7 +12,9 @@ class CasesController < ApplicationController
   end
 
   def show
-    case_record = Case.find_by!(id: params[:id])
+    case_record = Case.includes(:patient).
+      where.not(patients: { status: "deleted" }).
+      find_by!(id: params[:id])
 
     render_one(case_record)
   end
