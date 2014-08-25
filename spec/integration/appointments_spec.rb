@@ -37,8 +37,7 @@ describe "appointments", type: :api do
       get "/appointments", valid_request_attributes
 
       response.code.should == "200"
-      response_body = JSON.parse(response.body)
-      response_records = response_body["appointments"]
+      response_records = json["appointments"]
       response_records.size.should == 2
       response_records.map{ |r| r["id"] }.any?{ |id| id.nil? }.should == false
 
@@ -55,8 +54,7 @@ describe "appointments", type: :api do
       get "/appointments", valid_request_attributes.merge(location: "room 1")
 
       response.code.should == "200"
-      response_body = JSON.parse(response.body)
-      response_records = response_body["appointments"]
+      response_records = json["appointments"]
       response_records.size.should == 1
       response_records.first["id"].should == @persisted_2.id
     end
@@ -67,8 +65,7 @@ describe "appointments", type: :api do
       get "/appointments", valid_request_attributes.merge(trip_id: "2")
 
       response.code.should == "200"
-      response_body = JSON.parse(response.body)
-      response_records = response_body["appointments"]
+      response_records = json["appointments"]
       response_records.size.should == 1
       response_records.first["id"].should == @persisted_1.id
     end
@@ -82,8 +79,7 @@ describe "appointments", type: :api do
       )
 
       response.code.should == "200"
-      response_body = JSON.parse(response.body)
-      response_records = response_body["appointments"]
+      response_records = json["appointments"]
       response_records.size.should == 1
       response_records.first["id"].should == @persisted_2.id
     end
@@ -97,8 +93,7 @@ describe "appointments", type: :api do
       get "/appointments", valid_request_attributes
 
       response.code.should == "200"
-      response_body = JSON.parse(response.body)
-      response_records = response_body["appointments"]
+      response_records = json["appointments"]
 
       response_records.map{ |r| r["id"] }.should_not include(persisted_3.id)
     end
@@ -129,8 +124,7 @@ describe "appointments", type: :api do
       get "/appointments/#{@persisted_record.id + 1}", valid_request_attributes
 
       response.code.should == "404"
-      response_body = JSON.parse(response.body)
-      response_body["error"]["message"].should == "Not Found"
+      json["error"]["message"].should == "Not Found"
     end
 
     it "returns 404 if patient is deleted" do
@@ -141,8 +135,7 @@ describe "appointments", type: :api do
       get "/appointments/#{persisted_record.id}", valid_request_attributes
 
       response.code.should == "404"
-      response_body = JSON.parse(response.body)
-      response_body["error"]["message"].should == "Not Found"
+      json["error"]["message"].should == "Not Found"
     end
   end#show
 
@@ -196,8 +189,7 @@ describe "appointments", type: :api do
       }.to_not change(Appointment, :count)
 
       response.code.should == "400"
-      response_body = JSON.parse(response.body)
-      response_body["error"]["message"].should match(/patient/i)
+      json["error"]["message"].should match(/patient/i)
     end
 
     it "returns 404 if patient is not found matching id" do
@@ -211,8 +203,7 @@ describe "appointments", type: :api do
       }.to_not change(Appointment, :count)
 
       response.code.should == "404"
-      response_body = JSON.parse(response.body)
-      response_body["error"]["message"].should == "Not Found"
+      json["error"]["message"].should == "Not Found"
     end
 
     it "returns 404 if patient is deleted" do
@@ -342,8 +333,7 @@ describe "appointments", type: :api do
       delete "/appointments/#{persisted_record.id}", valid_request_attributes
 
       response.code.should == "200"
-      response_body = JSON.parse(response.body)
-      response_body["message"].should == "Deleted"
+      json["message"].should == "Deleted"
 
       persisted_record.class.find_by_id(persisted_record.id).should be_nil
     end
@@ -352,8 +342,7 @@ describe "appointments", type: :api do
       delete "/appointments/100", valid_request_attributes
 
       response.code.should == "404"
-      response_body = JSON.parse(response.body)
-      response_body["error"]["message"].should == "Not Found"
+      json["error"]["message"].should == "Not Found"
     end
   end#delete
 

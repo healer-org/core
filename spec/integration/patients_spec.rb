@@ -26,8 +26,7 @@ describe "patients", type: :api do
       get "/patients", valid_request_attributes
 
       response.code.should == "200"
-      response_body = JSON.parse(response.body)
-      response_records = response_body["patients"]
+      response_records = json["patients"]
       response_records.size.should == 2
       response_records.map{ |r| r["id"] }.any?{ |id| id.nil? }.should == false
 
@@ -46,8 +45,7 @@ describe "patients", type: :api do
       get "/patients", valid_request_attributes
 
       response.code.should == "200"
-      response_body = JSON.parse(response.body)
-      response_records = response_body["patients"]
+      response_records = json["patients"]
       response_records.size.should == 1
 
       response_record = response_records.first
@@ -63,8 +61,7 @@ describe "patients", type: :api do
       get "/patients", valid_request_attributes.merge(status: "deleted")
 
       response.code.should == "200"
-      response_body = JSON.parse(response.body)
-      response_records = response_body["patients"]
+      response_records = json["patients"]
       response_records.size.should == 1
 
       response_records.map{ |r| r["id"] }.should_not include(@persisted_2.id)
@@ -78,8 +75,7 @@ describe "patients", type: :api do
         get "/patients", valid_request_attributes.merge(showCases: true)
 
         response.code.should == "200"
-        response_body = JSON.parse(response.body)
-        response_records = response_body["patients"]
+        response_records = json["patients"]
         response_records.size.should == 2
 
         response_record_1 = response_records.detect{ |p| p["id"] == @persisted_1.id }
@@ -121,8 +117,7 @@ describe "patients", type: :api do
       get "/patients/#{@persisted.id + 1}", valid_request_attributes
 
       response.code.should == "404"
-      response_body = JSON.parse(response.body)
-      response_body["error"]["message"].should == "Not Found"
+      json["error"]["message"].should == "Not Found"
     end
 
     it "does not return status attribute" do
@@ -140,8 +135,7 @@ describe "patients", type: :api do
       get "/patients/#{persisted_record.id}", valid_request_attributes
 
       response.code.should == "404"
-      response_body = JSON.parse(response.body)
-      response_body["error"]["message"].should == "Not Found"
+      json["error"]["message"].should == "Not Found"
     end
 
     context "when showCases param is true" do
@@ -203,8 +197,7 @@ describe "patients", type: :api do
       post "/patients", valid_request_attributes.merge(patient: attributes)
 
       response.code.should == "400"
-      response_body = JSON.parse(response.body)
-      response_body["error"]["message"].should match(/name/i)
+      json["error"]["message"].should match(/name/i)
     end
 
     it "ignores status in request input" do
@@ -273,8 +266,7 @@ describe "patients", type: :api do
       put "/patients/1", valid_request_attributes.merge(patient: attributes)
 
       response.code.should == "404"
-      response_body = JSON.parse(response.body)
-      response_body["error"]["message"].should == "Not Found"
+      json["error"]["message"].should == "Not Found"
     end
 
     it "returns 404 if the record is deleted" do
@@ -285,8 +277,7 @@ describe "patients", type: :api do
       )
 
       response.code.should == "404"
-      response_body = JSON.parse(response.body)
-      response_body["error"]["message"].should == "Not Found"
+      json["error"]["message"].should == "Not Found"
     end
 
     it "ignores status in request input" do
@@ -321,8 +312,7 @@ describe "patients", type: :api do
       delete "/patients/#{persisted_record.id}", valid_request_attributes
 
       response.code.should == "200"
-      response_body = JSON.parse(response.body)
-      response_body["message"].should == "Deleted"
+      json["message"].should == "Deleted"
 
       persisted_record.reload.active?.should == false
     end
@@ -331,8 +321,7 @@ describe "patients", type: :api do
       delete "/patients/100", valid_request_attributes
 
       response.code.should == "404"
-      response_body = JSON.parse(response.body)
-      response_body["error"]["message"].should == "Not Found"
+      json["error"]["message"].should == "Not Found"
     end
   end#delete
 

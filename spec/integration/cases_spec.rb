@@ -22,8 +22,7 @@ describe "cases", type: :api do
       get "/cases", valid_request_attributes
 
       response.code.should == "200"
-      response_body = JSON.parse(response.body)
-      response_records = response_body["cases"]
+      response_records = json["cases"]
       response_records.size.should == 2
       response_records.map{ |r| r["id"] }.any?{ |id| id.nil? }.should == false
 
@@ -42,8 +41,7 @@ describe "cases", type: :api do
       get "/cases", valid_request_attributes
 
       response.code.should == "200"
-      response_body = JSON.parse(response.body)
-      response_records = response_body["cases"]
+      response_records = json["cases"]
       response_records.size.should == 1
 
       response_records.map{ |r| r["id"] }.should_not include(@persisted_2.id)
@@ -55,8 +53,7 @@ describe "cases", type: :api do
       get "/cases?status=pending", valid_request_attributes
 
       response.code.should == "200"
-      response_body = JSON.parse(response.body)
-      response_records = response_body["cases"]
+      response_records = json["cases"]
       response_records.size.should == 1
 
       response_record = response_records.first["patient"]
@@ -70,8 +67,7 @@ describe "cases", type: :api do
       get "/cases?status=deleted", valid_request_attributes
 
       response.code.should == "200"
-      response_body = JSON.parse(response.body)
-      response_records = response_body["cases"]
+      response_records = json["cases"]
       response_records.size.should == 0
     end
   end#index
@@ -115,8 +111,7 @@ describe "cases", type: :api do
       get "/cases/#{@persisted_case.id + 1}", valid_request_attributes
 
       response.code.should == "404"
-      response_body = JSON.parse(response.body)
-      response_body["error"]["message"].should == "Not Found"
+      json["error"]["message"].should == "Not Found"
     end
 
     it "does not return status attribute" do
@@ -134,8 +129,7 @@ describe "cases", type: :api do
       get "/cases/#{persisted_record.id}", valid_request_attributes
 
       response.code.should == "404"
-      response_body = JSON.parse(response.body)
-      response_body["error"]["message"].should == "Not Found"
+      json["error"]["message"].should == "Not Found"
     end
 
     it "returns 404 if the patient is deleted" do
@@ -145,8 +139,7 @@ describe "cases", type: :api do
       get "/cases/#{persisted_record.id}", valid_request_attributes
 
       response.code.should == "404"
-      response_body = JSON.parse(response.body)
-      response_body["error"]["message"].should == "Not Found"
+      json["error"]["message"].should == "Not Found"
     end
   end#show
 
@@ -207,8 +200,7 @@ describe "cases", type: :api do
         }.to_not change(Case, :count)
 
         response.code.should == "400"
-        response_body = JSON.parse(response.body)
-        response_body["error"]["message"].should match(/name/i)
+        json["error"]["message"].should match(/name/i)
       end
 
       it "ignores status in request input" do
@@ -294,8 +286,7 @@ describe "cases", type: :api do
         post "/cases", valid_request_attributes.merge(case: case_attributes)
 
         response.code.should == "404"
-        response_body = JSON.parse(response.body)
-        response_body["error"]["message"].should == "Not Found"
+        json["error"]["message"].should == "Not Found"
       end
     end
 
@@ -306,8 +297,7 @@ describe "cases", type: :api do
         post "/cases", valid_request_attributes.merge(case: case_attributes)
 
         response.code.should == "400"
-        response_body = JSON.parse(response.body)
-        response_body["error"]["message"].should match(/patient/i)
+        json["error"]["message"].should match(/patient/i)
       end
     end
   end#create
@@ -407,8 +397,7 @@ describe "cases", type: :api do
       delete "/cases/#{persisted_record.id}", valid_request_attributes
 
       response.code.should == "200"
-      response_body = JSON.parse(response.body)
-      response_body["message"].should == "Deleted"
+      json["message"].should == "Deleted"
 
       persisted_record.reload.active?.should == false
     end
@@ -417,8 +406,7 @@ describe "cases", type: :api do
       delete "/cases/100", valid_request_attributes
 
       response.code.should == "404"
-      response_body = JSON.parse(response.body)
-      response_body["error"]["message"].should == "Not Found"
+      json["error"]["message"].should == "Not Found"
     end
 
     it "returns 404 if record is already deleted" do
