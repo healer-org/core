@@ -1,9 +1,5 @@
 require "spec_helper"
 
-# TODO client id validation, e.g.:
-# it_behaves_like "an endpoint that requires a valid client ID"
-# it_behaves_like "an endpoint that requires a <special type of> client ID"
-
 # TODO messaging & logging behavior
 # TODO undelete functionality for administrator clients
 describe "patients", type: :api do
@@ -16,8 +12,14 @@ describe "patients", type: :api do
       @persisted_2 = FactoryGirl.create(:patient)
     end
 
+    it "returns 400 if no client_id is supplied" do
+      get "/patients"
+
+      expect_missing_client_response
+    end
+
     it "returns all records as JSON" do
-      get "/patients", {}, valid_request_attributes
+      get "/patients", valid_request_attributes
 
       response.code.should == "200"
       response_body = JSON.parse(response.body)
@@ -37,7 +39,7 @@ describe "patients", type: :api do
     it "does not return deleted records" do
       @persisted_2.delete!
 
-      get "/patients", {}, valid_request_attributes
+      get "/patients", valid_request_attributes
 
       response.code.should == "200"
       response_body = JSON.parse(response.body)
@@ -54,7 +56,7 @@ describe "patients", type: :api do
     it "does not return results for deleted records, even if asked" do
       @persisted_2.delete!
 
-      get "/patients?status=deleted", {}, valid_request_attributes
+      get "/patients", valid_request_attributes.merge(status: "deleted")
 
       response.code.should == "200"
       response_body = JSON.parse(response.body)
@@ -69,7 +71,7 @@ describe "patients", type: :api do
         case1 = FactoryGirl.create(:case, patient: @persisted_1)
         case2 = FactoryGirl.create(:case, patient: @persisted_2)
 
-        get "/patients?showCases=true", {}, valid_request_attributes
+        get "/patients", valid_request_attributes.merge(showCases: true)
 
         response.code.should == "200"
         response_body = JSON.parse(response.body)
@@ -95,8 +97,14 @@ describe "patients", type: :api do
       @persisted = FactoryGirl.create(:patient)
     end
 
+    it "returns 400 if no client_id is supplied" do
+      get "/patients/#{@persisted.id}"
+
+      expect_missing_client_response
+    end
+
     it "returns a single persisted record as JSON" do
-      get "/patients/#{@persisted.id}", {}, valid_request_attributes
+      get "/patients/#{@persisted.id}", valid_request_attributes
 
       response.code.should == "200"
       response_record = JSON.parse(response.body)["patient"]
@@ -106,7 +114,7 @@ describe "patients", type: :api do
     end
 
     it "returns 404 if there is no persisted record" do
-      get "/patients/#{@persisted.id + 1}"
+      get "/patients/#{@persisted.id + 1}", valid_request_attributes
 
       response.code.should == "404"
       response_body = JSON.parse(response.body)
@@ -114,7 +122,7 @@ describe "patients", type: :api do
     end
 
     it "does not return status attribute" do
-      get "/patients/#{@persisted.id}", {}, valid_request_attributes
+      get "/patients/#{@persisted.id}", valid_request_attributes
 
       response.code.should == "200"
       response_record = JSON.parse(response.body)["patient"]
@@ -125,7 +133,7 @@ describe "patients", type: :api do
     it "returns 404 if the record is deleted" do
       persisted_record = FactoryGirl.create(:deleted_patient)
 
-      get "/patients/#{persisted_record.id}"
+      get "/patients/#{persisted_record.id}", valid_request_attributes
 
       response.code.should == "404"
       response_body = JSON.parse(response.body)
@@ -137,7 +145,9 @@ describe "patients", type: :api do
         case1 = FactoryGirl.create(:case, patient: @persisted)
         case2 = FactoryGirl.create(:case, patient: @persisted)
 
-        get "/patients/#{@persisted.id}?showCases=true", {}, valid_request_attributes
+        get "/patients/#{@persisted.id}", valid_request_attributes.merge(
+          showCases: true
+        )
 
         response.code.should == "200"
         response_record = JSON.parse(response.body)["patient"]
@@ -157,11 +167,19 @@ describe "patients", type: :api do
   end#show
 
   describe "POST create" do
+    it "returns 400 if no client_id is supplied" do
+      attributes = FactoryGirl.attributes_for(:patient)
+
+      post "/patients", { patient: attributes }
+
+      expect_missing_client_response
+    end
+
     it "creates a new active persisted record and returns JSON" do
       attributes = FactoryGirl.attributes_for(:patient)
 
       expect {
-        post "/patients", { patient: attributes }
+        post "/patients", valid_request_attributes.merge( patient: attributes )
       }.to change(Patient, :count).by(1)
 
       response.code.should == "201"
@@ -178,7 +196,7 @@ describe "patients", type: :api do
       attributes = FactoryGirl.attributes_for(:patient)
       attributes.delete(:name)
 
-      post "/patients", { patient: attributes }
+      post "/patients", valid_request_attributes.merge(patient: attributes)
 
       response.code.should == "400"
       response_body = JSON.parse(response.body)
@@ -188,7 +206,7 @@ describe "patients", type: :api do
     it "ignores status in request input" do
       attributes = FactoryGirl.attributes_for(:deleted_patient)
 
-      post "/patients", { patient: attributes }
+      post "/patients", valid_request_attributes.merge(patient: attributes)
 
       response.code.should == "201"
       persisted_record = Patient.last
@@ -197,6 +215,15 @@ describe "patients", type: :api do
   end#create
 
   describe "PUT update" do
+    it "returns 400 if no client_id is supplied" do
+      persisted_record = FactoryGirl.create(:patient)
+      attributes = { name: "Juan Marco" }
+
+      put "/patients/#{persisted_record.id}", { patient: attributes }
+
+      expect_missing_client_response
+    end
+
     it "updates an existing persisted record" do
       persisted_record = FactoryGirl.create(:patient)
       attributes = {
@@ -206,7 +233,9 @@ describe "patients", type: :api do
         death: Date.parse("2014-07-12")
       }
 
-      put "/patients/#{persisted_record.id}", { patient: attributes }
+      put "/patients/#{persisted_record.id}", valid_request_attributes.merge(
+        patient: attributes
+      )
 
       persisted_record.reload
       persisted_record.name.should == "Juan Marco"
@@ -222,7 +251,9 @@ describe "patients", type: :api do
         birth: Date.parse("1977-08-12")
       }
 
-      put "/patients/#{persisted_record.id}", { patient: attributes }
+      put "/patients/#{persisted_record.id}", valid_request_attributes.merge(
+        patient: attributes
+      )
 
       response.code.should == "200"
       response_record = JSON.parse(response.body)["patient"]
@@ -235,7 +266,7 @@ describe "patients", type: :api do
         name: "Juana",
         birth: Date.parse("1977-08-12")
       }
-      put "/patients/1", { patient: attributes }
+      put "/patients/1", valid_request_attributes.merge(patient: attributes)
 
       response.code.should == "404"
       response_body = JSON.parse(response.body)
@@ -245,9 +276,9 @@ describe "patients", type: :api do
     it "returns 404 if the record is deleted" do
       persisted_record = FactoryGirl.create(:deleted_patient)
 
-      put "/patients/#{persisted_record.id}", {
+      put "/patients/#{persisted_record.id}", valid_request_attributes.merge(
         patient: { name: "Changed attributes" }
-      }
+      )
 
       response.code.should == "404"
       response_body = JSON.parse(response.body)
@@ -261,7 +292,9 @@ describe "patients", type: :api do
         status: "should_not_change"
       }
 
-      put "/patients/#{persisted_record.id}", { patient: attributes }
+      put "/patients/#{persisted_record.id}", valid_request_attributes.merge(
+        patient: attributes
+      )
 
       persisted_record.reload
       persisted_record.name.should == "Juan Marco"
@@ -270,10 +303,18 @@ describe "patients", type: :api do
   end#update
 
   describe "DELETE" do
-    it "soft-deletes an existing persisted record" do
+    it "returns 400 if no client_id is supplied" do
       persisted_record = FactoryGirl.create(:patient)
 
       delete "/patients/#{persisted_record.id}"
+
+      expect_missing_client_response
+    end
+
+    it "soft-deletes an existing persisted record" do
+      persisted_record = FactoryGirl.create(:patient)
+
+      delete "/patients/#{persisted_record.id}", valid_request_attributes
 
       response.code.should == "200"
       response_body = JSON.parse(response.body)
@@ -283,7 +324,7 @@ describe "patients", type: :api do
     end
 
     it "returns 404 if persisted record does not exist" do
-      delete "/patients/100"
+      delete "/patients/100", valid_request_attributes
 
       response.code.should == "404"
       response_body = JSON.parse(response.body)

@@ -19,9 +19,6 @@ end
 
 describe "appointments", type: :api do
 
-  # TODO: decide whether to allow appointment write to write patient info.
-  #       is there a case where that's useful?
-
   let(:valid_request_attributes) { { "client_id" => "healer_spec" } }
 
   describe "GET index" do
@@ -30,8 +27,14 @@ describe "appointments", type: :api do
       @persisted_2 = FactoryGirl.create(:appointment)
     end
 
+    it "returns 400 if no client_id is supplied" do
+      get "/appointments"
+
+      expect_missing_client_response
+    end
+
     it "returns all appointments as JSON, along with patient data" do
-      get "/appointments", {}, valid_request_attributes
+      get "/appointments", valid_request_attributes
 
       response.code.should == "200"
       response_body = JSON.parse(response.body)
@@ -47,9 +50,9 @@ describe "appointments", type: :api do
     end
 
     it "filters by location" do
-      @persisted_2.update_attributes!(:location => "room 1")
+      @persisted_2.update_attributes!(location: "room 1")
 
-      get "/appointments", { :location => "room 1" }, valid_request_attributes
+      get "/appointments", valid_request_attributes.merge(location: "room 1")
 
       response.code.should == "200"
       response_body = JSON.parse(response.body)
@@ -59,9 +62,9 @@ describe "appointments", type: :api do
     end
 
     it "filters by trip_id" do
-      @persisted_1.update_attributes!(:trip_id => "2")
+      @persisted_1.update_attributes!(trip_id: "2")
 
-      get "/appointments", { :trip_id => "2" }, valid_request_attributes
+      get "/appointments", valid_request_attributes.merge(trip_id: "2")
 
       response.code.should == "200"
       response_body = JSON.parse(response.body)
@@ -71,10 +74,12 @@ describe "appointments", type: :api do
     end
 
     it "filters by multiple criteria" do
-      @persisted_1.update_attributes!(:location => "room 1", :trip_id => "1")
-      @persisted_2.update_attributes!(:location => "room 1", :trip_id => "2")
+      @persisted_1.update_attributes!(location: "room 1", trip_id: "1")
+      @persisted_2.update_attributes!(location: "room 1", trip_id: "2")
 
-      get "/appointments", { :location => "room 1", :trip_id => "2" }, valid_request_attributes
+      get "/appointments", valid_request_attributes.merge(
+        location: "room 1", trip_id: "2"
+      )
 
       response.code.should == "200"
       response_body = JSON.parse(response.body)
@@ -86,10 +91,10 @@ describe "appointments", type: :api do
     it "does not include records belonging to deleted patients" do
       persisted_3 = FactoryGirl.create(
         :appointment,
-        :patient => FactoryGirl.create(:deleted_patient)
+        patient: FactoryGirl.create(:deleted_patient)
       )
 
-      get "/appointments", {}, valid_request_attributes
+      get "/appointments", valid_request_attributes
 
       response.code.should == "200"
       response_body = JSON.parse(response.body)
@@ -105,8 +110,14 @@ describe "appointments", type: :api do
       @persisted_record = FactoryGirl.create(:appointment, patient: @persisted_patient)
     end
 
+    it "returns 400 if no client_id is supplied" do
+      get "/appointments/#{@persisted_record.id}"
+
+      expect_missing_client_response
+    end
+
     it "returns a single persisted record as JSON" do
-      get "/appointments/#{@persisted_record.id}", {}, valid_request_attributes
+      get "/appointments/#{@persisted_record.id}", valid_request_attributes
 
       response.code.should == "200"
       response_record = JSON.parse(response.body)["appointment"]
@@ -115,7 +126,7 @@ describe "appointments", type: :api do
     end
 
     it "returns 404 if there is no persisted record" do
-      get "/appointments/#{@persisted_record.id + 1}"
+      get "/appointments/#{@persisted_record.id + 1}", valid_request_attributes
 
       response.code.should == "404"
       response_body = JSON.parse(response.body)
@@ -127,7 +138,7 @@ describe "appointments", type: :api do
         patient: FactoryGirl.create(:deleted_patient)
       )
 
-      get "/appointments/#{persisted_record.id}", {}, valid_request_attributes
+      get "/appointments/#{persisted_record.id}", valid_request_attributes
 
       response.code.should == "404"
       response_body = JSON.parse(response.body)
@@ -136,12 +147,27 @@ describe "appointments", type: :api do
   end#show
 
   describe "POST create" do
+    it "returns 400 if no client_id is supplied" do
+      patient = FactoryGirl.create(:patient)
+      attributes = FactoryGirl.attributes_for(:appointment).merge!(
+        patient_id: patient.id
+      )
+
+      post "/appointments", appointment: attributes
+
+      expect_missing_client_response
+    end
+
     it "persists a new patient-associated record and returns JSON" do
       patient = FactoryGirl.create(:patient)
-      attributes = FactoryGirl.attributes_for(:appointment).merge!(:patient_id => patient.id)
+      attributes = FactoryGirl.attributes_for(:appointment).merge!(
+        patient_id: patient.id
+      )
 
       expect {
-        post "/appointments", { appointment: attributes }
+        post "/appointments", valid_request_attributes.merge(
+          appointment: attributes
+        )
       }.to change(Appointment, :count).by(1)
 
       response.code.should == "201"
@@ -164,7 +190,9 @@ describe "appointments", type: :api do
       attributes.should_not include(:patient_id)
 
       expect {
-        post "/appointments", { appointment: attributes }
+        post "/appointments", valid_request_attributes.merge(
+          appointment: attributes
+        )
       }.to_not change(Appointment, :count)
 
       response.code.should == "400"
@@ -173,11 +201,13 @@ describe "appointments", type: :api do
     end
 
     it "returns 404 if patient is not found matching id" do
-      attributes = FactoryGirl.attributes_for(:appointment).merge!(:patient_id => 1)
+      attributes = FactoryGirl.attributes_for(:appointment).merge!(patient_id: 1)
       Patient.find_by_id(1).should be_nil
 
       expect {
-        post "/appointments", { appointment: attributes }
+        post "/appointments", valid_request_attributes.merge(
+          appointment: attributes
+        )
       }.to_not change(Appointment, :count)
 
       response.code.should == "404"
@@ -187,10 +217,12 @@ describe "appointments", type: :api do
 
     it "returns 404 if patient is deleted" do
       patient = FactoryGirl.create(:deleted_patient)
-      attributes = FactoryGirl.attributes_for(:appointment).merge!(:patient_id => patient.id)
+      attributes = FactoryGirl.attributes_for(:appointment).merge!(patient_id: patient.id)
 
       expect {
-        post "/appointments", { appointment: attributes }
+        post "/appointments", valid_request_attributes.merge(
+          appointment: attributes
+        )
       }.to_not change(Appointment, :count)
 
       response.code.should == "404"
@@ -198,6 +230,15 @@ describe "appointments", type: :api do
   end
 
   describe "PUT update" do
+    it "returns 400 if no client_id is supplied" do
+      persisted_record = FactoryGirl.create(:appointment)
+      new_attributes = { start_time: Time.now.utc + 1.week }
+
+      put "/appointments/#{persisted_record.id}", appointment: new_attributes
+
+      expect_missing_client_response
+    end
+
     it "updates an existing appointment record" do
       persisted_record = FactoryGirl.create(:appointment)
       new_attributes = {
@@ -211,7 +252,9 @@ describe "appointments", type: :api do
         persisted_record.send(k).should_not == v
       end
 
-      put "/appointments/#{persisted_record.id}", { appointment: new_attributes }
+      put "/appointments/#{persisted_record.id}", valid_request_attributes.merge(
+        appointment: new_attributes
+      )
 
       response_record = JSON.parse(response.body)["appointment"]
       persisted_record.reload
@@ -240,7 +283,9 @@ describe "appointments", type: :api do
         patient_id: different_patient.id
       }
 
-      put "/appointments/#{persisted_record.id}", { appointment: new_attributes }
+      put "/appointments/#{persisted_record.id}", valid_request_attributes.merge(
+        appointment: new_attributes
+      )
 
       persisted_record.reload
       persisted_record.patient_id.should == patient.id
@@ -257,7 +302,9 @@ describe "appointments", type: :api do
         }
       }
 
-      put "/appointments/#{persisted_record.id}", { appointment: new_attributes }
+      put "/appointments/#{persisted_record.id}", valid_request_attributes.merge(
+        appointment: new_attributes
+      )
 
       persisted_record.reload
       persisted_record.patient.reload.should == patient
@@ -272,17 +319,27 @@ describe "appointments", type: :api do
         start_ordinal: 5
       }
 
-      put "/appointments/#{persisted_record.id}", { appointment: new_attributes }
+      put "/appointments/#{persisted_record.id}", valid_request_attributes.merge(
+        appointment: new_attributes
+      )
 
       response.code.should == "404"
     end
   end
 
   describe "DELETE" do
-    it "hard-deletes an existing persisted record" do
+    it "returns 400 if no client_id is supplied" do
       persisted_record = FactoryGirl.create(:appointment)
 
       delete "/appointments/#{persisted_record.id}"
+
+      expect_missing_client_response
+    end
+
+    it "hard-deletes an existing persisted record" do
+      persisted_record = FactoryGirl.create(:appointment)
+
+      delete "/appointments/#{persisted_record.id}", valid_request_attributes
 
       response.code.should == "200"
       response_body = JSON.parse(response.body)
@@ -292,7 +349,7 @@ describe "appointments", type: :api do
     end
 
     it "returns 404 if persisted record does not exist" do
-      delete "/appointments/100"
+      delete "/appointments/100", valid_request_attributes
 
       response.code.should == "404"
       response_body = JSON.parse(response.body)

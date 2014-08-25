@@ -59,3 +59,9 @@ RSpec.configure do |config|
   # https://relishapp.com/rspec/rspec-rails/v/3-0/docs
   config.infer_spec_type_from_file_location!
 end
+
+def expect_missing_client_response
+  response.code.should == "400"
+  response_body = JSON.parse(response.body)
+  response_body["error"]["message"].should match(/client_id/i)
+end

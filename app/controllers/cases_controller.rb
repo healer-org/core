@@ -1,4 +1,5 @@
 class CasesController < ApplicationController
+  include ClientIdValidation
 
   def index
     cases = Case.includes(:patient).
