@@ -4,6 +4,16 @@ require "spec_helper"
 # TODO undelete functionality for administrator clients
 describe "patients", type: :api do
 
+  def response_should_match_persisted(response, persisted)
+    PATIENT_ATTRIBUTES.each do |attr|
+      if attr == :birth
+        response[attr.to_s].should == persisted.send(attr).to_s(:db)
+      else
+        response[attr.to_s].to_s.should == persisted.send(attr).to_s
+      end
+    end
+  end
+
   let(:valid_request_attributes) { { "client_id" => "healer_spec" } }
 
   describe "GET index" do
@@ -33,10 +43,8 @@ describe "patients", type: :api do
       response_record_1 = response_records.detect{ |r| r["id"] == @persisted_1.id }
       response_record_2 = response_records.detect{ |r| r["id"] == @persisted_2.id }
 
-      PATIENT_ATTRIBUTES.each do |attr|
-        response_record_1[attr.to_s].to_s.should == @persisted_1.send(attr).to_s
-        response_record_2[attr.to_s].to_s.should == @persisted_2.send(attr).to_s
-      end
+      response_should_match_persisted(response_record_1, @persisted_1)
+      response_should_match_persisted(response_record_2, @persisted_2)
     end
 
     it "does not return deleted records" do
@@ -50,9 +58,7 @@ describe "patients", type: :api do
 
       response_record = response_records.first
 
-      PATIENT_ATTRIBUTES.each do |attr|
-        response_record[attr.to_s].to_s.should == @persisted_1.send(attr).to_s
-      end
+      response_should_match_persisted(response_record, @persisted_1)
     end
 
     it "does not return results for deleted records, even if asked" do
@@ -148,9 +154,7 @@ describe "patients", type: :api do
         response.code.should == "200"
         response_record = JSON.parse(response.body)["patient"]
 
-        PATIENT_ATTRIBUTES.each do |attr|
-          response_record[attr.to_s].to_s.should == @persisted.send(attr).to_s
-        end
+        response_should_match_persisted(response_record, @persisted)
 
         cases = response_record["cases"]
         cases.size.should == 2
@@ -189,9 +193,8 @@ describe "patients", type: :api do
       response_record = JSON.parse(response.body)["patient"]
       persisted_record = Patient.last
       persisted_record.active?.should == true
-      PATIENT_ATTRIBUTES.each do |attr|
-        response_record[attr.to_s].to_s.should == persisted_record.send(attr).to_s
-      end
+
+      response_should_match_persisted(response_record, persisted_record)
     end
 
     it "returns 400 if name is not supplied" do
@@ -336,5 +339,128 @@ describe "patients", type: :api do
       expect_not_found_response
     end
   end#delete
+
+  describe "GET search" do
+    it "returns empty result set on no query terms" do
+      search_query = {}
+      get "/patients/search", valid_request_attributes.merge(search_query)
+
+      response.code.should == "200"
+      response_records = json["patients"]
+      response_records.size.should == 0
+    end
+
+    it "returns patients by full name" do
+      persisted = FactoryGirl.create(:patient, name: "Ramon")
+
+      search_query = {q: "Ramon"}
+      get "/patients/search", valid_request_attributes.merge(search_query)
+
+      response.code.should == "200"
+      response_records = json["patients"]
+      response_records.size.should == 1
+
+      response_should_match_persisted(response_records[0], persisted)
+    end
+
+    it "returns only patients that match the query" do
+      persisted_1 = FactoryGirl.create(:patient, name: "DeBarge")
+      persisted_2 = FactoryGirl.create(:patient, name: "Ramon")
+
+      search_query = {q: "Ramon"}
+      get "/patients/search", valid_request_attributes.merge(search_query)
+
+      response.code.should == "200"
+      response_records = json["patients"]
+      response_records.size.should == 1
+
+      response_should_match_persisted(response_records[0], persisted_2)
+    end
+
+    it "performs case-insensitive lookup" do
+      persisted_1 = FactoryGirl.create(:patient, name: "DeBarge")
+      persisted_2 = FactoryGirl.create(:patient, name: "Ramon")
+
+      search_query = {q: "raMon"}
+      get "/patients/search", valid_request_attributes.merge(search_query)
+
+      response.code.should == "200"
+      response_records = json["patients"]
+      response_records.size.should == 1
+
+      response_should_match_persisted(response_records[0], persisted_2)
+    end
+
+    it "performs unicode-insensitive lookup" do
+      skip("This feature may require some DB trickery or Sphinx conversion")
+      persisted_1 = FactoryGirl.create(:patient, name: "DeBarge")
+      persisted_2 = FactoryGirl.create(:patient, name: "Ramón")
+
+      search_query = {q: "Ramon"}
+      get "/patients/search", valid_request_attributes.merge(search_query)
+
+      response.code.should == "200"
+      response_records = json["patients"]
+      response_records.size.should == 1
+
+      response_should_match_persisted(response_records[0], persisted_2)
+    end
+
+    it "searches by name containing spaces" do
+      persisted_1 = FactoryGirl.create(:patient, name: "DeBarge")
+      persisted_2 = FactoryGirl.create(:patient, name: "Ramon Johnson")
+
+      search_query = {q: "ramon johnson"}
+      get "/patients/search", valid_request_attributes.merge(search_query)
+
+      response.code.should == "200"
+      response_records = json["patients"]
+      response_records.size.should == 1
+
+      response_should_match_persisted(response_records[0], persisted_2)
+    end
+
+    it "searches by partial name" do
+      persisted_1 = FactoryGirl.create(:patient, name: "DeBarge")
+      persisted_2 = FactoryGirl.create(:patient, name: "Ramon Johnson")
+
+      search_query = {q: "ramon"}
+      get "/patients/search", valid_request_attributes.merge(search_query)
+
+      response.code.should == "200"
+      response_records = json["patients"]
+      response_records.size.should == 1
+
+      response_should_match_persisted(response_records[0], persisted_2)
+    end
+
+    it "searches by partial name" do
+      persisted_1 = FactoryGirl.create(:patient, name: "DeBarge")
+      persisted_2 = FactoryGirl.create(:patient, name: "Ramon Johnson")
+
+      search_query = {q: "johnson"}
+      get "/patients/search", valid_request_attributes.merge(search_query)
+
+      response.code.should == "200"
+      response_records = json["patients"]
+      response_records.size.should == 1
+
+      response_should_match_persisted(response_records[0], persisted_2)
+    end
+
+    it "searches by fragments of name" do
+      skip("Snakes in the burning pet shop")
+      persisted = FactoryGirl.create(:patient, name: "Ramon The Rock Johnson")
+
+      search_query = {q: "ramon johnson"}
+      get "/patients/search", valid_request_attributes.merge(search_query)
+
+      response.code.should == "200"
+      response_records = json["patients"]
+      response_records.size.should == 1
+
+      response_should_match_persisted(response_records[0], persisted)
+    end
+  end#search
 
 end

@@ -1,12 +1,18 @@
 class Patient < HealerRecord
   include SoftDelete
 
-  def self.default_scope
-    where.not(status: "deleted")
-  end
-
   validates_presence_of :name
 
+  class << self
+    def default_scope
+      where.not(status: "deleted")
+    end
+
+    def search(query)
+      # TODO this should probably delegate to something like Sphinx
+      all.where("lower(name) like ?", "%#{query.to_s.downcase}%")
+    end
+  end
 
   private
 

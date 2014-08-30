@@ -63,6 +63,13 @@ class PatientsController < ApplicationController
     )
   end
 
+  def search
+    presented_patients = Patient.search(params[:q])
+    render(
+      json: Response.new(:data => presented_patients, :root => "patients"),
+      status: :ok
+    )
+  end
 
   private
 
