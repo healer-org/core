@@ -7,8 +7,8 @@ module Requests
 
   module ResponseHelpers
     def expect_missing_client_response
-      response.code.should == "400"
-      json["error"]["message"].should match(/clientId/i)
+      response.code.should == "401"
+      json["error"]["message"].should == "Bad credentials"
     end
 
     def expect_not_found_response

@@ -29,7 +29,7 @@ describe "appointments", type: :api do
       @persisted_2 = FactoryGirl.create(:appointment)
     end
 
-    it "returns 400 if no clientId is supplied" do
+    it "returns 401 if no clientId is supplied" do
       get "/appointments"
 
       expect_missing_client_response
@@ -107,7 +107,7 @@ describe "appointments", type: :api do
       @persisted_record = FactoryGirl.create(:appointment, patient: @persisted_patient)
     end
 
-    it "returns 400 if no clientId is supplied" do
+    it "returns 401 if no clientId is supplied" do
       get "/appointments/#{@persisted_record.id}"
 
       expect_missing_client_response
@@ -140,7 +140,7 @@ describe "appointments", type: :api do
   end#show
 
   describe "POST create" do
-    it "returns 400 if no clientId is supplied" do
+    it "returns 401 if no clientId is supplied" do
       patient = FactoryGirl.create(:patient)
       attributes = FactoryGirl.attributes_for(:appointment).merge!(
         patient_id: patient.id
@@ -224,7 +224,7 @@ describe "appointments", type: :api do
   end
 
   describe "PUT update" do
-    it "returns 400 if no clientId is supplied" do
+    it "returns 401 if no clientId is supplied" do
       persisted_record = FactoryGirl.create(:appointment)
       new_attributes = { start_time: Time.now.utc + 1.week }
 
@@ -318,7 +318,7 @@ describe "appointments", type: :api do
   end
 
   describe "DELETE" do
-    it "returns 400 if no clientId is supplied" do
+    it "returns 401 if no clientId is supplied" do
       persisted_record = FactoryGirl.create(:appointment)
 
       delete "/appointments/#{persisted_record.id}"

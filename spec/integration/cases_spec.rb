@@ -12,7 +12,7 @@ describe "cases", type: :api do
       @persisted_2 = FactoryGirl.create(:case, patient: @patient_2)
     end
 
-    it "returns 400 if no clientId is supplied" do
+    it "returns 401 if no clientId is supplied" do
       get "/cases"
 
       expect_missing_client_response
@@ -78,7 +78,7 @@ describe "cases", type: :api do
       @persisted_case = FactoryGirl.create(:case, patient: @persisted_patient)
     end
 
-    it "returns 400 if no clientId is supplied" do
+    it "returns 401 if no clientId is supplied" do
       get "/cases/#{@persisted_case.id}"
 
       expect_missing_client_response
@@ -141,7 +141,7 @@ describe "cases", type: :api do
   end#show
 
   describe "POST create" do
-    it "returns 400 if no clientId is supplied" do
+    it "returns 401 if no clientId is supplied" do
       post "/cases",
            { case: FactoryGirl.attributes_for(:case) }.to_json,
            "Content-Type" => "application/json"
@@ -321,7 +321,7 @@ describe "cases", type: :api do
   end#create
 
   describe "PUT update" do
-    it "returns 400 if no clientId is supplied" do
+    it "returns 401 if no clientId is supplied" do
       persisted_record = FactoryGirl.create(:case)
       new_attributes = { anatomy: "hip" }
 
@@ -405,7 +405,7 @@ describe "cases", type: :api do
   end#update
 
   describe "DELETE" do
-    it "returns 400 if no clientId is supplied" do
+    it "returns 401 if no clientId is supplied" do
       persisted_record = FactoryGirl.create(:case)
 
       delete "/cases/#{persisted_record.id}"

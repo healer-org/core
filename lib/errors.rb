@@ -1,7 +1,3 @@
 module Errors
-  class ClientIdMissing < ActionController::ParameterMissing
-    def initialize(param = "clientId")
-      super
-    end
-  end
+  class ClientIdMissing < StandardError; end
 end

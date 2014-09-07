@@ -22,7 +22,7 @@ describe "patients", type: :api do
       @persisted_2 = FactoryGirl.create(:patient)
     end
 
-    it "returns 400 if no clientId is supplied" do
+    it "returns 401 if no clientId is supplied" do
       get "/patients"
 
       expect_missing_client_response
@@ -103,7 +103,7 @@ describe "patients", type: :api do
       @persisted = FactoryGirl.create(:patient)
     end
 
-    it "returns 400 if no clientId is supplied" do
+    it "returns 401 if no clientId is supplied" do
       get "/patients/#{@persisted.id}"
 
       expect_missing_client_response
@@ -167,7 +167,7 @@ describe "patients", type: :api do
   end#show
 
   describe "POST create" do
-    it "returns 400 if no clientId is supplied" do
+    it "returns 401 if no clientId is supplied" do
       attributes = FactoryGirl.attributes_for(:patient)
 
       post "/patients",
@@ -223,7 +223,7 @@ describe "patients", type: :api do
   end#create
 
   describe "PUT update" do
-    it "returns 400 if no clientId is supplied" do
+    it "returns 401 if no clientId is supplied" do
       persisted_record = FactoryGirl.create(:patient)
       attributes = { name: "Juan Marco" }
 
@@ -314,7 +314,7 @@ describe "patients", type: :api do
   end#update
 
   describe "DELETE" do
-    it "returns 400 if no clientId is supplied" do
+    it "returns 401 if no clientId is supplied" do
       persisted_record = FactoryGirl.create(:patient)
 
       delete "/patients/#{persisted_record.id}"
