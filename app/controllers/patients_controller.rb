@@ -1,5 +1,5 @@
 class PatientsController < ApplicationController
-  include ClientIdValidation
+  include Authentication
 
   def index
     patients = Patient.all

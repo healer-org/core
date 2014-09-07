@@ -1,14 +1,14 @@
-module ClientIdValidation
+module Authentication
   extend ActiveSupport::Concern
 
   included do
-    before_filter :enforce_client_id
+    before_filter :authenticate
   end
 
 
   private
 
-  def enforce_client_id
+  def authenticate
     raise Errors::ClientIdMissing unless params[:clientId].present?
   end
 end

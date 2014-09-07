@@ -1,5 +1,5 @@
 class AppointmentsController < ApplicationController
-  include ClientIdValidation
+  include Authentication
 
   def index
     appointments = Appointment.includes(:patient).
