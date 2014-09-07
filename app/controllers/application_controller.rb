@@ -1,10 +1,5 @@
 class ApplicationController < ActionController::API
 
-  rescue_from Errors::ClientIdMissing do |exception|
-    self.headers["WWW-Authenticate"] = "Token realm='Application'"
-    render_error(code: :unauthorized, message: "Bad credentials")
-  end
-
   rescue_from ActiveRecord::RecordNotFound do |exception|
     render_error(code: :not_found, message: "Not Found")
   end

@@ -6,7 +6,7 @@ module Requests
   end
 
   module ResponseHelpers
-    def expect_missing_client_response
+    def expect_failed_authentication
       response.code.should == "401"
       json["error"]["message"].should == "Bad credentials"
     end

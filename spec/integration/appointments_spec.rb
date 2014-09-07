@@ -21,7 +21,11 @@ end
 
 describe "appointments", type: :api do
 
-  let(:valid_request_attributes) { { "clientId" => "healer_spec" } }
+  let(:query_params) { {} }
+  let(:headers) { {
+    "HTTP_AUTHORIZATION" => ActionController::HttpAuthentication::Token.encode_credentials("ABCDEF0123456789")
+  } }
+  let(:headers_with_json_content_type) { headers.merge("Content-Type" => "application/json") }
 
   describe "GET index" do
     before(:each) do
@@ -29,14 +33,14 @@ describe "appointments", type: :api do
       @persisted_2 = FactoryGirl.create(:appointment)
     end
 
-    it "returns 401 if no clientId is supplied" do
+    it "returns 401 if authentication headers are not present" do
       get "/appointments"
 
-      expect_missing_client_response
+      expect_failed_authentication
     end
 
     it "returns all appointments as JSON, along with patient data" do
-      get "/appointments", valid_request_attributes
+      get "/appointments", query_params, headers
 
       response.code.should == "200"
       response_records = json["appointments"]
@@ -53,7 +57,7 @@ describe "appointments", type: :api do
     it "filters by location" do
       @persisted_2.update_attributes!(location: "room 1")
 
-      get "/appointments", valid_request_attributes.merge(location: "room 1")
+      get "/appointments", query_params.merge(location: "room 1"), headers
 
       response.code.should == "200"
       response_records = json["appointments"]
@@ -64,7 +68,7 @@ describe "appointments", type: :api do
     it "filters by trip_id" do
       @persisted_1.update_attributes!(trip_id: "2")
 
-      get "/appointments", valid_request_attributes.merge(trip_id: "2")
+      get "/appointments", query_params.merge(trip_id: "2"), headers
 
       response.code.should == "200"
       response_records = json["appointments"]
@@ -76,9 +80,9 @@ describe "appointments", type: :api do
       @persisted_1.update_attributes!(location: "room 1", trip_id: "1")
       @persisted_2.update_attributes!(location: "room 1", trip_id: "2")
 
-      get "/appointments", valid_request_attributes.merge(
+      get "/appointments", query_params.merge(
         location: "room 1", trip_id: "2"
-      )
+      ), headers
 
       response.code.should == "200"
       response_records = json["appointments"]
@@ -92,7 +96,7 @@ describe "appointments", type: :api do
         patient: FactoryGirl.create(:deleted_patient)
       )
 
-      get "/appointments", valid_request_attributes
+      get "/appointments", query_params, headers
 
       response.code.should == "200"
       response_records = json["appointments"]
@@ -107,14 +111,14 @@ describe "appointments", type: :api do
       @persisted_record = FactoryGirl.create(:appointment, patient: @persisted_patient)
     end
 
-    it "returns 401 if no clientId is supplied" do
+    it "returns 401 if authentication headers are not present" do
       get "/appointments/#{@persisted_record.id}"
 
-      expect_missing_client_response
+      expect_failed_authentication
     end
 
     it "returns a single persisted record as JSON" do
-      get "/appointments/#{@persisted_record.id}", valid_request_attributes
+      get "/appointments/#{@persisted_record.id}", query_params, headers
 
       response.code.should == "200"
       response_record = JSON.parse(response.body)["appointment"]
@@ -123,7 +127,7 @@ describe "appointments", type: :api do
     end
 
     it "returns 404 if there is no persisted record" do
-      get "/appointments/#{@persisted_record.id + 1}", valid_request_attributes
+      get "/appointments/#{@persisted_record.id + 1}", query_params, headers
 
       expect_not_found_response
     end
@@ -133,14 +137,14 @@ describe "appointments", type: :api do
         patient: FactoryGirl.create(:deleted_patient)
       )
 
-      get "/appointments/#{persisted_record.id}", valid_request_attributes
+      get "/appointments/#{persisted_record.id}", query_params, headers
 
       expect_not_found_response
     end
   end#show
 
   describe "POST create" do
-    it "returns 401 if no clientId is supplied" do
+    it "returns 401 if authentication headers are not present" do
       patient = FactoryGirl.create(:patient)
       attributes = FactoryGirl.attributes_for(:appointment).merge!(
         patient_id: patient.id
@@ -150,7 +154,7 @@ describe "appointments", type: :api do
            appointment: attributes.to_json,
            "Content-Type" => "application/json"
 
-      expect_missing_client_response
+      expect_failed_authentication
     end
 
     it "returns 400 if JSON content-type not specified"
@@ -163,8 +167,8 @@ describe "appointments", type: :api do
 
       expect {
         post "/appointments",
-             valid_request_attributes.merge(appointment: attributes).to_json,
-             "Content-Type" => "application/json"
+             query_params.merge(appointment: attributes).to_json,
+             headers_with_json_content_type
       }.to change(Appointment, :count).by(1)
 
       response.code.should == "201"
@@ -188,8 +192,8 @@ describe "appointments", type: :api do
 
       expect {
         post "/appointments",
-             valid_request_attributes.merge(appointment: attributes).to_json,
-             "Content-Type" => "application/json"
+             query_params.merge(appointment: attributes).to_json,
+             headers_with_json_content_type
       }.to_not change(Appointment, :count)
 
       response.code.should == "400"
@@ -202,8 +206,8 @@ describe "appointments", type: :api do
 
       expect {
         post "/appointments",
-             valid_request_attributes.merge(appointment: attributes).to_json,
-             "Content-Type" => "application/json"
+             query_params.merge(appointment: attributes).to_json,
+             headers_with_json_content_type
       }.to_not change(Appointment, :count)
 
       expect_not_found_response
@@ -215,8 +219,8 @@ describe "appointments", type: :api do
 
       expect {
         post "/appointments",
-             valid_request_attributes.merge(appointment: attributes).to_json,
-             "Content-Type" => "application/json"
+             query_params.merge(appointment: attributes).to_json,
+             headers_with_json_content_type
       }.to_not change(Appointment, :count)
 
       expect_not_found_response
@@ -224,7 +228,7 @@ describe "appointments", type: :api do
   end
 
   describe "PUT update" do
-    it "returns 401 if no clientId is supplied" do
+    it "returns 401 if authentication headers are not present" do
       persisted_record = FactoryGirl.create(:appointment)
       new_attributes = { start_time: Time.now.utc + 1.week }
 
@@ -232,7 +236,7 @@ describe "appointments", type: :api do
           appointment: new_attributes.to_json,
           "Content-Type" => "application/json"
 
-      expect_missing_client_response
+      expect_failed_authentication
     end
 
     it "returns 400 if JSON content-type not specified"
@@ -251,8 +255,8 @@ describe "appointments", type: :api do
       end
 
       put "/appointments/#{persisted_record.id}",
-          valid_request_attributes.merge(appointment: new_attributes).to_json,
-          "Content-Type" => "application/json"
+          query_params.merge(appointment: new_attributes).to_json,
+          headers_with_json_content_type
 
       response_record = JSON.parse(response.body)["appointment"]
       persisted_record.reload
@@ -274,8 +278,8 @@ describe "appointments", type: :api do
       }
 
       put "/appointments/#{persisted_record.id}",
-          valid_request_attributes.merge(appointment: new_attributes).to_json,
-          "Content-Type" => "application/json"
+          query_params.merge(appointment: new_attributes).to_json,
+          headers_with_json_content_type
 
       persisted_record.reload
       persisted_record.patient_id.should == patient.id
@@ -293,8 +297,8 @@ describe "appointments", type: :api do
       }
 
       put "/appointments/#{persisted_record.id}",
-          valid_request_attributes.merge(appointment: new_attributes).to_json,
-          "Content-Type" => "application/json"
+          query_params.merge(appointment: new_attributes).to_json,
+          headers_with_json_content_type
 
       persisted_record.reload
       persisted_record.patient.reload.should == patient
@@ -310,26 +314,26 @@ describe "appointments", type: :api do
       }
 
       put "/appointments/#{persisted_record.id}",
-          valid_request_attributes.merge(appointment: new_attributes).to_json,
-          "Content-Type" => "application/json"
+          query_params.merge(appointment: new_attributes).to_json,
+          headers_with_json_content_type
 
       expect_not_found_response
     end
   end
 
   describe "DELETE" do
-    it "returns 401 if no clientId is supplied" do
+    it "returns 401 if authentication headers are not present" do
       persisted_record = FactoryGirl.create(:appointment)
 
       delete "/appointments/#{persisted_record.id}"
 
-      expect_missing_client_response
+      expect_failed_authentication
     end
 
     it "hard-deletes an existing persisted record" do
       persisted_record = FactoryGirl.create(:appointment)
 
-      delete "/appointments/#{persisted_record.id}", valid_request_attributes
+      delete "/appointments/#{persisted_record.id}", query_params, headers
 
       response.code.should == "200"
       json["message"].should == "Deleted"
@@ -338,7 +342,7 @@ describe "appointments", type: :api do
     end
 
     it "returns 404 if persisted record does not exist" do
-      delete "/appointments/100", valid_request_attributes
+      delete "/appointments/100", query_params, headers
 
       expect_not_found_response
     end

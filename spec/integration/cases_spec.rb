@@ -2,7 +2,11 @@ require "spec_helper"
 
 describe "cases", type: :api do
 
-  let(:valid_request_attributes) { { "clientId" => "healer_spec" } }
+  let(:query_params) { {} }
+  let(:headers) { {
+    "HTTP_AUTHORIZATION" => ActionController::HttpAuthentication::Token.encode_credentials("ABCDEF0123456789")
+  } }
+  let(:headers_with_json_content_type) { headers.merge("Content-Type" => "application/json") }
 
   describe "GET index" do
     before(:each) do
@@ -12,14 +16,14 @@ describe "cases", type: :api do
       @persisted_2 = FactoryGirl.create(:case, patient: @patient_2)
     end
 
-    it "returns 401 if no clientId is supplied" do
+    it "returns 401 if authentication headers are not present" do
       get "/cases"
 
-      expect_missing_client_response
+      expect_failed_authentication
     end
 
     it "returns all records as JSON" do
-      get "/cases", valid_request_attributes
+      get "/cases", query_params, headers
 
       response.code.should == "200"
       response_records = json["cases"]
@@ -36,9 +40,9 @@ describe "cases", type: :api do
     end
 
     it "does not return deleted records" do
-      delete "/cases/#{@persisted_2.id}", valid_request_attributes
+      delete "/cases/#{@persisted_2.id}", query_params, headers
 
-      get "/cases", valid_request_attributes
+      get "/cases", query_params, headers
 
       response.code.should == "200"
       response_records = json["cases"]
@@ -50,7 +54,7 @@ describe "cases", type: :api do
     it "filters by status" do
       @persisted_1.update_attributes!(status: "pending")
 
-      get "/cases?status=pending", valid_request_attributes
+      get "/cases?status=pending", query_params, headers
 
       response.code.should == "200"
       response_records = json["cases"]
@@ -64,7 +68,7 @@ describe "cases", type: :api do
     it "does not return results for deleted records, even if asked" do
       @persisted_1.update_attributes!(status: "deleted")
 
-      get "/cases?status=deleted", valid_request_attributes
+      get "/cases?status=deleted", query_params, headers
 
       response.code.should == "200"
       response_records = json["cases"]
@@ -78,14 +82,14 @@ describe "cases", type: :api do
       @persisted_case = FactoryGirl.create(:case, patient: @persisted_patient)
     end
 
-    it "returns 401 if no clientId is supplied" do
+    it "returns 401 if authentication headers are not present" do
       get "/cases/#{@persisted_case.id}"
 
-      expect_missing_client_response
+      expect_failed_authentication
     end
 
     it "returns a single persisted record as JSON" do
-      get "/cases/#{@persisted_case.id}", valid_request_attributes
+      get "/cases/#{@persisted_case.id}", query_params, headers
 
       response.code.should == "200"
       response_record = JSON.parse(response.body)["case"]
@@ -100,7 +104,7 @@ describe "cases", type: :api do
     it "returns pending cases" do
       @persisted_case.update_attributes!(status: "pending")
 
-      get "/cases/#{@persisted_case.id}", valid_request_attributes
+      get "/cases/#{@persisted_case.id}", query_params, headers
 
       response.code.should == "200"
       response_record = JSON.parse(response.body)["case"]
@@ -108,13 +112,13 @@ describe "cases", type: :api do
     end
 
     it "returns 404 if there is no persisted record" do
-      get "/cases/#{@persisted_case.id + 1}", valid_request_attributes
+      get "/cases/#{@persisted_case.id + 1}", query_params, headers
 
       expect_not_found_response
     end
 
     it "does not return status attribute" do
-      get "/cases/#{@persisted_case.id}", valid_request_attributes
+      get "/cases/#{@persisted_case.id}", query_params, headers
 
       response.code.should == "200"
       response_record = JSON.parse(response.body)["case"]
@@ -125,7 +129,7 @@ describe "cases", type: :api do
     it "returns 404 if the record is deleted" do
       persisted_record = FactoryGirl.create(:deleted_case)
 
-      get "/cases/#{persisted_record.id}", valid_request_attributes
+      get "/cases/#{persisted_record.id}", query_params, headers
 
       expect_not_found_response
     end
@@ -134,19 +138,19 @@ describe "cases", type: :api do
       persisted_patient = FactoryGirl.create(:deleted_patient)
       persisted_record = FactoryGirl.create(:case, patient: persisted_patient)
 
-      get "/cases/#{persisted_record.id}", valid_request_attributes
+      get "/cases/#{persisted_record.id}", query_params, headers
 
       expect_not_found_response
     end
   end#show
 
   describe "POST create" do
-    it "returns 401 if no clientId is supplied" do
+    it "returns 401 if authentication headers are not present" do
       post "/cases",
            { case: FactoryGirl.attributes_for(:case) }.to_json,
            "Content-Type" => "application/json"
 
-      expect_missing_client_response
+      expect_failed_authentication
     end
 
     it "returns 400 if JSON content-type not specified"
@@ -159,8 +163,8 @@ describe "cases", type: :api do
 
         expect {
           post "/cases",
-               valid_request_attributes.merge(case: case_attributes).to_json,
-               "Content-Type" => "application/json"
+               query_params.merge(case: case_attributes).to_json,
+               headers_with_json_content_type
         }.to change(Case, :count).by(1)
 
         response.code.should == "201"
@@ -181,8 +185,8 @@ describe "cases", type: :api do
 
         expect {
           post "/cases",
-               valid_request_attributes.merge(case: case_attributes).to_json,
-               "Content-Type" => "application/json"
+               query_params.merge(case: case_attributes).to_json,
+               headers_with_json_content_type
         }.to change(Patient, :count).by(1)
 
         response_record = JSON.parse(response.body)["case"]["patient"]
@@ -202,8 +206,8 @@ describe "cases", type: :api do
 
         expect {
           post "/cases",
-               valid_request_attributes.merge(case: case_attributes).to_json,
-               "Content-Type" => "application/json"
+               query_params.merge(case: case_attributes).to_json,
+               headers_with_json_content_type
         }.to_not change(Case, :count)
 
         response.code.should == "400"
@@ -217,8 +221,8 @@ describe "cases", type: :api do
 
         expect {
           post "/cases",
-               valid_request_attributes.merge(case: case_attributes).to_json,
-               "Content-Type" => "application/json"
+               query_params.merge(case: case_attributes).to_json,
+               headers_with_json_content_type
         }.to change(Case, :count).by(1)
 
         response.code.should == "201"
@@ -240,8 +244,8 @@ describe "cases", type: :api do
 
         expect {
           post "/cases",
-               valid_request_attributes.merge(case: case_attributes).to_json,
-               "Content-Type" => "application/json"
+               query_params.merge(case: case_attributes).to_json,
+               headers_with_json_content_type
         }.to change(Case, :count).by(1)
 
         persisted_record = Case.last
@@ -267,8 +271,8 @@ describe "cases", type: :api do
 
           expect {
             post "/cases",
-                 valid_request_attributes.merge(case: case_attributes).to_json,
-                 "Content-Type" => "application/json"
+                 query_params.merge(case: case_attributes).to_json,
+                 headers_with_json_content_type
           }.to change(Case, :count).by(1)
 
           @patient.reload
@@ -287,8 +291,8 @@ describe "cases", type: :api do
 
           expect {
             post "/cases",
-                 valid_request_attributes.merge(case: case_attributes).to_json,
-                 "Content-Type" => "application/json"
+                 query_params.merge(case: case_attributes).to_json,
+                 headers_with_json_content_type
           }.to_not change(Patient, :count)
         end
       end
@@ -299,8 +303,8 @@ describe "cases", type: :api do
         case_attributes[:patient] = { name: "Patient Info" }
 
         post "/cases",
-             valid_request_attributes.merge(case: case_attributes).to_json,
-             "Content-Type" => "application/json"
+             query_params.merge(case: case_attributes).to_json,
+             headers_with_json_content_type
 
         expect_not_found_response
       end
@@ -311,8 +315,8 @@ describe "cases", type: :api do
         case_attributes = FactoryGirl.attributes_for(:case)
 
         post "/cases",
-             valid_request_attributes.merge(case: case_attributes).to_json,
-             "Content-Type" => "application/json"
+             query_params.merge(case: case_attributes).to_json,
+             headers_with_json_content_type
 
         response.code.should == "400"
         json["error"]["message"].should match(/patient/i)
@@ -321,7 +325,7 @@ describe "cases", type: :api do
   end#create
 
   describe "PUT update" do
-    it "returns 401 if no clientId is supplied" do
+    it "returns 401 if authentication headers are not present" do
       persisted_record = FactoryGirl.create(:case)
       new_attributes = { anatomy: "hip" }
 
@@ -329,7 +333,7 @@ describe "cases", type: :api do
           { case: new_attributes }.to_json,
           "Content-Type" => "application/json"
 
-      expect_missing_client_response
+      expect_failed_authentication
     end
 
     it "returns 400 if JSON content-type not specified"
@@ -345,8 +349,8 @@ describe "cases", type: :api do
       }
 
       put "/cases/#{persisted_record.id}",
-          valid_request_attributes.merge(case: new_attributes).to_json,
-          "Content-Type" => "application/json"
+          query_params.merge(case: new_attributes).to_json,
+          headers_with_json_content_type
 
       persisted_record.reload
       persisted_record.anatomy.should == "hip"
@@ -371,8 +375,8 @@ describe "cases", type: :api do
       }
 
       put "/cases/#{persisted_record.id}",
-          valid_request_attributes.merge(case: new_attributes).to_json,
-          "Content-Type" => "application/json"
+          query_params.merge(case: new_attributes).to_json,
+          headers_with_json_content_type
 
       persisted_record.reload
       persisted_record.patient.reload.should == patient
@@ -383,8 +387,8 @@ describe "cases", type: :api do
       persisted_record = FactoryGirl.create(:deleted_case)
 
       put "/cases/#{persisted_record.id}",
-          valid_request_attributes.merge(case: { status: "active" }).to_json,
-          "Content-Type" => "application/json"
+          query_params.merge(case: { status: "active" }).to_json,
+          headers_with_json_content_type
 
       persisted_record.reload
       persisted_record.active?.should == false
@@ -395,8 +399,8 @@ describe "cases", type: :api do
       new_attributes = { anatomy: "hip" }
 
       put "/cases/#{persisted_record.id}",
-          valid_request_attributes.merge(case: new_attributes).to_json,
-          "Content-Type" => "application/json"
+          query_params.merge(case: new_attributes).to_json,
+          headers_with_json_content_type
 
       expect_not_found_response
       persisted_record.reload
@@ -405,18 +409,18 @@ describe "cases", type: :api do
   end#update
 
   describe "DELETE" do
-    it "returns 401 if no clientId is supplied" do
+    it "returns 401 if authentication headers are not present" do
       persisted_record = FactoryGirl.create(:case)
 
       delete "/cases/#{persisted_record.id}"
 
-      expect_missing_client_response
+      expect_failed_authentication
     end
 
     it "soft-deletes an existing persisted record" do
       persisted_record = FactoryGirl.create(:case)
 
-      delete "/cases/#{persisted_record.id}", valid_request_attributes
+      delete "/cases/#{persisted_record.id}", query_params, headers
 
       response.code.should == "200"
       json["message"].should == "Deleted"
@@ -425,7 +429,7 @@ describe "cases", type: :api do
     end
 
     it "returns 404 if persisted record does not exist" do
-      delete "/cases/100", valid_request_attributes
+      delete "/cases/100", query_params, headers
 
       expect_not_found_response
     end
@@ -433,7 +437,7 @@ describe "cases", type: :api do
     it "returns 404 if record is already deleted" do
       persisted_record = FactoryGirl.create(:deleted_case)
 
-      delete "/cases/#{persisted_record.id}", valid_request_attributes
+      delete "/cases/#{persisted_record.id}", query_params, headers
 
       expect_not_found_response
     end
