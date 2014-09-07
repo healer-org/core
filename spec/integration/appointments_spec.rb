@@ -1,25 +1,27 @@
 require "spec_helper"
 
-def validate_response_matches_persisted(response, persisted)
+def validate_response_match(response, record)
   APPOINTMENT_ATTRIBUTES.each do |attr|
     if %i(start_time end_time).include?(attr)
-      Time.parse(response[attr.to_s]).iso8601.should == persisted.send(attr).iso8601
+      Time.parse(response[attr.to_s.camelize(:lower)]).iso8601.should == record.send(attr).iso8601
     else
-      response[attr.to_s].should == persisted.send(attr)
+      response[attr.to_s.camelize(:lower)].should == record.send(attr)
     end
   end
-  PATIENT_ATTRIBUTES.each do |attr|
-    if attr == :birth
-      response["patient"][attr.to_s].should == persisted.patient.send(attr).to_s(:db)
-    else
-      response["patient"][attr.to_s].should == persisted.patient.send(attr)
+  if record.patient
+    PATIENT_ATTRIBUTES.each do |attr|
+      if attr == :birth
+        response["patient"][attr.to_s.camelize(:lower)].should == record.patient.send(attr).to_s(:db)
+      else
+        response["patient"][attr.to_s.camelize(:lower)].should == record.patient.send(attr)
+      end
     end
   end
 end
 
 describe "appointments", type: :api do
 
-  let(:valid_request_attributes) { { "client_id" => "healer_spec" } }
+  let(:valid_request_attributes) { { "clientId" => "healer_spec" } }
 
   describe "GET index" do
     before(:each) do
@@ -27,7 +29,7 @@ describe "appointments", type: :api do
       @persisted_2 = FactoryGirl.create(:appointment)
     end
 
-    it "returns 400 if no client_id is supplied" do
+    it "returns 400 if no clientId is supplied" do
       get "/appointments"
 
       expect_missing_client_response
@@ -44,8 +46,8 @@ describe "appointments", type: :api do
       response_record_1 = response_records.detect{ |r| r["id"] == @persisted_1.id }
       response_record_2 = response_records.detect{ |r| r["id"] == @persisted_2.id }
 
-      validate_response_matches_persisted(response_record_1, @persisted_1)
-      validate_response_matches_persisted(response_record_2, @persisted_2)
+      validate_response_match(response_record_1, @persisted_1)
+      validate_response_match(response_record_2, @persisted_2)
     end
 
     it "filters by location" do
@@ -105,7 +107,7 @@ describe "appointments", type: :api do
       @persisted_record = FactoryGirl.create(:appointment, patient: @persisted_patient)
     end
 
-    it "returns 400 if no client_id is supplied" do
+    it "returns 400 if no clientId is supplied" do
       get "/appointments/#{@persisted_record.id}"
 
       expect_missing_client_response
@@ -117,7 +119,7 @@ describe "appointments", type: :api do
       response.code.should == "200"
       response_record = JSON.parse(response.body)["appointment"]
 
-      validate_response_matches_persisted(response_record, @persisted_record)
+      validate_response_match(response_record, @persisted_record)
     end
 
     it "returns 404 if there is no persisted record" do
@@ -138,7 +140,7 @@ describe "appointments", type: :api do
   end#show
 
   describe "POST create" do
-    it "returns 400 if no client_id is supplied" do
+    it "returns 400 if no clientId is supplied" do
       patient = FactoryGirl.create(:patient)
       attributes = FactoryGirl.attributes_for(:appointment).merge!(
         patient_id: patient.id
@@ -222,7 +224,7 @@ describe "appointments", type: :api do
   end
 
   describe "PUT update" do
-    it "returns 400 if no client_id is supplied" do
+    it "returns 400 if no clientId is supplied" do
       persisted_record = FactoryGirl.create(:appointment)
       new_attributes = { start_time: Time.now.utc + 1.week }
 
@@ -257,17 +259,9 @@ describe "appointments", type: :api do
 
       response.code.should == "200"
       attribute_keys = new_attributes.keys
-      APPOINTMENT_ATTRIBUTES.each do |attr|
-        if attribute_keys.include?(attr)
-          if %i(start_time end_time).include?(attr)
-            Time.parse(response_record[attr.to_s]).iso8601.should == persisted_record.send(attr).iso8601
-            Time.parse(response_record[attr.to_s]).iso8601.should == new_attributes[attr].iso8601
-          else
-            response_record[attr.to_s].should == persisted_record.send(attr)
-            response_record[attr.to_s].should == new_attributes[attr]
-          end
-        end
-      end
+
+      validate_response_match(response_record, persisted_record)
+      validate_response_match(response_record, Appointment.new(new_attributes))
     end
 
     it "does not allow transfer to another patient" do
@@ -324,7 +318,7 @@ describe "appointments", type: :api do
   end
 
   describe "DELETE" do
-    it "returns 400 if no client_id is supplied" do
+    it "returns 400 if no clientId is supplied" do
       persisted_record = FactoryGirl.create(:appointment)
 
       delete "/appointments/#{persisted_record.id}"

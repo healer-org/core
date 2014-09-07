@@ -7,14 +7,14 @@ describe "patients", type: :api do
   def response_should_match_persisted(response, persisted)
     PATIENT_ATTRIBUTES.each do |attr|
       if attr == :birth
-        response[attr.to_s].should == persisted.send(attr).to_s(:db)
+        response[attr.to_s.camelize(:lower)].should == persisted.send(attr).to_s(:db)
       else
-        response[attr.to_s].to_s.should == persisted.send(attr).to_s
+        response[attr.to_s.camelize(:lower)].to_s.should == persisted.send(attr).to_s
       end
     end
   end
 
-  let(:valid_request_attributes) { { "client_id" => "healer_spec" } }
+  let(:valid_request_attributes) { { "clientId" => "healer_spec" } }
 
   describe "GET index" do
     before(:each) do
@@ -22,12 +22,12 @@ describe "patients", type: :api do
       @persisted_2 = FactoryGirl.create(:patient)
     end
 
-    it "returns 400 if no client_id is supplied" do
+    it "returns 400 if no clientId is supplied" do
       get "/patients"
 
       expect_missing_client_response
 
-      get "/patients", { client_id: "" }
+      get "/patients", { clientId: "" }
 
       expect_missing_client_response
     end
@@ -103,7 +103,7 @@ describe "patients", type: :api do
       @persisted = FactoryGirl.create(:patient)
     end
 
-    it "returns 400 if no client_id is supplied" do
+    it "returns 400 if no clientId is supplied" do
       get "/patients/#{@persisted.id}"
 
       expect_missing_client_response
@@ -167,7 +167,7 @@ describe "patients", type: :api do
   end#show
 
   describe "POST create" do
-    it "returns 400 if no client_id is supplied" do
+    it "returns 400 if no clientId is supplied" do
       attributes = FactoryGirl.attributes_for(:patient)
 
       post "/patients",
@@ -223,7 +223,7 @@ describe "patients", type: :api do
   end#create
 
   describe "PUT update" do
-    it "returns 400 if no client_id is supplied" do
+    it "returns 400 if no clientId is supplied" do
       persisted_record = FactoryGirl.create(:patient)
       attributes = { name: "Juan Marco" }
 
@@ -314,7 +314,7 @@ describe "patients", type: :api do
   end#update
 
   describe "DELETE" do
-    it "returns 400 if no client_id is supplied" do
+    it "returns 400 if no clientId is supplied" do
       persisted_record = FactoryGirl.create(:patient)
 
       delete "/patients/#{persisted_record.id}"

@@ -8,9 +8,9 @@ class AppointmentPresenter
   def present
     {}.tap do |presented|
       presented[:id] = attributes["id"]
-      presented[:start_time] = attributes["start_time"]
-      presented[:start_ordinal] = attributes["start_ordinal"]
-      presented[:end_time] = attributes["end_time"]
+      presented[:startTime] = attributes["start_time"]
+      presented[:startOrdinal] = attributes["start_ordinal"]
+      presented[:endTime] = attributes["end_time"]
       presented[:location] = attributes["location"]
       presented[:patient] = PatientPresenter.new(patient_attributes).present
     end

@@ -9,6 +9,6 @@ module ClientIdValidation
   private
 
   def enforce_client_id
-    raise Errors::ClientIdMissing unless params[:client_id].present?
+    raise Errors::ClientIdMissing unless params[:clientId].present?
   end
 end
