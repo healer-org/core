@@ -1,5 +1,7 @@
 class ApplicationController < ActionController::API
 
+  after_filter :set_access_control_headers
+
   rescue_from ActiveRecord::RecordNotFound do |exception|
     render_error(code: :not_found, message: "Not Found")
   end
@@ -24,6 +26,15 @@ class ApplicationController < ActionController::API
       json: Response.new(:data => data, :root => "error"),
       status: code
     )
+  end
+
+
+  private
+
+  def set_access_control_headers
+    return unless Rails.env == "development"
+    headers["Access-Control-Allow-Origin"] = "*"
+    headers["Access-Control-Request-Method"] = "*"
   end
 
 end
