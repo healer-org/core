@@ -16,4 +16,14 @@ module Requests
       json["error"]["message"].should == "Not Found"
     end
   end
+
+  module HeaderHelpers
+    def token_auth_header
+      {"HTTP_AUTHORIZATION" => ActionController::HttpAuthentication::Token.encode_credentials("ABCDEF0123456789")}
+    end
+
+    def json_content_header
+      {"Content-Type" => "application/json"}
+    end
+  end
 end

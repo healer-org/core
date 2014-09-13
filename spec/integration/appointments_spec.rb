@@ -22,12 +22,10 @@ end
 describe "appointments", type: :api do
 
   let(:query_params) { {} }
-  let(:headers) { {
-    "HTTP_AUTHORIZATION" => ActionController::HttpAuthentication::Token.encode_credentials("ABCDEF0123456789")
-  } }
-  let(:headers_with_json_content_type) { headers.merge("Content-Type" => "application/json") }
 
   describe "GET index" do
+    let(:headers) { token_auth_header }
+
     before(:each) do
       @persisted_1 = FactoryGirl.create(:appointment)
       @persisted_2 = FactoryGirl.create(:appointment)
@@ -106,6 +104,8 @@ describe "appointments", type: :api do
   end
 
   describe "GET show" do
+    let(:headers) { token_auth_header }
+
     before(:each) do
       @persisted_patient = FactoryGirl.create(:patient)
       @persisted_record = FactoryGirl.create(:appointment, patient: @persisted_patient)
@@ -144,6 +144,8 @@ describe "appointments", type: :api do
   end#show
 
   describe "POST create" do
+    let(:headers) { token_auth_header.merge(json_content_header) }
+
     it "returns 401 if authentication headers are not present" do
       patient = FactoryGirl.create(:patient)
       attributes = FactoryGirl.attributes_for(:appointment).merge!(
@@ -168,7 +170,7 @@ describe "appointments", type: :api do
       expect {
         post "/appointments",
              query_params.merge(appointment: attributes).to_json,
-             headers_with_json_content_type
+             headers
       }.to change(Appointment, :count).by(1)
 
       response.code.should == "201"
@@ -193,7 +195,7 @@ describe "appointments", type: :api do
       expect {
         post "/appointments",
              query_params.merge(appointment: attributes).to_json,
-             headers_with_json_content_type
+             headers
       }.to_not change(Appointment, :count)
 
       response.code.should == "400"
@@ -207,7 +209,7 @@ describe "appointments", type: :api do
       expect {
         post "/appointments",
              query_params.merge(appointment: attributes).to_json,
-             headers_with_json_content_type
+             headers
       }.to_not change(Appointment, :count)
 
       expect_not_found_response
@@ -220,7 +222,7 @@ describe "appointments", type: :api do
       expect {
         post "/appointments",
              query_params.merge(appointment: attributes).to_json,
-             headers_with_json_content_type
+             headers
       }.to_not change(Appointment, :count)
 
       expect_not_found_response
@@ -228,6 +230,8 @@ describe "appointments", type: :api do
   end
 
   describe "PUT update" do
+    let(:headers) { token_auth_header.merge(json_content_header) }
+
     it "returns 401 if authentication headers are not present" do
       persisted_record = FactoryGirl.create(:appointment)
       new_attributes = { start_time: Time.now.utc + 1.week }
@@ -256,7 +260,7 @@ describe "appointments", type: :api do
 
       put "/appointments/#{persisted_record.id}",
           query_params.merge(appointment: new_attributes).to_json,
-          headers_with_json_content_type
+          headers
 
       response_record = JSON.parse(response.body)["appointment"]
       persisted_record.reload
@@ -279,7 +283,7 @@ describe "appointments", type: :api do
 
       put "/appointments/#{persisted_record.id}",
           query_params.merge(appointment: new_attributes).to_json,
-          headers_with_json_content_type
+          headers
 
       persisted_record.reload
       persisted_record.patient_id.should == patient.id
@@ -298,7 +302,7 @@ describe "appointments", type: :api do
 
       put "/appointments/#{persisted_record.id}",
           query_params.merge(appointment: new_attributes).to_json,
-          headers_with_json_content_type
+          headers
 
       persisted_record.reload
       persisted_record.patient.reload.should == patient
@@ -315,13 +319,15 @@ describe "appointments", type: :api do
 
       put "/appointments/#{persisted_record.id}",
           query_params.merge(appointment: new_attributes).to_json,
-          headers_with_json_content_type
+          headers
 
       expect_not_found_response
     end
   end
 
   describe "DELETE" do
+    let(:headers) { token_auth_header }
+
     it "returns 401 if authentication headers are not present" do
       persisted_record = FactoryGirl.create(:appointment)
 

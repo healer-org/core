@@ -3,12 +3,10 @@ require "spec_helper"
 describe "cases", type: :api do
 
   let(:query_params) { {} }
-  let(:headers) { {
-    "HTTP_AUTHORIZATION" => ActionController::HttpAuthentication::Token.encode_credentials("ABCDEF0123456789")
-  } }
-  let(:headers_with_json_content_type) { headers.merge("Content-Type" => "application/json") }
 
   describe "GET index" do
+    let(:headers) { token_auth_header }
+
     before(:each) do
       @patient_1 = FactoryGirl.create(:patient)
       @patient_2 = FactoryGirl.create(:deceased_patient)
@@ -77,6 +75,8 @@ describe "cases", type: :api do
   end#index
 
   describe "GET show" do
+    let(:headers) { token_auth_header }
+
     before(:each) do
       @persisted_patient = FactoryGirl.create(:patient)
       @persisted_case = FactoryGirl.create(:case, patient: @persisted_patient)
@@ -145,10 +145,12 @@ describe "cases", type: :api do
   end#show
 
   describe "POST create" do
+    let(:headers) { token_auth_header.merge(json_content_header) }
+
     it "returns 401 if authentication headers are not present" do
       post "/cases",
            { case: FactoryGirl.attributes_for(:case) }.to_json,
-           "Content-Type" => "application/json"
+           json_content_header
 
       expect_failed_authentication
     end
@@ -164,7 +166,7 @@ describe "cases", type: :api do
         expect {
           post "/cases",
                query_params.merge(case: case_attributes).to_json,
-               headers_with_json_content_type
+               headers
         }.to change(Case, :count).by(1)
 
         response.code.should == "201"
@@ -186,7 +188,7 @@ describe "cases", type: :api do
         expect {
           post "/cases",
                query_params.merge(case: case_attributes).to_json,
-               headers_with_json_content_type
+               headers
         }.to change(Patient, :count).by(1)
 
         response_record = JSON.parse(response.body)["case"]["patient"]
@@ -207,7 +209,7 @@ describe "cases", type: :api do
         expect {
           post "/cases",
                query_params.merge(case: case_attributes).to_json,
-               headers_with_json_content_type
+               headers
         }.to_not change(Case, :count)
 
         response.code.should == "400"
@@ -222,7 +224,7 @@ describe "cases", type: :api do
         expect {
           post "/cases",
                query_params.merge(case: case_attributes).to_json,
-               headers_with_json_content_type
+               headers
         }.to change(Case, :count).by(1)
 
         response.code.should == "201"
@@ -245,7 +247,7 @@ describe "cases", type: :api do
         expect {
           post "/cases",
                query_params.merge(case: case_attributes).to_json,
-               headers_with_json_content_type
+               headers
         }.to change(Case, :count).by(1)
 
         persisted_record = Case.last
@@ -272,7 +274,7 @@ describe "cases", type: :api do
           expect {
             post "/cases",
                  query_params.merge(case: case_attributes).to_json,
-                 headers_with_json_content_type
+                 headers
           }.to change(Case, :count).by(1)
 
           @patient.reload
@@ -292,7 +294,7 @@ describe "cases", type: :api do
           expect {
             post "/cases",
                  query_params.merge(case: case_attributes).to_json,
-                 headers_with_json_content_type
+                 headers
           }.to_not change(Patient, :count)
         end
       end
@@ -304,7 +306,7 @@ describe "cases", type: :api do
 
         post "/cases",
              query_params.merge(case: case_attributes).to_json,
-             headers_with_json_content_type
+             headers
 
         expect_not_found_response
       end
@@ -316,7 +318,7 @@ describe "cases", type: :api do
 
         post "/cases",
              query_params.merge(case: case_attributes).to_json,
-             headers_with_json_content_type
+             headers
 
         response.code.should == "400"
         json["error"]["message"].should match(/patient/i)
@@ -325,13 +327,15 @@ describe "cases", type: :api do
   end#create
 
   describe "PUT update" do
+    let(:headers) { token_auth_header.merge(json_content_header) }
+
     it "returns 401 if authentication headers are not present" do
       persisted_record = FactoryGirl.create(:case)
       new_attributes = { anatomy: "hip" }
 
       put "/cases/#{persisted_record.id}",
           { case: new_attributes }.to_json,
-          "Content-Type" => "application/json"
+          json_content_header
 
       expect_failed_authentication
     end
@@ -350,7 +354,7 @@ describe "cases", type: :api do
 
       put "/cases/#{persisted_record.id}",
           query_params.merge(case: new_attributes).to_json,
-          headers_with_json_content_type
+          headers
 
       persisted_record.reload
       persisted_record.anatomy.should == "hip"
@@ -376,7 +380,7 @@ describe "cases", type: :api do
 
       put "/cases/#{persisted_record.id}",
           query_params.merge(case: new_attributes).to_json,
-          headers_with_json_content_type
+          headers
 
       persisted_record.reload
       persisted_record.patient.reload.should == patient
@@ -388,7 +392,7 @@ describe "cases", type: :api do
 
       put "/cases/#{persisted_record.id}",
           query_params.merge(case: { status: "active" }).to_json,
-          headers_with_json_content_type
+          headers
 
       persisted_record.reload
       persisted_record.active?.should == false
@@ -400,7 +404,7 @@ describe "cases", type: :api do
 
       put "/cases/#{persisted_record.id}",
           query_params.merge(case: new_attributes).to_json,
-          headers_with_json_content_type
+          headers
 
       expect_not_found_response
       persisted_record.reload
@@ -409,6 +413,8 @@ describe "cases", type: :api do
   end#update
 
   describe "DELETE" do
+    let(:headers) { token_auth_header }
+
     it "returns 401 if authentication headers are not present" do
       persisted_record = FactoryGirl.create(:case)
 
