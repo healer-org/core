@@ -113,7 +113,7 @@ describe "patients", type: :api do
       get "/patients/#{@persisted.id}", query_params, headers
 
       response.code.should == "200"
-      response_record = JSON.parse(response.body)["patient"]
+      response_record = json["patient"]
       response_record["id"].should == @persisted.id
       response_record["name"].should == @persisted.name
       response_record["birth"].to_s.should == @persisted.birth.to_s
@@ -129,7 +129,7 @@ describe "patients", type: :api do
       get "/patients/#{@persisted.id}", query_params, headers
 
       response.code.should == "200"
-      response_record = JSON.parse(response.body)["patient"]
+      response_record = json["patient"]
       response_record.keys.should_not include("status")
       response_record.keys.should_not include("active")
     end
@@ -152,7 +152,7 @@ describe "patients", type: :api do
         ), headers
 
         response.code.should == "200"
-        response_record = JSON.parse(response.body)["patient"]
+        response_record = json["patient"]
 
         response_should_match_persisted(response_record, @persisted)
 
@@ -192,7 +192,7 @@ describe "patients", type: :api do
 
       response.code.should == "201"
 
-      response_record = JSON.parse(response.body)["patient"]
+      response_record = json["patient"]
       persisted_record = Patient.last
       persisted_record.active?.should == true
 
@@ -272,7 +272,7 @@ describe "patients", type: :api do
           headers
 
       response.code.should == "200"
-      response_record = JSON.parse(response.body)["patient"]
+      response_record = json["patient"]
       response_record["name"].should == "Juana"
       response_record["birth"].should == "1977-08-12"
     end

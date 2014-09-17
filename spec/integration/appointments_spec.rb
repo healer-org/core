@@ -121,7 +121,7 @@ describe "appointments", type: :api do
       get "/appointments/#{@persisted_record.id}", query_params, headers
 
       response.code.should == "200"
-      response_record = JSON.parse(response.body)["appointment"]
+      response_record = json["appointment"]
 
       validate_response_match(response_record, @persisted_record)
     end
@@ -175,7 +175,7 @@ describe "appointments", type: :api do
 
       response.code.should == "201"
 
-      response_record = JSON.parse(response.body)["appointment"]
+      response_record = json["appointment"]
 
       persisted_record = Appointment.last
 
@@ -262,7 +262,7 @@ describe "appointments", type: :api do
           query_params.merge(appointment: new_attributes).to_json,
           headers
 
-      response_record = JSON.parse(response.body)["appointment"]
+      response_record = json["appointment"]
       persisted_record.reload
 
       response.code.should == "200"

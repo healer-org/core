@@ -107,7 +107,7 @@ describe "cases", type: :api do
       get "/cases/#{@persisted_case.id}", query_params, headers
 
       response.code.should == "200"
-      response_record = JSON.parse(response.body)["case"]
+      response_record = json["case"]
       response_record["id"].should == @persisted_case.id
     end
 
@@ -121,7 +121,7 @@ describe "cases", type: :api do
       get "/cases/#{@persisted_case.id}", query_params, headers
 
       response.code.should == "200"
-      response_record = JSON.parse(response.body)["case"]
+      response_record = json["case"]
       response_record.keys.should_not include("status")
       response_record.keys.should_not include("active")
     end
@@ -171,7 +171,7 @@ describe "cases", type: :api do
 
         response.code.should == "201"
 
-        response_record = JSON.parse(response.body)["case"]
+        response_record = json["case"]
         persisted_record = Case.last
         persisted_record.active?.should == true
         CASE_ATTRIBUTES.each do |attr|
@@ -191,7 +191,7 @@ describe "cases", type: :api do
                headers
         }.to change(Patient, :count).by(1)
 
-        response_record = JSON.parse(response.body)["case"]["patient"]
+        response_record = json["case"]["patient"]
         persisted_record = Patient.last
         persisted_record.active?.should == true
         PATIENT_ATTRIBUTES.each do |attr|
@@ -251,7 +251,7 @@ describe "cases", type: :api do
         }.to change(Case, :count).by(1)
 
         persisted_record = Case.last
-        response_record = JSON.parse(response.body)["case"]["patient"]
+        response_record = json["case"]["patient"]
 
         CASE_ATTRIBUTES.each do |attr|
           case_attributes[attr].to_s.should == persisted_record.send(attr).to_s
