@@ -4,7 +4,7 @@ describe Case do
 
   describe "#delete!" do
     before(:each) do
-      @case = FactoryGirl.create(:case)
+      @case = FactoryGirl.create(:active_case)
     end
 
     it "sets status value to 'deleted'" do
@@ -35,7 +35,7 @@ describe Case do
       active
     ).each do |status|
       it "is true if status is #{status}" do
-        a_case = FactoryGirl.create(:case)
+        a_case = FactoryGirl.create(:active_case)
         a_case.update_attributes!(status: status)
 
         a_case.active?.should == true

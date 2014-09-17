@@ -10,8 +10,8 @@ describe "cases", type: :api do
     before(:each) do
       @patient_1 = FactoryGirl.create(:patient)
       @patient_2 = FactoryGirl.create(:deceased_patient)
-      @persisted_1 = FactoryGirl.create(:case, patient: @patient_1)
-      @persisted_2 = FactoryGirl.create(:case, patient: @patient_2)
+      @persisted_1 = FactoryGirl.create(:active_case, patient: @patient_1)
+      @persisted_2 = FactoryGirl.create(:active_case, patient: @patient_2)
     end
 
     it "returns 401 if authentication headers are not present" do
@@ -79,7 +79,7 @@ describe "cases", type: :api do
 
     before(:each) do
       @persisted_patient = FactoryGirl.create(:patient)
-      @persisted_case = FactoryGirl.create(:case, patient: @persisted_patient)
+      @persisted_case = FactoryGirl.create(:active_case, patient: @persisted_patient)
     end
 
     it "returns 401 if authentication headers are not present" do
@@ -92,7 +92,7 @@ describe "cases", type: :api do
       get "/cases/#{@persisted_case.id}", query_params, headers
 
       response.code.should == "200"
-      response_record = JSON.parse(response.body)["case"]
+      response_record = json["case"]
       CASE_ATTRIBUTES.each do |attr|
         response_record[attr.to_s].to_s.should == @persisted_case.send(attr).to_s
       end
@@ -136,7 +136,7 @@ describe "cases", type: :api do
 
     it "returns 404 if the patient is deleted" do
       persisted_patient = FactoryGirl.create(:deleted_patient)
-      persisted_record = FactoryGirl.create(:case, patient: persisted_patient)
+      persisted_record = FactoryGirl.create(:active_case, patient: persisted_patient)
 
       get "/cases/#{persisted_record.id}", query_params, headers
 
@@ -149,7 +149,7 @@ describe "cases", type: :api do
 
     it "returns 401 if authentication headers are not present" do
       post "/cases",
-           { case: FactoryGirl.attributes_for(:case) }.to_json,
+           { case: FactoryGirl.attributes_for(:active_case) }.to_json,
            json_content_header
 
       expect_failed_authentication
@@ -159,7 +159,7 @@ describe "cases", type: :api do
 
     context "when patient is posted as nested attribute" do
       it "creates a new active persisted record for the case and returns JSON" do
-        case_attributes = FactoryGirl.attributes_for(:case)
+        case_attributes = FactoryGirl.attributes_for(:active_case)
         patient_attributes = FactoryGirl.attributes_for(:patient)
         case_attributes[:patient] = patient_attributes
 
@@ -181,7 +181,7 @@ describe "cases", type: :api do
       end
 
       it "creates a new active persisted record for the patient" do
-        case_attributes = FactoryGirl.attributes_for(:case)
+        case_attributes = FactoryGirl.attributes_for(:active_case)
         patient_attributes = FactoryGirl.attributes_for(:patient)
         case_attributes[:patient] = patient_attributes
 
@@ -201,7 +201,7 @@ describe "cases", type: :api do
       end
 
       it "returns 400 if patient name is not supplied" do
-        case_attributes = FactoryGirl.attributes_for(:case)
+        case_attributes = FactoryGirl.attributes_for(:active_case)
         patient_attributes = FactoryGirl.attributes_for(:patient)
         patient_attributes.delete(:name)
         case_attributes[:patient] = patient_attributes
@@ -241,7 +241,7 @@ describe "cases", type: :api do
       end
 
       it "creates a new persisted case associated to the patient" do
-        case_attributes = FactoryGirl.attributes_for(:case)
+        case_attributes = FactoryGirl.attributes_for(:active_case)
         case_attributes[:patient_id] = @patient.id
 
         expect {
@@ -264,7 +264,7 @@ describe "cases", type: :api do
       context "and patient nested attributes are posted" do
         it "does not update the persisted patient with the posted attributes" do
           original_patient_name = @patient.name
-          case_attributes = FactoryGirl.attributes_for(:case)
+          case_attributes = FactoryGirl.attributes_for(:active_case)
           case_attributes[:patient_id] = @patient.id
           case_attributes[:patient] = {
             name: "Changed #{original_patient_name}",
@@ -287,7 +287,7 @@ describe "cases", type: :api do
         end
 
         it "does not create a new patient" do
-          case_attributes = FactoryGirl.attributes_for(:case)
+          case_attributes = FactoryGirl.attributes_for(:active_case)
           case_attributes[:patient_id] = @patient.id
           case_attributes[:patient] = { name: "New Patient Info" }
 
@@ -300,7 +300,7 @@ describe "cases", type: :api do
       end
 
       it "returns 404 if patient is not found for patient_id" do
-        case_attributes = FactoryGirl.attributes_for(:case)
+        case_attributes = FactoryGirl.attributes_for(:active_case)
         case_attributes[:patient_id] = 100
         case_attributes[:patient] = { name: "Patient Info" }
 
@@ -314,7 +314,7 @@ describe "cases", type: :api do
 
     context "on unexpected input" do
       it "returns 400 on absent patient or patient id" do
-        case_attributes = FactoryGirl.attributes_for(:case)
+        case_attributes = FactoryGirl.attributes_for(:active_case)
 
         post "/cases",
              query_params.merge(case: case_attributes).to_json,
@@ -330,7 +330,7 @@ describe "cases", type: :api do
     let(:headers) { token_auth_header.merge(json_content_header) }
 
     it "returns 401 if authentication headers are not present" do
-      persisted_record = FactoryGirl.create(:case)
+      persisted_record = FactoryGirl.create(:active_case)
       new_attributes = { anatomy: "hip" }
 
       put "/cases/#{persisted_record.id}",
@@ -343,7 +343,7 @@ describe "cases", type: :api do
     it "returns 400 if JSON content-type not specified"
 
     it "updates an existing case record" do
-      persisted_record = FactoryGirl.create(:case,
+      persisted_record = FactoryGirl.create(:active_case,
         anatomy: "knee",
         side: "left"
       )
@@ -364,7 +364,7 @@ describe "cases", type: :api do
     it "does not update patient information" do
       patient = FactoryGirl.create(:patient)
       original_patient_name = patient.name
-      persisted_record = FactoryGirl.create(:case,
+      persisted_record = FactoryGirl.create(:active_case,
         patient: patient,
         anatomy: "knee",
         side: "left"
@@ -416,7 +416,7 @@ describe "cases", type: :api do
     let(:headers) { token_auth_header }
 
     it "returns 401 if authentication headers are not present" do
-      persisted_record = FactoryGirl.create(:case)
+      persisted_record = FactoryGirl.create(:active_case)
 
       delete "/cases/#{persisted_record.id}"
 
@@ -424,7 +424,7 @@ describe "cases", type: :api do
     end
 
     it "soft-deletes an existing persisted record" do
-      persisted_record = FactoryGirl.create(:case)
+      persisted_record = FactoryGirl.create(:active_case)
 
       delete "/cases/#{persisted_record.id}", query_params, headers
 

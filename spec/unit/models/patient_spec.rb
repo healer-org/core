@@ -14,8 +14,8 @@ describe Patient do
     end
 
     it "deletes all attached cases" do
-      case_1 = FactoryGirl.create(:case, patient: @patient)
-      case_2 = FactoryGirl.create(:case, patient: @patient)
+      case_1 = FactoryGirl.create(:active_case, patient: @patient)
+      case_2 = FactoryGirl.create(:active_case, patient: @patient)
 
       case_1.active?.should == true
       case_2.active?.should == true
@@ -27,7 +27,7 @@ describe Patient do
     end
 
     it "does not swallow errors if case fails to be deleted" do
-      case_1 = FactoryGirl.create(:case, patient: @patient)
+      case_1 = FactoryGirl.create(:active_case, patient: @patient)
 
       Case.any_instance.stub(:delete!).and_raise "Fail"
 
@@ -35,7 +35,7 @@ describe Patient do
     end
 
     it "does not delete patient case fails to be deleted" do
-      case_1 = FactoryGirl.create(:case, patient: @patient)
+      case_1 = FactoryGirl.create(:active_case, patient: @patient)
 
       Case.any_instance.stub(:delete!).and_raise "Fail"
 

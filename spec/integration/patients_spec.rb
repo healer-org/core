@@ -73,8 +73,8 @@ describe "patients", type: :api do
 
     context "when showCases param is true" do
       it "returns cases as additional JSON" do
-        case1 = FactoryGirl.create(:case, patient: @persisted_1)
-        case2 = FactoryGirl.create(:case, patient: @persisted_2)
+        case1 = FactoryGirl.create(:active_case, patient: @persisted_1)
+        case2 = FactoryGirl.create(:active_case, patient: @persisted_2)
 
         get "/patients", query_params.merge(showCases: true), headers
 
@@ -144,8 +144,8 @@ describe "patients", type: :api do
 
     context "when showCases param is true" do
       it "returns all cases as JSON" do
-        case1 = FactoryGirl.create(:case, patient: @persisted)
-        case2 = FactoryGirl.create(:case, patient: @persisted)
+        case1 = FactoryGirl.create(:active_case, patient: @persisted)
+        case2 = FactoryGirl.create(:active_case, patient: @persisted)
 
         get "/patients/#{@persisted.id}", query_params.merge(
           showCases: true
