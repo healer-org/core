@@ -26,11 +26,11 @@ describe "cases", type: :api do
       response.code.should == "200"
       response_records = json["cases"]
 
-      response_records.map{ |r| r["id"] }.any?{ |id| id.nil? }.should == false
+      response_ids_for(response_records).any?{ |id| id.nil? }.should == false
 
-      response_record_1 = response_records.detect{ |r| r["id"] == persisted_1.id }
-      response_record_2 = response_records.detect{ |r| r["id"] == persisted_2.id }
-      response_record_3 = response_records.detect{ |r| r["id"] == persisted_3.id }
+      response_record_1 = pluck_response_record(response_records, persisted_1.id)
+      response_record_2 = pluck_response_record(response_records, persisted_2.id)
+      response_record_3 = pluck_response_record(response_records, persisted_3.id)
 
       PATIENT_ATTRIBUTES.each do |attr|
         response_record_1["patient"][attr.to_s].to_s.should == patient_1.send(attr).to_s
@@ -45,9 +45,7 @@ describe "cases", type: :api do
       get "/cases", query_params, headers
 
       response.code.should == "200"
-      response_records = json["cases"]
-
-      response_records.map{ |r| r["id"] }.should_not include(deleted_case.id)
+      response_ids_for(json["cases"]).should_not include(deleted_case.id)
     end
 
     it "filters by status" do
@@ -57,11 +55,11 @@ describe "cases", type: :api do
 
       get "/cases?status=pending", query_params, headers
 
-      response.code.should == "200"
-      response_records = json["cases"]
+      response_ids = response_ids_for(json["cases"])
 
-      response_records.map{ |r| r["id"] }.should include(persisted_1.id)
-      response_records.map{ |r| r["id"] }.should_not include(persisted_2.id)
+      response.code.should == "200"
+      response_ids.should include(persisted_1.id)
+      response_ids.should_not include(persisted_2.id)
     end
 
     it "does not return results for deleted records, even if asked" do
@@ -71,9 +69,10 @@ describe "cases", type: :api do
 
       get "/cases?status=deleted", query_params, headers
 
+      response_ids = response_ids_for(json["cases"])
+
       response.code.should == "200"
-      response_records = json["cases"]
-      response_records.map{ |r| r["id"] }.should_not include(persisted_1.id)
+      response_ids.should_not include(persisted_1.id)
     end
 
     context "when attachments param is true" do

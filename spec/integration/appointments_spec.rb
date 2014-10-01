@@ -44,10 +44,10 @@ describe "appointments", type: :api do
       response.code.should == "200"
       response_records = json["appointments"]
       response_records.size.should == 2
-      response_records.map{ |r| r["id"] }.any?{ |id| id.nil? }.should == false
+      response_ids_for(response_records).any?{ |id| id.nil? }.should == false
 
-      response_record_1 = response_records.detect{ |r| r["id"] == @persisted_1.id }
-      response_record_2 = response_records.detect{ |r| r["id"] == @persisted_2.id }
+      response_record_1 = pluck_response_record(response_records, @persisted_1.id)
+      response_record_2 = pluck_response_record(response_records, @persisted_2.id)
 
       validate_response_match(response_record_1, @persisted_1)
       validate_response_match(response_record_2, @persisted_2)
@@ -95,9 +95,7 @@ describe "appointments", type: :api do
       get "/appointments", query_params, headers
 
       response.code.should == "200"
-      response_records = json["appointments"]
-
-      response_records.map{ |r| r["id"] }.should_not include(persisted.id)
+      response_ids_for(json["appointments"]).should_not include(persisted.id)
     end
   end
 

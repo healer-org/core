@@ -36,11 +36,11 @@ describe "patients", type: :api do
 
       response.code.should == "200"
       response_records = json["patients"]
-      response_records.size.should == 2
-      response_records.map{ |r| r["id"] }.any?{ |id| id.nil? }.should == false
 
-      response_record_1 = response_records.detect{ |r| r["id"] == @persisted_1.id }
-      response_record_2 = response_records.detect{ |r| r["id"] == @persisted_2.id }
+      response_ids_for(response_records).any?{ |id| id.nil? }.should == false
+
+      response_record_1 = pluck_response_record(response_records, @persisted_1.id)
+      response_record_2 = pluck_response_record(response_records, @persisted_2.id)
 
       response_should_match_persisted(response_record_1, @persisted_1)
       response_should_match_persisted(response_record_2, @persisted_2)
@@ -63,10 +63,7 @@ describe "patients", type: :api do
       get "/patients", query_params.merge(status: "deleted"), headers
 
       response.code.should == "200"
-      response_records = json["patients"]
-      response_records.size.should == 1
-
-      response_records.map{ |r| r["id"] }.should_not include(@persisted_2.id)
+      response_ids_for(json["patients"]).should_not include(@persisted_2.id)
     end
 
     context "when showCases param is true" do
@@ -78,10 +75,9 @@ describe "patients", type: :api do
 
         response.code.should == "200"
         response_records = json["patients"]
-        response_records.size.should == 2
 
-        response_record_1 = response_records.detect{ |p| p["id"] == @persisted_1.id }
-        response_record_2 = response_records.detect{ |p| p["id"] == @persisted_2.id }
+        response_record_1 = pluck_response_record(response_records, @persisted_1.id)
+        response_record_2 = pluck_response_record(response_records, @persisted_2.id)
 
         response_record_1["cases"].size.should == 1
         response_record_2["cases"].size.should == 2

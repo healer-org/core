@@ -15,6 +15,14 @@ module Requests
       response.code.should == "404"
       json["error"]["message"].should == "Not Found"
     end
+
+    def response_ids_for(response_records)
+      response_records.map{ |r| r["id"] }
+    end
+
+    def pluck_response_record(response_records, lookup_id)
+      response_records.detect{ |r| r["id"] == lookup_id }
+    end
   end
 
   module HeaderHelpers
