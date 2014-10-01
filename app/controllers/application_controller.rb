@@ -1,4 +1,9 @@
 class ApplicationController < ActionController::API
+  BAD_REQUESTS = [
+    ActiveRecord::RecordInvalid,
+    ActionController::ParameterMissing,
+    Errors::MismatchedPatient
+  ]
 
   after_filter :set_access_control_headers
 
@@ -6,11 +11,7 @@ class ApplicationController < ActionController::API
     render_error(code: :not_found, message: "Not Found")
   end
 
-  rescue_from ActiveRecord::RecordInvalid do |exception|
-    render_error(code: :bad_request, message: exception.message)
-  end
-
-  rescue_from ActionController::ParameterMissing do |exception|
+  rescue_from *BAD_REQUESTS do |exception|
     render_error(code: :bad_request, message: exception.message)
   end
 

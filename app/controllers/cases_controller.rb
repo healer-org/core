@@ -2,7 +2,7 @@ class CasesController < ApplicationController
   include Authentication
 
   def index
-    cases = Case.includes(:patient).
+    cases = Case.active.includes(:patient).
       where(status: filtered_param_status)
     presented = cases.map { |c| presented(c) }
 
@@ -13,7 +13,7 @@ class CasesController < ApplicationController
   end
 
   def show
-    case_record = Case.includes(:patient).
+    case_record = Case.active.includes(:patient).
       where.not(patients: { status: "deleted" }).
       find_by!(id: params[:id])
 
@@ -37,7 +37,7 @@ class CasesController < ApplicationController
   end
 
   def update
-    case_record = Case.find(params[:id])
+    case_record = Case.active.find(params[:id])
     params = case_params
     params.delete(:patient_id) if params[:patient_id]
 
@@ -47,7 +47,7 @@ class CasesController < ApplicationController
   end
 
   def delete
-    case_record = Case.find(params[:id])
+    case_record = Case.active.find(params[:id])
     case_record.delete!
 
     render(

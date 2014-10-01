@@ -4,7 +4,7 @@ module SoftDelete
   extend ActiveSupport::Concern
 
   included do
-    default_scope { where.not(status: "deleted") }
+    scope :active, -> { where.not(status: "deleted") }
   end
 
   def active?

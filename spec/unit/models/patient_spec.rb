@@ -1,10 +1,11 @@
 require "spec_helper"
 
 describe Patient do
+  fixtures :patients, :cases
 
   describe "#delete!" do
     before(:each) do
-      @patient = FactoryGirl.create(:patient)
+      @patient = patients(:silvia)
     end
 
     it "sets status value to 'deleted'" do
@@ -14,8 +15,8 @@ describe Patient do
     end
 
     it "deletes all attached cases" do
-      case_1 = FactoryGirl.create(:active_case, patient: @patient)
-      case_2 = FactoryGirl.create(:active_case, patient: @patient)
+      case_1 = cases(:silvia_left_foot)
+      case_2 = cases(:silvia_right_foot)
 
       case_1.active?.should == true
       case_2.active?.should == true
@@ -27,7 +28,7 @@ describe Patient do
     end
 
     it "does not swallow errors if case fails to be deleted" do
-      case_1 = FactoryGirl.create(:active_case, patient: @patient)
+      case_1 = cases(:silvia_left_foot)
 
       Case.any_instance.stub(:delete!).and_raise "Fail"
 
@@ -35,7 +36,7 @@ describe Patient do
     end
 
     it "does not delete patient case fails to be deleted" do
-      case_1 = FactoryGirl.create(:active_case, patient: @patient)
+      case_1 = cases(:silvia_left_foot)
 
       Case.any_instance.stub(:delete!).and_raise "Fail"
 
@@ -45,6 +46,7 @@ describe Patient do
     end
 
     it "logs the deletion" do
+      Rails.logger.stub(:info)
       Rails.logger.should_receive(:info).at_least(:once).with(
         "id=#{@patient.id} object=Patient action=delete"
       )
@@ -57,7 +59,7 @@ describe Patient do
 
   describe "#active?" do
     it "is false if status is deleted" do
-      patient = FactoryGirl.create(:deleted_patient)
+      patient = patients(:deleted)
 
       patient.active?.should == false
     end
@@ -66,7 +68,7 @@ describe Patient do
       active
     ).each do |status|
       it "is true if status is #{status}" do
-        patient = FactoryGirl.create(:patient)
+        patient = patients(:fernando)
         patient.update_attributes!(status: status)
 
         patient.active?.should == true

@@ -20,6 +20,7 @@ def validate_response_match(response, record)
 end
 
 describe "appointments", type: :api do
+  fixtures :appointments, :patients
 
   let(:query_params) { {} }
 
@@ -27,8 +28,8 @@ describe "appointments", type: :api do
     let(:headers) { token_auth_header }
 
     before(:each) do
-      @persisted_1 = FactoryGirl.create(:appointment)
-      @persisted_2 = FactoryGirl.create(:appointment)
+      @persisted_1 = appointments(:fernando_gt15)
+      @persisted_2 = appointments(:silvia_gt15)
     end
 
     it "returns 401 if authentication headers are not present" do
@@ -89,17 +90,14 @@ describe "appointments", type: :api do
     end
 
     it "does not include records belonging to deleted patients" do
-      persisted_3 = FactoryGirl.create(
-        :appointment,
-        patient: FactoryGirl.create(:deleted_patient)
-      )
+      persisted = appointments(:for_deleted_patient)
 
       get "/appointments", query_params, headers
 
       response.code.should == "200"
       response_records = json["appointments"]
 
-      response_records.map{ |r| r["id"] }.should_not include(persisted_3.id)
+      response_records.map{ |r| r["id"] }.should_not include(persisted.id)
     end
   end
 
@@ -107,8 +105,7 @@ describe "appointments", type: :api do
     let(:headers) { token_auth_header }
 
     before(:each) do
-      @persisted_patient = FactoryGirl.create(:patient)
-      @persisted_record = FactoryGirl.create(:appointment, patient: @persisted_patient)
+      @persisted_record = appointments(:fernando_gt15)
     end
 
     it "returns 401 if authentication headers are not present" do
@@ -133,9 +130,7 @@ describe "appointments", type: :api do
     end
 
     it "returns 404 if patient is deleted" do
-      persisted_record = FactoryGirl.create(:appointment,
-        patient: FactoryGirl.create(:deleted_patient)
-      )
+      persisted_record = appointments(:for_deleted_patient)
 
       get "/appointments/#{persisted_record.id}", query_params, headers
 
@@ -147,10 +142,7 @@ describe "appointments", type: :api do
     let(:headers) { token_auth_header.merge(json_content_header) }
 
     it "returns 401 if authentication headers are not present" do
-      patient = FactoryGirl.create(:patient)
-      attributes = FactoryGirl.attributes_for(:appointment).merge!(
-        patient_id: patient.id
-      )
+      attributes = appointments(:fernando_gt15).attributes.dup
 
       post "/appointments",
            appointment: attributes.to_json,
@@ -162,10 +154,10 @@ describe "appointments", type: :api do
     it "returns 400 if JSON content-type not specified"
 
     it "persists a new patient-associated record and returns JSON" do
-      patient = FactoryGirl.create(:patient)
-      attributes = FactoryGirl.attributes_for(:appointment).merge!(
-        patient_id: patient.id
-      )
+      patient = patients(:fernando)
+      appointment = appointments(:fernando_gt15)
+      attributes = appointment.attributes.dup.symbolize_keys
+      appointment.destroy
 
       expect {
         post "/appointments",
@@ -189,8 +181,8 @@ describe "appointments", type: :api do
     end
 
     it "returns 400 if a patient id is not supplied" do
-      attributes = FactoryGirl.attributes_for(:appointment)
-      attributes.should_not include(:patient_id)
+      attributes = appointments(:fernando_gt15).attributes.dup.symbolize_keys
+      attributes.delete(:patient_id)
 
       expect {
         post "/appointments",
@@ -203,7 +195,8 @@ describe "appointments", type: :api do
     end
 
     it "returns 404 if patient is not found matching id" do
-      attributes = FactoryGirl.attributes_for(:appointment).merge!(patient_id: 1)
+      attributes = appointments(:fernando_gt15).attributes.dup.symbolize_keys
+      attributes[:patient_id] = 1
       Patient.find_by_id(1).should be_nil
 
       expect {
@@ -216,8 +209,9 @@ describe "appointments", type: :api do
     end
 
     it "returns 404 if patient is deleted" do
-      patient = FactoryGirl.create(:deleted_patient)
-      attributes = FactoryGirl.attributes_for(:appointment).merge!(patient_id: patient.id)
+      patient = patients(:deleted)
+      attributes = appointments(:fernando_gt15).attributes.dup.symbolize_keys
+      attributes[:patient_id] = patient.id
 
       expect {
         post "/appointments",
@@ -233,7 +227,7 @@ describe "appointments", type: :api do
     let(:headers) { token_auth_header.merge(json_content_header) }
 
     it "returns 401 if authentication headers are not present" do
-      persisted_record = FactoryGirl.create(:appointment)
+      persisted_record = appointments(:fernando_gt15)
       new_attributes = { start_time: Time.now.utc + 1.week }
 
       put "/appointments/#{persisted_record.id}",
@@ -246,7 +240,7 @@ describe "appointments", type: :api do
     it "returns 400 if JSON content-type not specified"
 
     it "updates an existing appointment record" do
-      persisted_record = FactoryGirl.create(:appointment)
+      persisted_record = appointments(:fernando_gt15)
       new_attributes = {
         start_time: Time.now.utc + 1.week,
         start_ordinal: 5,
@@ -272,10 +266,13 @@ describe "appointments", type: :api do
       validate_response_match(response_record, Appointment.new(new_attributes))
     end
 
-    it "does not allow transfer to another patient" do
-      patient = FactoryGirl.create(:patient)
-      different_patient = FactoryGirl.create(:patient)
-      persisted_record = FactoryGirl.create(:appointment, patient: patient)
+    it "returns 400 if attempting to transfer to a different patient" do
+      persisted_record = appointments(:fernando_gt15)
+      original_patient = persisted_record.patient
+      different_patient = patients(:silvia)
+      different_patient.id.should_not == original_patient.id
+      persisted_record.start_ordinal.should_not == 5
+      original_start_ordinal = persisted_record.start_ordinal
       new_attributes = {
         start_ordinal: 5,
         patient_id: different_patient.id
@@ -285,14 +282,17 @@ describe "appointments", type: :api do
           query_params.merge(appointment: new_attributes).to_json,
           headers
 
+      response.code.should == "400"
+      json["error"]["message"].should match(/patient/i)
+
       persisted_record.reload
-      persisted_record.patient_id.should == patient.id
+      persisted_record.start_ordinal.should == original_start_ordinal
+      persisted_record.patient_id.should == original_patient.id
     end
 
     it "does not update patient information" do
-      patient = FactoryGirl.create(:patient)
-      original_patient_name = patient.name
-      persisted_record = FactoryGirl.create(:appointment, patient: patient)
+      persisted_record = appointments(:fernando_gt15)
+      original_patient_name = persisted_record.patient.name
       new_attributes = {
         start_ordinal: 500,
         patient: {
@@ -305,13 +305,11 @@ describe "appointments", type: :api do
           headers
 
       persisted_record.reload
-      persisted_record.patient.reload.should == patient
       persisted_record.patient.name.should == original_patient_name
     end
 
     it "returns 404 if patient is deleted" do
-      patient = FactoryGirl.create(:deleted_patient)
-      persisted_record = FactoryGirl.create(:appointment, patient: patient)
+      persisted_record = appointments(:for_deleted_patient)
       new_attributes = {
         start_time: Time.now + 1.week,
         start_ordinal: 5
@@ -329,7 +327,7 @@ describe "appointments", type: :api do
     let(:headers) { token_auth_header }
 
     it "returns 401 if authentication headers are not present" do
-      persisted_record = FactoryGirl.create(:appointment)
+      persisted_record = appointments(:fernando_gt15)
 
       delete "/appointments/#{persisted_record.id}"
 
@@ -337,7 +335,7 @@ describe "appointments", type: :api do
     end
 
     it "hard-deletes an existing persisted record" do
-      persisted_record = FactoryGirl.create(:appointment)
+      persisted_record = appointments(:fernando_gt15)
 
       delete "/appointments/#{persisted_record.id}", query_params, headers
 

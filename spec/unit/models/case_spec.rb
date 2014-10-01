@@ -1,10 +1,11 @@
 require "spec_helper"
 
 describe Case do
+  fixtures :cases
 
   describe "#delete!" do
     before(:each) do
-      @case = FactoryGirl.create(:active_case)
+      @case = cases(:fernando_left_hip)
     end
 
     it "sets status value to 'deleted'" do
@@ -26,7 +27,7 @@ describe Case do
 
   describe "#active?" do
     it "is false if status is deleted" do
-      a_case = FactoryGirl.create(:deleted_case)
+      a_case = cases(:fernando_deleted_right_knee)
 
       a_case.active?.should == false
     end
@@ -35,7 +36,7 @@ describe Case do
       active
     ).each do |status|
       it "is true if status is #{status}" do
-        a_case = FactoryGirl.create(:active_case)
+        a_case = cases(:fernando_left_hip)
         a_case.update_attributes!(status: status)
 
         a_case.active?.should == true

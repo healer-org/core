@@ -1,0 +1,35 @@
+fernando_left_hip:
+  patient: fernando
+  anatomy: "hip"
+  side: "left"
+  status: "active"
+
+fernando_deleted_right_knee:
+  patient: fernando
+  anatomy: "hip"
+  side: "right"
+  status: "deleted"
+
+silvia_right_foot:
+  patient: silvia
+  anatomy: "foot"
+  side: "right"
+  status: "active"
+
+silvia_left_foot:
+  patient: silvia
+  anatomy: "foot"
+  side: "left"
+  status: "active"
+
+deleted_patient_active_left_hip:
+  patient: deleted
+  anatomy: "hip"
+  side: "left"
+  status: "active"
+
+deleted_patient_deleted_right_hip:
+  patient: deleted
+  anatomy: "hip"
+  side: "right"
+  status: "active"

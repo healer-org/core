@@ -1,0 +1,15 @@
+fernando:
+  name: "Fernando Julian Gonzales Hernández"
+  birth: <%= Date.parse("1953-05-15") %>
+  gender: "M"
+  status: "active"
+
+silvia:
+  name: "Silvia Marroquin Castellanos Muñoz"
+  birth: <%= Date.parse("1953-11-14") %>
+  gender: "F"
+  status: "active"
+
+deleted:
+  name: "Deleted Patient"
+  status: "deleted"

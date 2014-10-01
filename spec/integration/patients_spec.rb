@@ -3,6 +3,7 @@ require "spec_helper"
 # TODO messaging & logging behavior
 # TODO undelete functionality for administrator clients
 describe "patients", type: :api do
+  fixtures :patients, :cases
 
   def response_should_match_persisted(response, persisted)
     PATIENT_ATTRIBUTES.each do |attr|
@@ -20,8 +21,8 @@ describe "patients", type: :api do
     let(:headers) { token_auth_header }
 
     before(:each) do
-      @persisted_1 = FactoryGirl.create(:patient)
-      @persisted_2 = FactoryGirl.create(:patient)
+      @persisted_1 = patients(:fernando)
+      @persisted_2 = patients(:silvia)
     end
 
     it "returns 401 if authentication headers are not present" do
@@ -46,17 +47,14 @@ describe "patients", type: :api do
     end
 
     it "does not return deleted records" do
-      @persisted_2.delete!
+      deleted_patient = patients(:deleted)
 
       get "/patients", query_params, headers
 
       response.code.should == "200"
       response_records = json["patients"]
-      response_records.size.should == 1
 
-      response_record = response_records.first
-
-      response_should_match_persisted(response_record, @persisted_1)
+      response_records.map{ |r| r[:id] }.should_not include(deleted_patient.id)
     end
 
     it "does not return results for deleted records, even if asked" do
@@ -73,8 +71,8 @@ describe "patients", type: :api do
 
     context "when showCases param is true" do
       it "returns cases as additional JSON" do
-        case1 = FactoryGirl.create(:active_case, patient: @persisted_1)
-        case2 = FactoryGirl.create(:active_case, patient: @persisted_2)
+        case1 = cases(:fernando_left_hip)
+        case2 = cases(:silvia_right_foot)
 
         get "/patients", query_params.merge(showCases: true), headers
 
@@ -85,8 +83,11 @@ describe "patients", type: :api do
         response_record_1 = response_records.detect{ |p| p["id"] == @persisted_1.id }
         response_record_2 = response_records.detect{ |p| p["id"] == @persisted_2.id }
 
+        response_record_1["cases"].size.should == 1
+        response_record_2["cases"].size.should == 2
+
         case1_result = response_record_1["cases"].first
-        case2_result = response_record_2["cases"].first
+        case2_result = response_record_2["cases"].detect{ |c| c["side"] == "right" }
 
         CASE_ATTRIBUTES.each do |attr|
           case1_result[attr.to_s].to_s.should == case1.send(attr).to_s
@@ -100,7 +101,7 @@ describe "patients", type: :api do
     let(:headers) { token_auth_header }
 
     before(:each) do
-      @persisted = FactoryGirl.create(:patient)
+      @persisted = patients(:fernando)
     end
 
     it "returns 401 if authentication headers are not present" do
@@ -135,7 +136,7 @@ describe "patients", type: :api do
     end
 
     it "returns 404 if the record is deleted" do
-      persisted_record = FactoryGirl.create(:deleted_patient)
+      persisted_record = patients(:deleted)
 
       get "/patients/#{persisted_record.id}", query_params, headers
 
@@ -144,17 +145,18 @@ describe "patients", type: :api do
 
     context "when showCases param is true" do
       it "returns all cases as JSON" do
-        case1 = FactoryGirl.create(:active_case, patient: @persisted)
-        case2 = FactoryGirl.create(:active_case, patient: @persisted)
+        persisted = patients(:silvia)
+        case1 = cases(:silvia_left_foot)
+        case2 = cases(:silvia_right_foot)
 
-        get "/patients/#{@persisted.id}", query_params.merge(
+        get "/patients/#{persisted.id}", query_params.merge(
           showCases: true
         ), headers
 
         response.code.should == "200"
         response_record = json["patient"]
 
-        response_should_match_persisted(response_record, @persisted)
+        response_should_match_persisted(response_record, persisted)
 
         cases = response_record["cases"]
         cases.size.should == 2
@@ -170,10 +172,8 @@ describe "patients", type: :api do
     let(:headers) { token_auth_header.merge(json_content_header) }
 
     it "returns 401 if authentication headers are not present" do
-      attributes = FactoryGirl.attributes_for(:patient)
-
       post "/patients",
-           { patient: attributes }.to_json,
+           { patient: patients(:fernando).attributes }.to_json,
            json_content_header
 
       expect_failed_authentication
@@ -182,11 +182,9 @@ describe "patients", type: :api do
     it "returns 400 if JSON content-type not specified"
 
     it "creates a new active persisted record and returns JSON" do
-      attributes = FactoryGirl.attributes_for(:patient)
-
       expect {
         post "/patients",
-             query_params.merge( patient: attributes ).to_json,
+             query_params.merge( patient: patients(:fernando).attributes ).to_json,
              headers
       }.to change(Patient, :count).by(1)
 
@@ -200,8 +198,8 @@ describe "patients", type: :api do
     end
 
     it "returns 400 if name is not supplied" do
-      attributes = FactoryGirl.attributes_for(:patient)
-      attributes.delete(:name)
+      attributes = patients(:fernando).attributes
+      attributes.delete("name")
 
       post "/patients",
            query_params.merge(patient: attributes).to_json,
@@ -212,10 +210,8 @@ describe "patients", type: :api do
     end
 
     it "ignores status in request input" do
-      attributes = FactoryGirl.attributes_for(:deleted_patient)
-
       post "/patients",
-           query_params.merge(patient: attributes).to_json,
+           query_params.merge(patient: patients(:deleted).attributes).to_json,
            headers
 
       response.code.should == "201"
@@ -228,7 +224,7 @@ describe "patients", type: :api do
     let(:headers) { token_auth_header.merge(json_content_header) }
 
     it "returns 401 if authentication headers are not present" do
-      persisted_record = FactoryGirl.create(:patient)
+      persisted_record = patients(:fernando)
       attributes = { name: "Juan Marco" }
 
       put "/patients/#{persisted_record.id}",
@@ -241,7 +237,7 @@ describe "patients", type: :api do
     it "returns 400 if JSON content-type not specified"
 
     it "updates an existing persisted record" do
-      persisted_record = FactoryGirl.create(:patient)
+      persisted_record = patients(:fernando)
       attributes = {
         name: "Juan Marco",
         birth: Date.parse("1977-08-12"),
@@ -261,7 +257,7 @@ describe "patients", type: :api do
     end
 
     it "returns the updated record as JSON" do
-      persisted_record = FactoryGirl.create(:patient)
+      persisted_record = patients(:silvia)
       attributes = {
         name: "Juana",
         birth: Date.parse("1977-08-12")
@@ -290,7 +286,7 @@ describe "patients", type: :api do
     end
 
     it "returns 404 if the record is deleted" do
-      persisted_record = FactoryGirl.create(:deleted_patient)
+      persisted_record = patients(:deleted)
       attributes = { name: "Changed attributes" }
 
       put "/patients/#{persisted_record.id}",
@@ -301,7 +297,7 @@ describe "patients", type: :api do
     end
 
     it "ignores status in request input" do
-      persisted_record = FactoryGirl.create(:patient)
+      persisted_record = patients(:fernando)
       attributes = {
         name: "Juan Marco",
         status: "should_not_change"
@@ -321,7 +317,7 @@ describe "patients", type: :api do
     let(:headers) { token_auth_header }
 
     it "returns 401 if authentication headers are not present" do
-      persisted_record = FactoryGirl.create(:patient)
+      persisted_record = patients(:fernando)
 
       delete "/patients/#{persisted_record.id}"
 
@@ -329,7 +325,7 @@ describe "patients", type: :api do
     end
 
     it "soft-deletes an existing persisted record" do
-      persisted_record = FactoryGirl.create(:patient)
+      persisted_record = patients(:fernando)
 
       delete "/patients/#{persisted_record.id}", query_params, headers
 
@@ -365,7 +361,8 @@ describe "patients", type: :api do
     end
 
     it "returns patients by full name" do
-      persisted = FactoryGirl.create(:patient, name: "Ramon")
+      persisted_record = patients(:fernando)
+      persisted_record.update_attributes!(name: "Ramon")
 
       search_query = {q: "Ramon"}
       get "/patients/search", query_params.merge(search_query), headers
@@ -374,12 +371,14 @@ describe "patients", type: :api do
       response_records = json["patients"]
       response_records.size.should == 1
 
-      response_should_match_persisted(response_records[0], persisted)
+      response_should_match_persisted(response_records[0], persisted_record)
     end
 
     it "returns only patients that match the query" do
-      persisted_1 = FactoryGirl.create(:patient, name: "DeBarge")
-      persisted_2 = FactoryGirl.create(:patient, name: "Ramon")
+      persisted_1 = patients(:fernando)
+      persisted_2 = patients(:silvia)
+      persisted_1.update_attributes!(name: "DeBarge")
+      persisted_2.update_attributes!(name: "Ramon")
 
       search_query = {q: "Ramon"}
       get "/patients/search", query_params.merge(search_query), headers
@@ -392,8 +391,8 @@ describe "patients", type: :api do
     end
 
     it "performs case-insensitive lookup" do
-      persisted_1 = FactoryGirl.create(:patient, name: "DeBarge")
-      persisted_2 = FactoryGirl.create(:patient, name: "Ramon")
+      persisted = patients(:silvia)
+      persisted.update_attributes!(name: "Ramon")
 
       search_query = {q: "raMon"}
       get "/patients/search", query_params.merge(search_query), headers
@@ -402,13 +401,13 @@ describe "patients", type: :api do
       response_records = json["patients"]
       response_records.size.should == 1
 
-      response_should_match_persisted(response_records[0], persisted_2)
+      response_should_match_persisted(response_records[0], persisted)
     end
 
     it "performs unicode-insensitive lookup" do
       skip("This feature may require some DB trickery or Sphinx conversion")
-      persisted_1 = FactoryGirl.create(:patient, name: "DeBarge")
-      persisted_2 = FactoryGirl.create(:patient, name: "Ramón")
+      persisted = patients(:fernando)
+      persisted.update_attributes!(name: "Ramón")
 
       search_query = {q: "Ramon"}
       get "/patients/search", query_params.merge(search_query), headers
@@ -417,12 +416,12 @@ describe "patients", type: :api do
       response_records = json["patients"]
       response_records.size.should == 1
 
-      response_should_match_persisted(response_records[0], persisted_2)
+      response_should_match_persisted(response_records[0], persisted)
     end
 
     it "searches by name containing spaces" do
-      persisted_1 = FactoryGirl.create(:patient, name: "DeBarge")
-      persisted_2 = FactoryGirl.create(:patient, name: "Ramon Johnson")
+      persisted = patients(:fernando)
+      persisted.update_attributes!(name: "Ramon Johnson")
 
       search_query = {q: "ramon johnson"}
       get "/patients/search", query_params.merge(search_query), headers
@@ -431,12 +430,12 @@ describe "patients", type: :api do
       response_records = json["patients"]
       response_records.size.should == 1
 
-      response_should_match_persisted(response_records[0], persisted_2)
+      response_should_match_persisted(response_records[0], persisted)
     end
 
     it "searches by partial name" do
-      persisted_1 = FactoryGirl.create(:patient, name: "DeBarge")
-      persisted_2 = FactoryGirl.create(:patient, name: "Ramon Johnson")
+      persisted = patients(:fernando)
+      persisted.update_attributes!(name: "Ramon Johnson")
 
       search_query = {q: "ramon"}
       get "/patients/search", query_params.merge(search_query), headers
@@ -445,12 +444,12 @@ describe "patients", type: :api do
       response_records = json["patients"]
       response_records.size.should == 1
 
-      response_should_match_persisted(response_records[0], persisted_2)
+      response_should_match_persisted(response_records[0], persisted)
     end
 
     it "searches by partial name" do
-      persisted_1 = FactoryGirl.create(:patient, name: "DeBarge")
-      persisted_2 = FactoryGirl.create(:patient, name: "Ramon Johnson")
+      persisted = patients(:fernando)
+      persisted.update_attributes!(name: "Ramon Johnson")
 
       search_query = {q: "johnson"}
       get "/patients/search", query_params.merge(search_query), headers
@@ -459,12 +458,13 @@ describe "patients", type: :api do
       response_records = json["patients"]
       response_records.size.should == 1
 
-      response_should_match_persisted(response_records[0], persisted_2)
+      response_should_match_persisted(response_records[0], persisted)
     end
 
     it "searches by fragments of name" do
       skip("Snakes in the burning pet shop")
-      persisted = FactoryGirl.create(:patient, name: "Ramon The Rock Johnson")
+      persisted = patients(:fernando)
+      persisted.update_attributes!(name: "Ramon The Rock Johnson")
 
       search_query = {q: "ramon johnson"}
       get "/patients/search", query_params.merge(search_query), headers

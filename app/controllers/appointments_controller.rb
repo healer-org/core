@@ -26,7 +26,7 @@ class AppointmentsController < ApplicationController
     appointment_record = Appointment.new(appointment_params)
     raise ActionController::ParameterMissing.new("Missing patient id") unless appointment_record.patient_id
 
-    patient_record = Patient.find(appointment_record.patient_id)
+    patient_record = Patient.active.find(appointment_record.patient_id)
 
     appointment_record.save!
     render_one(appointment_record, :created)
@@ -37,11 +37,16 @@ class AppointmentsController < ApplicationController
       where.not(patients: { status: "deleted" }).find(params[:id])
 
     params = appointment_params
-    params.delete(:patient_id) if params[:patient_id]
+    raise Errors::MismatchedPatient if mismatched_patient?(appointment_record, params)
 
     appointment_record.update_attributes!(params)
     render_one(appointment_record)
   end
+
+  def mismatched_patient?(appointment_record, params)
+    params[:patient_id] && params[:patient_id] != appointment_record.patient_id
+  end
+
 
   def delete
     persisted_record = Appointment.find(params[:id])

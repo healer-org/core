@@ -2,9 +2,9 @@ class PatientsController < ApplicationController
   include Authentication
 
   def index
-    patients = Patient.all
+    patients = Patient.all.active
     if params[:showCases]
-      cases_records = Case.where(:patient_id => patients.map(&:id))
+      cases_records = Case.where(:patient_id => patients.map(&:id)).active
     end
 
     # TODO there's probably a nice simple way to do this via AR, but avoiding
@@ -27,13 +27,13 @@ class PatientsController < ApplicationController
   end
 
   def show
-    patient = Patient.find_by!(id: params[:id])
+    patient = Patient.active.find_by!(id: params[:id])
     patient_attributes = patient.attributes
 
     # TODO there's probably a nice simple way to do this via AR, but avoiding
     # that dependency for now. decide whether to depend on AR or refactor as is.
     if params[:showCases]
-      case_records = Case.where(:patient_id => patient.id)
+      case_records = Case.active.where(:patient_id => patient.id)
       patient_attributes[:cases] = case_records.map(&:attributes)
     end
 
@@ -47,7 +47,7 @@ class PatientsController < ApplicationController
   end
 
   def update
-    patient = Patient.find(params[:id])
+    patient = Patient.active.find(params[:id])
     patient.update_attributes!(patient_params)
 
     render_one(patient.attributes)
