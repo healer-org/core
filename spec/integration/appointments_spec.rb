@@ -1,21 +1,9 @@
 require "spec_helper"
 
-def validate_response_match(response, record)
-  APPOINTMENT_ATTRIBUTES.each do |attr|
-    if %i(start_time end_time).include?(attr)
-      Time.parse(response[attr.to_s.camelize(:lower)]).iso8601.should == record.send(attr).iso8601
-    else
-      response[attr.to_s.camelize(:lower)].should == record.send(attr)
-    end
-  end
+def validate_responses_match(response, record)
+  appointment_response_matches?(response, record).should == true
   if record.patient
-    PATIENT_ATTRIBUTES.each do |attr|
-      if attr == :birth
-        response["patient"][attr.to_s.camelize(:lower)].should == record.patient.send(attr).to_s(:db)
-      else
-        response["patient"][attr.to_s.camelize(:lower)].should == record.patient.send(attr)
-      end
-    end
+    patient_response_matches?(response["patient"], record.patient).should == true
   end
 end
 
@@ -49,8 +37,8 @@ describe "appointments", type: :api do
       response_record_1 = pluck_response_record(response_records, @persisted_1.id)
       response_record_2 = pluck_response_record(response_records, @persisted_2.id)
 
-      validate_response_match(response_record_1, @persisted_1)
-      validate_response_match(response_record_2, @persisted_2)
+      validate_responses_match(response_record_1, @persisted_1)
+      validate_responses_match(response_record_2, @persisted_2)
     end
 
     it "filters by location" do
@@ -118,7 +106,7 @@ describe "appointments", type: :api do
       response.code.should == "200"
       response_record = json["appointment"]
 
-      validate_response_match(response_record, @persisted_record)
+      validate_responses_match(response_record, @persisted_record)
     end
 
     it "returns 404 if there is no persisted record" do
@@ -166,16 +154,14 @@ describe "appointments", type: :api do
       response.code.should == "201"
 
       response_record = json["appointment"]
-
       persisted_record = Appointment.last
 
       persisted_record.patient_id.should == patient.id
       APPOINTMENT_ATTRIBUTES.each do |attr|
         attributes[attr].should == persisted_record.send(attr)
       end
-      PATIENT_ATTRIBUTES.each do |attr|
-        response_record["patient"][attr.to_s].to_s.should == patient.send(attr).to_s
-      end
+      appointment_response_matches?(response_record, persisted_record).should == true
+      patient_response_matches?(response_record["patient"], patient).should == true
     end
 
     it "returns 400 if a patient id is not supplied" do
@@ -260,8 +246,8 @@ describe "appointments", type: :api do
       response.code.should == "200"
       attribute_keys = new_attributes.keys
 
-      validate_response_match(response_record, persisted_record)
-      validate_response_match(response_record, Appointment.new(new_attributes))
+      validate_responses_match(response_record, persisted_record)
+      validate_responses_match(response_record, Appointment.new(new_attributes))
     end
 
     it "returns 400 if attempting to transfer to a different patient" do

@@ -5,16 +5,6 @@ require "spec_helper"
 describe "patients", type: :api do
   fixtures :patients, :cases
 
-  def response_should_match_persisted(response, persisted)
-    PATIENT_ATTRIBUTES.each do |attr|
-      if attr == :birth
-        response[attr.to_s.camelize(:lower)].should == persisted.send(attr).to_s(:db)
-      else
-        response[attr.to_s.camelize(:lower)].to_s.should == persisted.send(attr).to_s
-      end
-    end
-  end
-
   let(:query_params) { {} }
 
   describe "GET index" do
@@ -42,8 +32,8 @@ describe "patients", type: :api do
       response_record_1 = pluck_response_record(response_records, @persisted_1.id)
       response_record_2 = pluck_response_record(response_records, @persisted_2.id)
 
-      response_should_match_persisted(response_record_1, @persisted_1)
-      response_should_match_persisted(response_record_2, @persisted_2)
+      patient_response_matches?(response_record_1, @persisted_1).should == true
+      patient_response_matches?(response_record_2, @persisted_2).should == true
     end
 
     it "does not return deleted records" do
@@ -85,10 +75,8 @@ describe "patients", type: :api do
         case1_result = response_record_1["cases"].first
         case2_result = response_record_2["cases"].detect{ |c| c["side"] == "right" }
 
-        CASE_ATTRIBUTES.each do |attr|
-          case1_result[attr.to_s].to_s.should == case1.send(attr).to_s
-          case2_result[attr.to_s].to_s.should == case2.send(attr).to_s
-        end
+        case_response_matches?(case1_result, case1).should == true
+        case_response_matches?(case2_result, case2).should == true
       end
     end
   end#index
@@ -152,14 +140,12 @@ describe "patients", type: :api do
         response.code.should == "200"
         response_record = json["patient"]
 
-        response_should_match_persisted(response_record, persisted)
+        patient_response_matches?(response_record, persisted).should == true
 
         cases = response_record["cases"]
         cases.size.should == 2
-        CASE_ATTRIBUTES.each do |attr|
-          cases[0][attr.to_s].to_s.should == case1.send(attr).to_s
-          cases[1][attr.to_s].to_s.should == case2.send(attr).to_s
-        end
+        case_response_matches?(cases[0], case1).should == true
+        case_response_matches?(cases[1], case2).should == true
       end
     end
   end#show
@@ -190,7 +176,7 @@ describe "patients", type: :api do
       persisted_record = Patient.last
       persisted_record.active?.should == true
 
-      response_should_match_persisted(response_record, persisted_record)
+      patient_response_matches?(response_record, persisted_record).should == true
     end
 
     it "returns 400 if name is not supplied" do
@@ -367,7 +353,7 @@ describe "patients", type: :api do
       response_records = json["patients"]
       response_records.size.should == 1
 
-      response_should_match_persisted(response_records[0], persisted_record)
+      patient_response_matches?(response_records[0], persisted_record).should == true
     end
 
     it "returns only patients that match the query" do
@@ -383,7 +369,7 @@ describe "patients", type: :api do
       response_records = json["patients"]
       response_records.size.should == 1
 
-      response_should_match_persisted(response_records[0], persisted_2)
+      patient_response_matches?(response_records[0], persisted_2).should == true
     end
 
     it "performs case-insensitive lookup" do
@@ -397,7 +383,7 @@ describe "patients", type: :api do
       response_records = json["patients"]
       response_records.size.should == 1
 
-      response_should_match_persisted(response_records[0], persisted)
+      patient_response_matches?(response_records[0], persisted).should == true
     end
 
     it "performs unicode-insensitive lookup" do
@@ -412,7 +398,7 @@ describe "patients", type: :api do
       response_records = json["patients"]
       response_records.size.should == 1
 
-      response_should_match_persisted(response_records[0], persisted)
+      patient_response_matches?(response_records[0], persisted).should == true
     end
 
     it "searches by name containing spaces" do
@@ -426,7 +412,7 @@ describe "patients", type: :api do
       response_records = json["patients"]
       response_records.size.should == 1
 
-      response_should_match_persisted(response_records[0], persisted)
+      patient_response_matches?(response_records[0], persisted).should == true
     end
 
     it "searches by partial name" do
@@ -440,7 +426,7 @@ describe "patients", type: :api do
       response_records = json["patients"]
       response_records.size.should == 1
 
-      response_should_match_persisted(response_records[0], persisted)
+      patient_response_matches?(response_records[0], persisted).should == true
     end
 
     it "searches by partial name" do
@@ -454,7 +440,7 @@ describe "patients", type: :api do
       response_records = json["patients"]
       response_records.size.should == 1
 
-      response_should_match_persisted(response_records[0], persisted)
+      patient_response_matches?(response_records[0], persisted).should == true
     end
 
     it "searches by fragments of name" do
@@ -469,7 +455,7 @@ describe "patients", type: :api do
       response_records = json["patients"]
       response_records.size.should == 1
 
-      response_should_match_persisted(response_records[0], persisted)
+      patient_response_matches?(response_records[0], persisted).should == true
     end
   end#search
 

@@ -32,11 +32,9 @@ describe "cases", type: :api do
       response_record_2 = pluck_response_record(response_records, persisted_2.id)
       response_record_3 = pluck_response_record(response_records, persisted_3.id)
 
-      PATIENT_ATTRIBUTES.each do |attr|
-        response_record_1["patient"][attr.to_s].to_s.should == patient_1.send(attr).to_s
-        response_record_2["patient"][attr.to_s].to_s.should == patient_2.send(attr).to_s
-        response_record_3["patient"][attr.to_s].to_s.should == patient_2.send(attr).to_s
-      end
+      patient_response_matches?(response_record_1["patient"], patient_1).should == true
+      patient_response_matches?(response_record_2["patient"], patient_2).should == true
+      patient_response_matches?(response_record_3["patient"], patient_2).should == true
     end
 
     it "does not return deleted records" do
@@ -104,14 +102,7 @@ describe "cases", type: :api do
       response_record["attachments"].size.should == 1
       returned_attachment = response_record["attachments"].first
       returned_attachment.keys.should =~ ([:id] + ATTACHMENT_ATTRIBUTES).map{ |k| k.to_s.camelize(:lower) }
-      ATTACHMENT_ATTRIBUTES.each do |attr|
-        returned_value = returned_attachment[attr.to_s.camelize(:lower)]
-        if attr == :created_at
-          Time.parse(returned_value).iso8601.should == attachment.send(attr).iso8601
-        else
-          returned_value.to_s.should == attachment.send(attr).to_s
-        end
-      end
+      attachment_response_matches?(returned_attachment, attachment).should == true
     end
   end#index
 
@@ -134,12 +125,8 @@ describe "cases", type: :api do
 
       response.code.should == "200"
       response_record = json["case"]
-      CASE_ATTRIBUTES.each do |attr|
-        response_record[attr.to_s].to_s.should == persisted_case.send(attr).to_s
-      end
-      PATIENT_ATTRIBUTES.each do |attr|
-        response_record["patient"][attr.to_s].to_s.should == persisted_patient.send(attr).to_s
-      end
+      case_response_matches?(json["case"], persisted_case).should == true
+      patient_response_matches?(json["case"]["patient"], persisted_patient).should == true
     end
 
     it "returns pending cases" do
@@ -202,14 +189,7 @@ describe "cases", type: :api do
       response_record["attachments"].size.should == 1
       returned_attachment = response_record["attachments"].first
       returned_attachment.keys.should =~ ([:id] + ATTACHMENT_ATTRIBUTES).map{ |k| k.to_s.camelize(:lower) }
-      ATTACHMENT_ATTRIBUTES.each do |attr|
-        returned_value = returned_attachment[attr.to_s.camelize(:lower)]
-        if attr == :created_at
-          Time.parse(returned_value).iso8601.should == attachment.send(attr).iso8601
-        else
-          returned_value.to_s.should == attachment.send(attr).to_s
-        end
-      end
+      attachment_response_matches?(returned_attachment, attachment).should == true
     end
 
     it "returns 404 if the record is deleted" do
@@ -266,8 +246,8 @@ describe "cases", type: :api do
         persisted_record.active?.should == true
         CASE_ATTRIBUTES.each do |attr|
           case_attributes[attr].to_s.should == persisted_record.send(attr).to_s
-          response_record[attr.to_s].to_s.should == persisted_record.send(attr).to_s
         end
+        case_response_matches?(response_record, persisted_record).should == true
       end
 
       it "creates a new active persisted record for the patient" do
@@ -285,12 +265,12 @@ describe "cases", type: :api do
                headers
         }.to change(Patient, :count).by(1)
 
-        response_record = json["case"]["patient"]
         persisted_record = Patient.last
         persisted_record.active?.should == true
+
+        patient_response_matches?(json["case"]["patient"], persisted_record).should == true
         PATIENT_ATTRIBUTES.each do |attr|
           patient_attributes[attr].to_s.should == persisted_record.send(attr).to_s
-          response_record[attr.to_s].to_s.should == persisted_record.send(attr).to_s
         end
       end
 
@@ -351,15 +331,14 @@ describe "cases", type: :api do
                headers
         }.to change(Case, :count).by(1)
 
-        persisted_record = Case.last
         response_record = json["case"]["patient"]
+        persisted_record = Case.last
 
         CASE_ATTRIBUTES.each do |attr|
           case_attributes[attr].to_s.should == persisted_record.send(attr).to_s
         end
-        PATIENT_ATTRIBUTES.each do |attr|
-          response_record[attr.to_s].to_s.should == patient.send(attr).to_s
-        end
+        case_response_matches?(json["case"], persisted_record).should == true
+        patient_response_matches?(json["case"]["patient"], patient).should == true
       end
 
       context "and patient nested attributes are posted" do
@@ -380,12 +359,14 @@ describe "cases", type: :api do
           }.to change(Case, :count).by(1)
 
           patient.reload
-          patient.name.should == original_patient_name
-          patient.active?.should == true
           persisted_record = Case.last
+
           CASE_ATTRIBUTES.each do |attr|
             case_attributes[attr].to_s.should == persisted_record.send(attr).to_s
           end
+          case_response_matches?(json["case"], persisted_record).should == true
+          patient.name.should == original_patient_name
+          patient.active?.should == true
         end
 
         it "does not create a new patient" do
