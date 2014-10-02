@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140917101220) do
+ActiveRecord::Schema.define(version: 20141002092952) do
 
   create_table "appointments", force: true do |t|
     t.integer  "patient_id"
@@ -20,6 +20,8 @@ ActiveRecord::Schema.define(version: 20140917101220) do
     t.integer  "start_ordinal"
     t.datetime "end_time"
     t.string   "location"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   add_index "appointments", ["patient_id"], name: "index_appointments_on_patient_id"
@@ -27,7 +29,7 @@ ActiveRecord::Schema.define(version: 20140917101220) do
 
   create_table "attachments", force: true do |t|
     t.integer  "record_id"
-    t.string   "record_type"
+    t.integer  "record_type"
     t.text     "description"
     t.string   "document_file_name"
     t.string   "document_content_type"
@@ -41,20 +43,24 @@ ActiveRecord::Schema.define(version: 20140917101220) do
   add_index "attachments", ["record_type", "record_id"], name: "index_attachments_on_record_type_and_record_id"
 
   create_table "cases", force: true do |t|
-    t.integer "patient_id"
-    t.string  "anatomy"
-    t.string  "side"
-    t.string  "status",     default: "active"
+    t.integer  "patient_id"
+    t.string   "anatomy"
+    t.string   "side"
+    t.string   "status",     default: "active"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   add_index "cases", ["status"], name: "index_cases_on_status"
 
   create_table "patients", force: true do |t|
-    t.string "name"
-    t.date   "birth"
-    t.string "gender", limit: 10
-    t.date   "death"
-    t.string "status",            default: "active"
+    t.string   "name"
+    t.date     "birth"
+    t.string   "gender",     limit: 10
+    t.date     "death"
+    t.string   "status",                default: "active"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   add_index "patients", ["name", "birth"], name: "index_patients_on_name_and_birth"
