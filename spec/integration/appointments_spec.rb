@@ -1,6 +1,6 @@
 require "spec_helper"
 
-def validate_responses_match(response, record)
+def validate_response_matches(response, record)
   appointment_response_matches?(response, record).should == true
   if record.patient
     patient_response_matches?(response["patient"], record.patient).should == true
@@ -37,8 +37,8 @@ describe "appointments", type: :api do
       response_record_1 = pluck_response_record(response_records, @persisted_1.id)
       response_record_2 = pluck_response_record(response_records, @persisted_2.id)
 
-      validate_responses_match(response_record_1, @persisted_1)
-      validate_responses_match(response_record_2, @persisted_2)
+      validate_response_matches(response_record_1, @persisted_1)
+      validate_response_matches(response_record_2, @persisted_2)
     end
 
     it "filters by location" do
@@ -106,7 +106,7 @@ describe "appointments", type: :api do
       response.code.should == "200"
       response_record = json["appointment"]
 
-      validate_responses_match(response_record, @persisted_record)
+      validate_response_matches(response_record, @persisted_record)
     end
 
     it "returns 404 if there is no persisted record" do
@@ -246,8 +246,8 @@ describe "appointments", type: :api do
       response.code.should == "200"
       attribute_keys = new_attributes.keys
 
-      validate_responses_match(response_record, persisted_record)
-      validate_responses_match(response_record, Appointment.new(new_attributes))
+      validate_response_matches(response_record, persisted_record)
+      validate_response_matches(response_record, Appointment.new(new_attributes))
     end
 
     it "returns 400 if attempting to transfer to a different patient" do
