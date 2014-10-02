@@ -14,9 +14,10 @@ class CasesController < ApplicationController
   end
 
   def show
-    case_record = Case.active.includes(:patient).
-      where.not(patients: { status: "deleted" }).
-      find_by!(id: params[:id])
+    scope = Case.active.includes(:patient)
+    scope = scope.includes(:attachments) if show_attachments?
+    case_record = scope.where.not(patients: { status: "deleted" })
+                       .find_by!(id: params[:id])
 
     render_one(case_record)
   end

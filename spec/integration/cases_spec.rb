@@ -75,11 +75,10 @@ describe "cases", type: :api do
       response_ids.should_not include(persisted_1.id)
     end
 
-    it "does not show attachments by default" do
+    it "does not include attachments in the output" do
       persisted = cases(:fernando_left_hip)
       attachment = Attachment.create!(:document => fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png"))
-      attachment.record = persisted
-      attachment.save!
+      attachment.update_attributes!(record: persisted)
 
       get "/cases", query_params, headers
 
@@ -90,24 +89,19 @@ describe "cases", type: :api do
       response_record.keys.should_not include("attachments")
     end
 
-    context "when show_attachments param is true" do
-      it "returns all attachments in JSON payload" do
-        persisted = cases(:fernando_left_hip)
-        attachment = Attachment.create!(:document => fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png"))
-        attachment.record = persisted
-        attachment.save!
-        Attachment.count.should == 1
+    it "returns attachments in JSON payload when show_attachments param is true" do
+      persisted = cases(:fernando_left_hip)
+      attachment = Attachment.create!(:document => fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png"))
+      attachment.update_attributes!(record: persisted)
+      Attachment.count.should == 1
 
-        get "/cases", query_params.merge(
-          show_attachments: true
-        ), headers
+      get "/cases", query_params.merge(show_attachments: true), headers
 
-        response.code.should == "200"
-        response_records = json["cases"]
+      response.code.should == "200"
+      response_records = json["cases"]
 
-        response_record = pluck_response_record(response_records, persisted.id)
-        response_record["attachments"].size.should == 1
-      end
+      response_record = pluck_response_record(response_records, persisted.id)
+      response_record["attachments"].size.should == 1
     end
   end#index
 
@@ -166,6 +160,36 @@ describe "cases", type: :api do
       response_record = json["case"]
       response_record.keys.should_not include("status")
       response_record.keys.should_not include("active")
+    end
+
+    it "does not include attachments in the output" do
+      persisted = cases(:fernando_left_hip)
+      attachment = Attachment.create!(:document => fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png"))
+      attachment.update_attributes!(record: persisted)
+
+      get "/cases/#{persisted.id}", query_params, headers
+
+      response.code.should == "200"
+      response_records = json["cases"]
+
+      response.code.should == "200"
+      response_record = json["case"]
+      response_record.keys.should_not include("attachments")
+    end
+
+    it "returns attachments in JSON payload when show_attachments param is true" do
+      persisted = cases(:fernando_left_hip)
+      attachment = Attachment.create!(:document => fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png"))
+      attachment.update_attributes!(record: persisted)
+
+      get "/cases/#{persisted.id}", query_params.merge(show_attachments: true), headers
+
+      response.code.should == "200"
+      response_records = json["cases"]
+
+      response.code.should == "200"
+      response_record = json["case"]
+      response_record["attachments"].size.should == 1
     end
 
     it "returns 404 if the record is deleted" do
