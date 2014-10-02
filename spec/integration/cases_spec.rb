@@ -102,6 +102,16 @@ describe "cases", type: :api do
 
       response_record = pluck_response_record(response_records, persisted.id)
       response_record["attachments"].size.should == 1
+      returned_attachment = response_record["attachments"].first
+      returned_attachment.keys.should =~ ([:id] + ATTACHMENT_ATTRIBUTES).map{ |k| k.to_s.camelize(:lower) }
+      ATTACHMENT_ATTRIBUTES.each do |attr|
+        returned_value = returned_attachment[attr.to_s.camelize(:lower)]
+        if attr == :created_at
+          Time.parse(returned_value).iso8601.should == attachment.send(attr).iso8601
+        else
+          returned_value.to_s.should == attachment.send(attr).to_s
+        end
+      end
     end
   end#index
 
@@ -190,6 +200,16 @@ describe "cases", type: :api do
       response.code.should == "200"
       response_record = json["case"]
       response_record["attachments"].size.should == 1
+      returned_attachment = response_record["attachments"].first
+      returned_attachment.keys.should =~ ([:id] + ATTACHMENT_ATTRIBUTES).map{ |k| k.to_s.camelize(:lower) }
+      ATTACHMENT_ATTRIBUTES.each do |attr|
+        returned_value = returned_attachment[attr.to_s.camelize(:lower)]
+        if attr == :created_at
+          Time.parse(returned_value).iso8601.should == attachment.send(attr).iso8601
+        else
+          returned_value.to_s.should == attachment.send(attr).to_s
+        end
+      end
     end
 
     it "returns 404 if the record is deleted" do

@@ -12,7 +12,7 @@ class CasePresenter
       presented[:anatomy] = case_attributes["anatomy"]
       presented[:side] = case_attributes["side"]
       presented[:patient] = PatientPresenter.new(patient_attributes).present
-      presented[:attachments] = attachment_attributes if attachment_attributes
+      presented[:attachments] = presented_attachments if attachment_attributes
     end
   end
 
@@ -20,5 +20,9 @@ class CasePresenter
   private
 
   attr_reader :case_attributes, :patient_attributes, :attachment_attributes
+
+  def presented_attachments
+    attachment_attributes.map{ |attrs| AttachmentPresenter.new(attrs).present }
+  end
 
 end
