@@ -17,4 +17,6 @@ Rails.application.routes.draw do
   post    "appointments"     => "appointments#create"
   put     "appointments/:id" => "appointments#update"
   delete  "appointments/:id" => "appointments#delete"
+
+  post    "attachments" => "attachments#create"
 end
