@@ -2,8 +2,9 @@ class CasesController < ApplicationController
   include Authentication
 
   def index
-    cases = Case.active.includes(:patient).
-      where(status: filtered_param_status)
+    scope = Case.active.includes(:patient)
+    scope = scope.includes(:attachments) if show_attachments?
+    cases = scope.where(status: filtered_param_status)
     presented = cases.map { |c| presented(c) }
 
     render(
@@ -66,6 +67,10 @@ class CasesController < ApplicationController
   def presented(case_record)
     attributes = case_record.attributes
     attributes[:patient] = case_record.patient.attributes
+    if show_attachments?
+      attributes[:attachments] = case_record.attachments.map{ |a| a.attributes }
+    end
+
     CasePresenter.new(attributes).present
   end
 
@@ -82,6 +87,10 @@ class CasesController < ApplicationController
       json: Response.new(:data => presented(case_record), :root => "case"),
       status: status
     )
+  end
+
+  def show_attachments?
+    params[:show_attachments] == "true"
   end
 
 end

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140807233336) do
+ActiveRecord::Schema.define(version: 20140917101220) do
 
   create_table "appointments", force: true do |t|
     t.integer  "patient_id"
@@ -24,6 +24,21 @@ ActiveRecord::Schema.define(version: 20140807233336) do
 
   add_index "appointments", ["patient_id"], name: "index_appointments_on_patient_id"
   add_index "appointments", ["trip_id", "start_time", "location"], name: "index_appointments_on_trip_id_and_start_time_and_location"
+
+  create_table "attachments", force: true do |t|
+    t.integer  "record_id"
+    t.string   "record_type"
+    t.text     "description"
+    t.string   "document_file_name"
+    t.string   "document_content_type"
+    t.integer  "document_file_size"
+    t.datetime "document_updated_at"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "attachments", ["record_id"], name: "index_attachments_on_record_id"
+  add_index "attachments", ["record_type", "record_id"], name: "index_attachments_on_record_type_and_record_id"
 
   create_table "cases", force: true do |t|
     t.integer "patient_id"

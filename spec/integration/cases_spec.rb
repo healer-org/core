@@ -75,27 +75,38 @@ describe "cases", type: :api do
       response_ids.should_not include(persisted_1.id)
     end
 
-    context "when attachments param is true" do
+    it "does not show attachments by default" do
+      persisted = cases(:fernando_left_hip)
+      attachment = Attachment.create!(:document => fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png"))
+      attachment.record = persisted
+      attachment.save!
+
+      get "/cases", query_params, headers
+
+      response.code.should == "200"
+      response_records = json["cases"]
+
+      response_record = pluck_response_record(response_records, persisted.id)
+      response_record.keys.should_not include("attachments")
+    end
+
+    context "when show_attachments param is true" do
       it "returns all attachments in JSON payload" do
-        persisted_1 = cases(:fernando_left_hip)
-        # case_with_attachments = TBD
+        persisted = cases(:fernando_left_hip)
+        attachment = Attachment.create!(:document => fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png"))
+        attachment.record = persisted
+        attachment.save!
+        Attachment.count.should == 1
 
         get "/cases", query_params.merge(
-          attachments: true
+          show_attachments: true
         ), headers
 
         response.code.should == "200"
         response_records = json["cases"]
 
-        response_records.first["attachments"].size.should == 0
-        # response_should_match_persisted(response_record, @persisted)
-
-        # cases = response_record["cases"]
-        # cases.size.should == 2
-        # CASE_ATTRIBUTES.each do |attr|
-        #   cases[0][attr.to_s].to_s.should == case1.send(attr).to_s
-        #   cases[1][attr.to_s].to_s.should == case2.send(attr).to_s
-        # end
+        response_record = pluck_response_record(response_records, persisted.id)
+        response_record["attachments"].size.should == 1
       end
     end
   end#index
