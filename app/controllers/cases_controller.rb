@@ -91,7 +91,7 @@ class CasesController < ApplicationController
   end
 
   def show_attachments?
-    params[:show_attachments] == "true"
+    params[:showAttachments] == "true"
   end
 
 end

@@ -45,7 +45,7 @@ describe "attachments", type: :api do
 
       persisted_case.reload.attachments.size.should == 1
 
-      get "/cases/#{persisted_case.id}", query_params.merge(show_attachments: true), headers
+      get "/cases/#{persisted_case.id}", query_params.merge(showAttachments: true), headers
 
       response.code.should == "200"
       response_record = json["case"]

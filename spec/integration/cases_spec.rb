@@ -89,7 +89,7 @@ describe "cases", type: :api do
       response_record.keys.should_not include("attachments")
     end
 
-    it "returns attachments in JSON payload when show_attachments param is true" do
+    it "returns attachments in JSON payload when showAttachments param is true" do
       persisted = cases(:fernando_left_hip)
       attachment = Attachment.create!(
         record: persisted,
@@ -97,7 +97,7 @@ describe "cases", type: :api do
       )
       Attachment.count.should == 1
 
-      get "/cases", query_params.merge(show_attachments: true), headers
+      get "/cases", query_params.merge(showAttachments: true), headers
 
       response.code.should == "200"
       response_records = json["cases"]
@@ -180,14 +180,14 @@ describe "cases", type: :api do
       response_record.keys.should_not include("attachments")
     end
 
-    it "returns attachments in JSON payload when show_attachments param is true" do
+    it "returns attachments in JSON payload when showAttachments param is true" do
       persisted = cases(:fernando_left_hip)
       attachment = Attachment.create!(
         record: persisted,
         document: fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png")
       )
 
-      get "/cases/#{persisted.id}", query_params.merge(show_attachments: true), headers
+      get "/cases/#{persisted.id}", query_params.merge(showAttachments: true), headers
 
       response.code.should == "200"
       response_record = json["case"]
