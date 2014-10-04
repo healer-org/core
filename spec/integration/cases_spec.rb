@@ -75,7 +75,10 @@ describe "cases", type: :api do
 
     it "does not include attachments in the output" do
       persisted = cases(:fernando_left_hip)
-      attachment = Attachment.create!(:document => fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png"))
+      attachment = Attachment.create!(
+        record: persisted,
+        document: fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png")
+      )
       attachment.update_attributes!(record: persisted)
 
       get "/cases", query_params, headers
@@ -89,7 +92,10 @@ describe "cases", type: :api do
 
     it "returns attachments in JSON payload when show_attachments param is true" do
       persisted = cases(:fernando_left_hip)
-      attachment = Attachment.create!(:document => fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png"))
+      attachment = Attachment.create!(
+        record: persisted,
+        document: fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png")
+      )
       attachment.update_attributes!(record: persisted)
       Attachment.count.should == 1
 
@@ -161,8 +167,10 @@ describe "cases", type: :api do
 
     it "does not include attachments in the output" do
       persisted = cases(:fernando_left_hip)
-      attachment = Attachment.create!(:document => fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png"))
-      attachment.update_attributes!(record: persisted)
+      attachment = Attachment.create!(
+        record: persisted,
+        document: fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png")
+      )
 
       get "/cases/#{persisted.id}", query_params, headers
 
@@ -176,13 +184,12 @@ describe "cases", type: :api do
 
     it "returns attachments in JSON payload when show_attachments param is true" do
       persisted = cases(:fernando_left_hip)
-      attachment = Attachment.create!(:document => fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png"))
-      attachment.update_attributes!(record: persisted)
+      attachment = Attachment.create!(
+        record: persisted,
+        document: fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png")
+      )
 
       get "/cases/#{persisted.id}", query_params.merge(show_attachments: true), headers
-
-      response.code.should == "200"
-      response_records = json["cases"]
 
       response.code.should == "200"
       response_record = json["case"]
