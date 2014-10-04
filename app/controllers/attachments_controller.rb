@@ -2,7 +2,7 @@ class AttachmentsController < ApplicationController
   include Authentication
 
   def create
-    raise ActionController::ParameterMissing.new("Missing record parameter") if record_params_missing?
+    raise ActionController::ParameterMissing.new(@missing_params.join(", ")) if required_params_missing?
     raise ActiveRecord::RecordNotFound if record_not_found?
 
     Attachment.create!(attachment_params)
@@ -16,7 +16,7 @@ class AttachmentsController < ApplicationController
   def attachment_params
     return @attachment_params if @attachment_params
 
-    prep_attachment_document
+    prep_document
     @attachment_params = params.require(:attachment).permit(:record_id, :record_type, :document)
   end
 
@@ -26,11 +26,15 @@ class AttachmentsController < ApplicationController
     ).nil?
   end
 
-  def record_params_missing?
-    ![attachment_params[:record_type], attachment_params[:record_id]].all?(&:present?)
+  def required_params_missing?
+    @missing_params = %i(record_id record_type data content_type file_name).select do |req|
+      !params[:attachment][req].present?
+    end
+
+      @missing_params.present?
   end
 
-  def prep_attachment_document
+  def prep_document
     if params[:attachment] && params[:attachment][:data]
       data = StringIO.new(Base64.decode64(params[:attachment][:data]))
       data.class.class_eval { attr_accessor :original_filename, :content_type }

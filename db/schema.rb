@@ -29,7 +29,7 @@ ActiveRecord::Schema.define(version: 20141002092952) do
 
   create_table "attachments", force: true do |t|
     t.integer  "record_id"
-    t.integer  "record_type"
+    t.string   "record_type"
     t.text     "description"
     t.string   "document_file_name"
     t.string   "document_content_type"

@@ -13,7 +13,7 @@ def setup_attachment_attributes(record_type, record_id)
 end
 
 describe "attachments", type: :api do
-  fixtures :cases
+  fixtures :cases, :patients
 
   let(:query_params) { {} }
 
@@ -54,34 +54,6 @@ describe "attachments", type: :api do
       returned_attachment["documentFileName"].should == @attachment_attributes[:file_name]
     end
 
-    it "returns 400 if a record id is not supplied" do
-      persisted_case = cases(:fernando_left_hip)
-      setup_attachment_attributes("Case", persisted_case.id)
-
-      @attachment_attributes.delete(:record_id)
-
-      expect {
-        post "/attachments",
-             query_params.merge(attachment: @attachment_attributes).to_json,
-             headers
-      }.to_not change(Attachment, :count)
-      response.code.should == "400"
-    end
-
-    it "returns 400 if a record type is not supplied" do
-      persisted_case = cases(:fernando_left_hip)
-      setup_attachment_attributes("Case", persisted_case.id)
-
-      @attachment_attributes.delete(:record_type)
-
-      expect {
-        post "/attachments",
-             query_params.merge(attachment: @attachment_attributes).to_json,
-             headers
-      }.to_not change(Attachment, :count)
-      response.code.should == "400"
-    end
-
     it "returns 404 if a record is not found" do
       Case.find_by_id(99999).should == nil
       setup_attachment_attributes("Case", 99999)
@@ -93,5 +65,23 @@ describe "attachments", type: :api do
       }.to_not change(Attachment, :count)
       expect_not_found_response
     end
+
+    %i(record_id record_type data content_type file_name).each do |required|
+      it "returns 400 if #{required} attribute is not supplied" do
+        persisted_case = cases(:fernando_left_hip)
+        setup_attachment_attributes("Case", persisted_case.id)
+
+        @attachment_attributes.delete(required)
+
+        expect {
+          post "/attachments",
+               query_params.merge(attachment: @attachment_attributes).to_json,
+               headers
+        }.to_not change(Attachment, :count)
+        response.code.should == "400"
+        json["error"]["message"].should match(/#{required}/)
+      end
+    end
+
   end
 end
