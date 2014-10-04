@@ -79,7 +79,6 @@ describe "cases", type: :api do
         record: persisted,
         document: fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png")
       )
-      attachment.update_attributes!(record: persisted)
 
       get "/cases", query_params, headers
 
@@ -96,7 +95,6 @@ describe "cases", type: :api do
         record: persisted,
         document: fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png")
       )
-      attachment.update_attributes!(record: persisted)
       Attachment.count.should == 1
 
       get "/cases", query_params.merge(show_attachments: true), headers
