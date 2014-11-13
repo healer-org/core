@@ -23,18 +23,18 @@ describe "cases", type: :api do
 
       get "/cases", query_params, headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_records = json["cases"]
 
-      response_ids_for(response_records).any?{ |id| id.nil? }.should == false
+      expect(response_ids_for(response_records).any?{ |id| id.nil? }).to eq(false)
 
       response_record_1 = pluck_response_record(response_records, persisted_1.id)
       response_record_2 = pluck_response_record(response_records, persisted_2.id)
       response_record_3 = pluck_response_record(response_records, persisted_3.id)
 
-      patient_response_matches?(response_record_1["patient"], patient_1).should == true
-      patient_response_matches?(response_record_2["patient"], patient_2).should == true
-      patient_response_matches?(response_record_3["patient"], patient_2).should == true
+      expect(patient_response_matches?(response_record_1["patient"], patient_1)).to eq(true)
+      expect(patient_response_matches?(response_record_2["patient"], patient_2)).to eq(true)
+      expect(patient_response_matches?(response_record_3["patient"], patient_2)).to eq(true)
     end
 
     it "does not return deleted records" do
@@ -42,8 +42,8 @@ describe "cases", type: :api do
 
       get "/cases", query_params, headers
 
-      response.code.should == "200"
-      response_ids_for(json["cases"]).should_not include(deleted_case.id)
+      expect(response.code).to eq("200")
+      expect(response_ids_for(json["cases"])).not_to include(deleted_case.id)
     end
 
     it "filters by status" do
@@ -55,9 +55,9 @@ describe "cases", type: :api do
 
       response_ids = response_ids_for(json["cases"])
 
-      response.code.should == "200"
-      response_ids.should include(persisted_1.id)
-      response_ids.should_not include(persisted_2.id)
+      expect(response.code).to eq("200")
+      expect(response_ids).to include(persisted_1.id)
+      expect(response_ids).not_to include(persisted_2.id)
     end
 
     it "does not return results for deleted records, even if asked" do
@@ -69,8 +69,8 @@ describe "cases", type: :api do
 
       response_ids = response_ids_for(json["cases"])
 
-      response.code.should == "200"
-      response_ids.should_not include(persisted_1.id)
+      expect(response.code).to eq("200")
+      expect(response_ids).not_to include(persisted_1.id)
     end
 
     it "does not include attachments in the output" do
@@ -82,11 +82,11 @@ describe "cases", type: :api do
 
       get "/cases", query_params, headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_records = json["cases"]
 
       response_record = pluck_response_record(response_records, persisted.id)
-      response_record.keys.should_not include("attachments")
+      expect(response_record.keys).not_to include("attachments")
     end
 
     it "returns attachments in JSON payload when showAttachments param is true" do
@@ -95,18 +95,18 @@ describe "cases", type: :api do
         record: persisted,
         document: fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png")
       )
-      Attachment.count.should == 1
+      expect(Attachment.count).to eq(1)
 
       get "/cases", query_params.merge(showAttachments: true), headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_records = json["cases"]
 
       response_record = pluck_response_record(response_records, persisted.id)
-      response_record["attachments"].size.should == 1
+      expect(response_record["attachments"].size).to eq(1)
       returned_attachment = response_record["attachments"].first
-      returned_attachment.keys.should =~ ([:id] + ATTACHMENT_ATTRIBUTES).map{ |k| k.to_s.camelize(:lower) }
-      attachment_response_matches?(returned_attachment, attachment).should == true
+      expect(returned_attachment.keys).to match_array(([:id] + ATTACHMENT_ATTRIBUTES).map{ |k| k.to_s.camelize(:lower) })
+      expect(attachment_response_matches?(returned_attachment, attachment)).to eq(true)
     end
   end#index
 
@@ -127,10 +127,10 @@ describe "cases", type: :api do
 
       get "/cases/#{persisted_case.id}", query_params, headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_record = json["case"]
-      case_response_matches?(json["case"], persisted_case).should == true
-      patient_response_matches?(json["case"]["patient"], persisted_patient).should == true
+      expect(case_response_matches?(json["case"], persisted_case)).to eq(true)
+      expect(patient_response_matches?(json["case"]["patient"], persisted_patient)).to eq(true)
     end
 
     it "returns pending cases" do
@@ -139,9 +139,9 @@ describe "cases", type: :api do
 
       get "/cases/#{persisted_case.id}", query_params, headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_record = json["case"]
-      response_record["id"].should == persisted_case.id
+      expect(response_record["id"]).to eq(persisted_case.id)
     end
 
     it "returns 404 if there is no persisted record" do
@@ -157,10 +157,10 @@ describe "cases", type: :api do
 
       get "/cases/#{persisted_case.id}", query_params, headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_record = json["case"]
-      response_record.keys.should_not include("status")
-      response_record.keys.should_not include("active")
+      expect(response_record.keys).not_to include("status")
+      expect(response_record.keys).not_to include("active")
     end
 
     it "does not include attachments in the output" do
@@ -172,12 +172,12 @@ describe "cases", type: :api do
 
       get "/cases/#{persisted.id}", query_params, headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_records = json["cases"]
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_record = json["case"]
-      response_record.keys.should_not include("attachments")
+      expect(response_record.keys).not_to include("attachments")
     end
 
     it "returns attachments in JSON payload when showAttachments param is true" do
@@ -189,12 +189,12 @@ describe "cases", type: :api do
 
       get "/cases/#{persisted.id}", query_params.merge(showAttachments: true), headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_record = json["case"]
-      response_record["attachments"].size.should == 1
+      expect(response_record["attachments"].size).to eq(1)
       returned_attachment = response_record["attachments"].first
-      returned_attachment.keys.should =~ ([:id] + ATTACHMENT_ATTRIBUTES).map{ |k| k.to_s.camelize(:lower) }
-      attachment_response_matches?(returned_attachment, attachment).should == true
+      expect(returned_attachment.keys).to match_array(([:id] + ATTACHMENT_ATTRIBUTES).map{ |k| k.to_s.camelize(:lower) })
+      expect(attachment_response_matches?(returned_attachment, attachment)).to eq(true)
     end
 
     it "returns 404 if the record is deleted" do
@@ -244,15 +244,15 @@ describe "cases", type: :api do
                headers
         }.to change(Case, :count).by(1)
 
-        response.code.should == "201"
+        expect(response.code).to eq("201")
 
         response_record = json["case"]
         persisted_record = Case.last
-        persisted_record.active?.should == true
+        expect(persisted_record.active?).to eq(true)
         CASE_ATTRIBUTES.each do |attr|
-          case_attributes[attr].to_s.should == persisted_record.send(attr).to_s
+          expect(case_attributes[attr].to_s).to eq(persisted_record.send(attr).to_s)
         end
-        case_response_matches?(response_record, persisted_record).should == true
+        expect(case_response_matches?(response_record, persisted_record)).to eq(true)
       end
 
       it "creates a new active persisted record for the patient" do
@@ -271,11 +271,11 @@ describe "cases", type: :api do
         }.to change(Patient, :count).by(1)
 
         persisted_record = Patient.last
-        persisted_record.active?.should == true
+        expect(persisted_record.active?).to eq(true)
 
-        patient_response_matches?(json["case"]["patient"], persisted_record).should == true
+        expect(patient_response_matches?(json["case"]["patient"], persisted_record)).to eq(true)
         PATIENT_ATTRIBUTES.each do |attr|
-          patient_attributes[attr].to_s.should == persisted_record.send(attr).to_s
+          expect(patient_attributes[attr].to_s).to eq(persisted_record.send(attr).to_s)
         end
       end
 
@@ -295,8 +295,8 @@ describe "cases", type: :api do
                headers
         }.to_not change(Case, :count)
 
-        response.code.should == "400"
-        json["error"]["message"].should match(/name/i)
+        expect(response.code).to eq("400")
+        expect(json["error"]["message"]).to match(/name/i)
       end
 
       it "creates new cases as active, regardless of status input" do
@@ -316,11 +316,11 @@ describe "cases", type: :api do
                headers
         }.to change(Case, :count).by(1)
 
-        response.code.should == "201"
+        expect(response.code).to eq("201")
         persisted_case_record = Case.last
         persisted_patient_record = Patient.last
-        persisted_case_record.active?.should == true
-        persisted_patient_record.active?.should == true
+        expect(persisted_case_record.active?).to eq(true)
+        expect(persisted_patient_record.active?).to eq(true)
       end
     end
 
@@ -340,10 +340,10 @@ describe "cases", type: :api do
         persisted_record = Case.last
 
         CASE_ATTRIBUTES.each do |attr|
-          case_attributes[attr].to_s.should == persisted_record.send(attr).to_s
+          expect(case_attributes[attr].to_s).to eq(persisted_record.send(attr).to_s)
         end
-        case_response_matches?(json["case"], persisted_record).should == true
-        patient_response_matches?(json["case"]["patient"], patient).should == true
+        expect(case_response_matches?(json["case"], persisted_record)).to eq(true)
+        expect(patient_response_matches?(json["case"]["patient"], patient)).to eq(true)
       end
 
       context "and patient nested attributes are posted" do
@@ -367,11 +367,11 @@ describe "cases", type: :api do
           persisted_record = Case.last
 
           CASE_ATTRIBUTES.each do |attr|
-            case_attributes[attr].to_s.should == persisted_record.send(attr).to_s
+            expect(case_attributes[attr].to_s).to eq(persisted_record.send(attr).to_s)
           end
-          case_response_matches?(json["case"], persisted_record).should == true
-          patient.name.should == original_patient_name
-          patient.active?.should == true
+          expect(case_response_matches?(json["case"], persisted_record)).to eq(true)
+          expect(patient.name).to eq(original_patient_name)
+          expect(patient.active?).to eq(true)
         end
 
         it "does not create a new patient" do
@@ -389,7 +389,7 @@ describe "cases", type: :api do
       end
 
       it "returns 404 if patient is not found for patient_id" do
-        Patient.find_by_id(100).should be_nil
+        expect(Patient.find_by_id(100)).to be_nil
         case_attributes = cases(:fernando_left_hip).attributes.dup.symbolize_keys
         case_attributes[:patient_id] = 100
         case_attributes[:patient] = { name: "Patient Info" }
@@ -411,8 +411,8 @@ describe "cases", type: :api do
              query_params.merge(case: case_attributes).to_json,
              headers
 
-        response.code.should == "400"
-        json["error"]["message"].should match(/patient/i)
+        expect(response.code).to eq("400")
+        expect(json["error"]["message"]).to match(/patient/i)
       end
     end
   end#create
@@ -446,8 +446,8 @@ describe "cases", type: :api do
           headers
 
       persisted_record.reload
-      persisted_record.anatomy.should == "knee"
-      persisted_record.side.should == "right"
+      expect(persisted_record.anatomy).to eq("knee")
+      expect(persisted_record.side).to eq("right")
     end
 
     it "does not update patient information" do
@@ -468,8 +468,8 @@ describe "cases", type: :api do
           headers
 
       persisted_record.reload
-      persisted_record.patient.reload.should == patient
-      persisted_record.patient.name.should == original_patient_name
+      expect(persisted_record.patient.reload).to eq(patient)
+      expect(persisted_record.patient.name).to eq(original_patient_name)
     end
 
     it "ignores status in request input" do
@@ -480,7 +480,7 @@ describe "cases", type: :api do
           headers
 
       persisted_record.reload
-      persisted_record.active?.should == false
+      expect(persisted_record.active?).to eq(false)
     end
 
     it "returns 404 and does not update when attempting to update a deleted record" do
@@ -493,7 +493,7 @@ describe "cases", type: :api do
 
       expect_not_found_response
       persisted_record.reload
-      persisted_record.anatomy.should == "hip"
+      expect(persisted_record.anatomy).to eq("hip")
     end
   end#update
 
@@ -513,14 +513,14 @@ describe "cases", type: :api do
 
       delete "/cases/#{persisted_record.id}", query_params, headers
 
-      response.code.should == "200"
-      json["message"].should == "Deleted"
+      expect(response.code).to eq("200")
+      expect(json["message"]).to eq("Deleted")
 
-      persisted_record.reload.active?.should == false
+      expect(persisted_record.reload.active?).to eq(false)
     end
 
     it "returns 404 if persisted record does not exist" do
-      Case.find_by_id(100).should be_nil
+      expect(Case.find_by_id(100)).to be_nil
 
       delete "/cases/100", query_params, headers
 

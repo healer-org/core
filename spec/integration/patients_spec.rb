@@ -24,16 +24,16 @@ describe "patients", type: :api do
     it "returns all records as JSON" do
       get "/patients", query_params, headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_records = json["patients"]
 
-      response_ids_for(response_records).any?{ |id| id.nil? }.should == false
+      expect(response_ids_for(response_records).any?{ |id| id.nil? }).to eq(false)
 
       response_record_1 = pluck_response_record(response_records, @persisted_1.id)
       response_record_2 = pluck_response_record(response_records, @persisted_2.id)
 
-      patient_response_matches?(response_record_1, @persisted_1).should == true
-      patient_response_matches?(response_record_2, @persisted_2).should == true
+      expect(patient_response_matches?(response_record_1, @persisted_1)).to eq(true)
+      expect(patient_response_matches?(response_record_2, @persisted_2)).to eq(true)
     end
 
     it "does not return deleted records" do
@@ -41,10 +41,10 @@ describe "patients", type: :api do
 
       get "/patients", query_params, headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_records = json["patients"]
 
-      response_records.map{ |r| r[:id] }.should_not include(deleted_patient.id)
+      expect(response_records.map{ |r| r[:id] }).not_to include(deleted_patient.id)
     end
 
     it "does not return results for deleted records, even if asked" do
@@ -52,8 +52,8 @@ describe "patients", type: :api do
 
       get "/patients", query_params.merge(status: "deleted"), headers
 
-      response.code.should == "200"
-      response_ids_for(json["patients"]).should_not include(@persisted_2.id)
+      expect(response.code).to eq("200")
+      expect(response_ids_for(json["patients"])).not_to include(@persisted_2.id)
     end
 
     context "when showCases param is true" do
@@ -63,20 +63,20 @@ describe "patients", type: :api do
 
         get "/patients", query_params.merge(showCases: true), headers
 
-        response.code.should == "200"
+        expect(response.code).to eq("200")
         response_records = json["patients"]
 
         response_record_1 = pluck_response_record(response_records, @persisted_1.id)
         response_record_2 = pluck_response_record(response_records, @persisted_2.id)
 
-        response_record_1["cases"].size.should == 1
-        response_record_2["cases"].size.should == 2
+        expect(response_record_1["cases"].size).to eq(1)
+        expect(response_record_2["cases"].size).to eq(2)
 
         case1_result = response_record_1["cases"].first
         case2_result = response_record_2["cases"].detect{ |c| c["side"] == "right" }
 
-        case_response_matches?(case1_result, case1).should == true
-        case_response_matches?(case2_result, case2).should == true
+        expect(case_response_matches?(case1_result, case1)).to eq(true)
+        expect(case_response_matches?(case2_result, case2)).to eq(true)
       end
     end
   end#index
@@ -97,11 +97,11 @@ describe "patients", type: :api do
     it "returns a single persisted record as JSON" do
       get "/patients/#{@persisted.id}", query_params, headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_record = json["patient"]
-      response_record["id"].should == @persisted.id
-      response_record["name"].should == @persisted.name
-      response_record["birth"].to_s.should == @persisted.birth.to_s
+      expect(response_record["id"]).to eq(@persisted.id)
+      expect(response_record["name"]).to eq(@persisted.name)
+      expect(response_record["birth"].to_s).to eq(@persisted.birth.to_s)
     end
 
     it "returns 404 if there is no persisted record" do
@@ -113,10 +113,10 @@ describe "patients", type: :api do
     it "does not return status attribute" do
       get "/patients/#{@persisted.id}", query_params, headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_record = json["patient"]
-      response_record.keys.should_not include("status")
-      response_record.keys.should_not include("active")
+      expect(response_record.keys).not_to include("status")
+      expect(response_record.keys).not_to include("active")
     end
 
     it "returns 404 if the record is deleted" do
@@ -137,15 +137,15 @@ describe "patients", type: :api do
           showCases: true
         ), headers
 
-        response.code.should == "200"
+        expect(response.code).to eq("200")
         response_record = json["patient"]
 
-        patient_response_matches?(response_record, persisted).should == true
+        expect(patient_response_matches?(response_record, persisted)).to eq(true)
 
         cases = response_record["cases"]
-        cases.size.should == 2
-        case_response_matches?(cases[0], case1).should == true
-        case_response_matches?(cases[1], case2).should == true
+        expect(cases.size).to eq(2)
+        expect(case_response_matches?(cases[0], case1)).to eq(true)
+        expect(case_response_matches?(cases[1], case2)).to eq(true)
       end
     end
   end#show
@@ -170,13 +170,13 @@ describe "patients", type: :api do
              headers
       }.to change(Patient, :count).by(1)
 
-      response.code.should == "201"
+      expect(response.code).to eq("201")
 
       response_record = json["patient"]
       persisted_record = Patient.last
-      persisted_record.active?.should == true
+      expect(persisted_record.active?).to eq(true)
 
-      patient_response_matches?(response_record, persisted_record).should == true
+      expect(patient_response_matches?(response_record, persisted_record)).to eq(true)
     end
 
     it "returns 400 if name is not supplied" do
@@ -187,8 +187,8 @@ describe "patients", type: :api do
            query_params.merge(patient: attributes).to_json,
            headers
 
-      response.code.should == "400"
-      json["error"]["message"].should match(/name/i)
+      expect(response.code).to eq("400")
+      expect(json["error"]["message"]).to match(/name/i)
     end
 
     it "ignores status in request input" do
@@ -196,9 +196,9 @@ describe "patients", type: :api do
            query_params.merge(patient: patients(:deleted).attributes).to_json,
            headers
 
-      response.code.should == "201"
+      expect(response.code).to eq("201")
       persisted_record = Patient.last
-      persisted_record.active?.should == true
+      expect(persisted_record.active?).to eq(true)
     end
   end#create
 
@@ -232,10 +232,10 @@ describe "patients", type: :api do
           headers
 
       persisted_record.reload
-      persisted_record.name.should == "Juan Marco"
-      persisted_record.gender.should == "M"
-      persisted_record.birth.to_s.should == Date.parse("1977-08-12").to_s
-      persisted_record.death.to_s.should == Date.parse("2014-07-12").to_s
+      expect(persisted_record.name).to eq("Juan Marco")
+      expect(persisted_record.gender).to eq("M")
+      expect(persisted_record.birth.to_s).to eq(Date.parse("1977-08-12").to_s)
+      expect(persisted_record.death.to_s).to eq(Date.parse("2014-07-12").to_s)
     end
 
     it "returns the updated record as JSON" do
@@ -249,10 +249,10 @@ describe "patients", type: :api do
           query_params.merge(patient: attributes).to_json,
           headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_record = json["patient"]
-      response_record["name"].should == "Juana"
-      response_record["birth"].should == "1977-08-12"
+      expect(response_record["name"]).to eq("Juana")
+      expect(response_record["birth"]).to eq("1977-08-12")
     end
 
     it "returns 404 if record does not exist" do
@@ -290,8 +290,8 @@ describe "patients", type: :api do
           headers
 
       persisted_record.reload
-      persisted_record.name.should == "Juan Marco"
-      persisted_record.status.should == "active"
+      expect(persisted_record.name).to eq("Juan Marco")
+      expect(persisted_record.status).to eq("active")
     end
   end#update
 
@@ -311,10 +311,10 @@ describe "patients", type: :api do
 
       delete "/patients/#{persisted_record.id}", query_params, headers
 
-      response.code.should == "200"
-      json["message"].should == "Deleted"
+      expect(response.code).to eq("200")
+      expect(json["message"]).to eq("Deleted")
 
-      persisted_record.reload.active?.should == false
+      expect(persisted_record.reload.active?).to eq(false)
     end
 
     it "returns 404 if persisted record does not exist" do
@@ -337,9 +337,9 @@ describe "patients", type: :api do
       search_query = {}
       get "/patients/search", query_params.merge(search_query), headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_records = json["patients"]
-      response_records.size.should == 0
+      expect(response_records.size).to eq(0)
     end
 
     it "returns patients by full name" do
@@ -349,11 +349,11 @@ describe "patients", type: :api do
       search_query = {q: "Ramon"}
       get "/patients/search", query_params.merge(search_query), headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_records = json["patients"]
-      response_records.size.should == 1
+      expect(response_records.size).to eq(1)
 
-      patient_response_matches?(response_records[0], persisted_record).should == true
+      expect(patient_response_matches?(response_records[0], persisted_record)).to eq(true)
     end
 
     it "returns only patients that match the query" do
@@ -365,11 +365,11 @@ describe "patients", type: :api do
       search_query = {q: "Ramon"}
       get "/patients/search", query_params.merge(search_query), headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_records = json["patients"]
-      response_records.size.should == 1
+      expect(response_records.size).to eq(1)
 
-      patient_response_matches?(response_records[0], persisted_2).should == true
+      expect(patient_response_matches?(response_records[0], persisted_2)).to eq(true)
     end
 
     it "performs case-insensitive lookup" do
@@ -379,11 +379,11 @@ describe "patients", type: :api do
       search_query = {q: "raMon"}
       get "/patients/search", query_params.merge(search_query), headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_records = json["patients"]
-      response_records.size.should == 1
+      expect(response_records.size).to eq(1)
 
-      patient_response_matches?(response_records[0], persisted).should == true
+      expect(patient_response_matches?(response_records[0], persisted)).to eq(true)
     end
 
     it "performs unicode-insensitive lookup" do
@@ -394,11 +394,11 @@ describe "patients", type: :api do
       search_query = {q: "Ramon"}
       get "/patients/search", query_params.merge(search_query), headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_records = json["patients"]
-      response_records.size.should == 1
+      expect(response_records.size).to eq(1)
 
-      patient_response_matches?(response_records[0], persisted).should == true
+      expect(patient_response_matches?(response_records[0], persisted)).to eq(true)
     end
 
     it "searches by name containing spaces" do
@@ -408,11 +408,11 @@ describe "patients", type: :api do
       search_query = {q: "ramon johnson"}
       get "/patients/search", query_params.merge(search_query), headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_records = json["patients"]
-      response_records.size.should == 1
+      expect(response_records.size).to eq(1)
 
-      patient_response_matches?(response_records[0], persisted).should == true
+      expect(patient_response_matches?(response_records[0], persisted)).to eq(true)
     end
 
     it "searches by partial name" do
@@ -422,11 +422,11 @@ describe "patients", type: :api do
       search_query = {q: "ramon"}
       get "/patients/search", query_params.merge(search_query), headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_records = json["patients"]
-      response_records.size.should == 1
+      expect(response_records.size).to eq(1)
 
-      patient_response_matches?(response_records[0], persisted).should == true
+      expect(patient_response_matches?(response_records[0], persisted)).to eq(true)
     end
 
     it "searches by partial name" do
@@ -436,11 +436,11 @@ describe "patients", type: :api do
       search_query = {q: "johnson"}
       get "/patients/search", query_params.merge(search_query), headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_records = json["patients"]
-      response_records.size.should == 1
+      expect(response_records.size).to eq(1)
 
-      patient_response_matches?(response_records[0], persisted).should == true
+      expect(patient_response_matches?(response_records[0], persisted)).to eq(true)
     end
 
     it "searches by fragments of name" do
@@ -451,11 +451,11 @@ describe "patients", type: :api do
       search_query = {q: "ramon johnson"}
       get "/patients/search", query_params.merge(search_query), headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_records = json["patients"]
-      response_records.size.should == 1
+      expect(response_records.size).to eq(1)
 
-      patient_response_matches?(response_records[0], persisted).should == true
+      expect(patient_response_matches?(response_records[0], persisted)).to eq(true)
     end
   end#search
 

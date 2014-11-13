@@ -11,11 +11,11 @@ describe Case do
     it "sets status value to 'deleted'" do
       @case.delete!
 
-      @case.reload.status.should == "deleted"
+      expect(@case.reload.status).to eq("deleted")
     end
 
     it "logs the deletion" do
-      Rails.logger.should_receive(:info).at_least(:once).with(
+      expect(Rails.logger).to receive(:info).at_least(:once).with(
         "id=#{@case.id} object=Case action=delete"
       )
 
@@ -29,7 +29,7 @@ describe Case do
     it "is false if status is deleted" do
       a_case = cases(:fernando_deleted_right_knee)
 
-      a_case.active?.should == false
+      expect(a_case.active?).to eq(false)
     end
 
     %w(
@@ -39,7 +39,7 @@ describe Case do
         a_case = cases(:fernando_left_hip)
         a_case.update_attributes!(status: status)
 
-        a_case.active?.should == true
+        expect(a_case.active?).to eq(true)
       end
     end
   end

@@ -34,28 +34,28 @@ describe "attachments", type: :api do
       persisted_case = cases(:fernando_left_hip)
       setup_attachment_attributes("Case", persisted_case.id)
 
-      persisted_case.attachments.size.should == 0
+      expect(persisted_case.attachments.size).to eq(0)
 
       expect {
         post "/attachments",
              query_params.merge(attachment: @attachment_attributes).to_json,
              headers
       }.to change(Attachment, :count).by(1)
-      response.code.should == "201"
+      expect(response.code).to eq("201")
 
-      persisted_case.reload.attachments.size.should == 1
+      expect(persisted_case.reload.attachments.size).to eq(1)
 
       get "/cases/#{persisted_case.id}", query_params.merge(showAttachments: true), headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_record = json["case"]
-      response_record["attachments"].size.should == 1
+      expect(response_record["attachments"].size).to eq(1)
       returned_attachment = response_record["attachments"].first
-      returned_attachment["documentFileName"].should == @attachment_attributes[:file_name]
+      expect(returned_attachment["documentFileName"]).to eq(@attachment_attributes[:file_name])
     end
 
     it "returns 404 if a record is not found" do
-      Case.find_by_id(99999).should == nil
+      expect(Case.find_by_id(99999)).to eq(nil)
       setup_attachment_attributes("Case", 99999)
 
       expect {
@@ -78,8 +78,8 @@ describe "attachments", type: :api do
                query_params.merge(attachment: @attachment_attributes).to_json,
                headers
         }.to_not change(Attachment, :count)
-        response.code.should == "400"
-        json["error"]["message"].should match(/#{required}/)
+        expect(response.code).to eq("400")
+        expect(json["error"]["message"]).to match(/#{required}/)
       end
     end
 

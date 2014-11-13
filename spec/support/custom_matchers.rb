@@ -38,11 +38,11 @@ module CustomMatchers
     attributes.all? do |attr|
       value = response[attr.to_s.camelize(:lower)]
       if custom_types[:time] && custom_types[:time].include?(attr)
-        Time.parse(value).iso8601.should == record.send(attr).iso8601
+        expect(Time.parse(value).iso8601).to eq(record.send(attr).iso8601)
       elsif custom_types[:date] && custom_types[:date].include?(attr)
-        value.should == record.send(attr).to_s(:db)
+        expect(value).to eq(record.send(attr).to_s(:db))
       else
-        value.to_s.should == record.send(attr).to_s
+        expect(value.to_s).to eq(record.send(attr).to_s)
       end
     end
   end

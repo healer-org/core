@@ -11,26 +11,26 @@ describe Patient do
     it "sets status value to 'deleted'" do
       @patient.delete!
 
-      @patient.reload.status.should == "deleted"
+      expect(@patient.reload.status).to eq("deleted")
     end
 
     it "deletes all attached cases" do
       case_1 = cases(:silvia_left_foot)
       case_2 = cases(:silvia_right_foot)
 
-      case_1.active?.should == true
-      case_2.active?.should == true
+      expect(case_1.active?).to eq(true)
+      expect(case_2.active?).to eq(true)
 
       @patient.delete!
 
-      case_1.reload.active?.should == false
-      case_2.reload.active?.should == false
+      expect(case_1.reload.active?).to eq(false)
+      expect(case_2.reload.active?).to eq(false)
     end
 
     it "does not swallow errors if case fails to be deleted" do
       case_1 = cases(:silvia_left_foot)
 
-      Case.any_instance.stub(:delete!).and_raise "Fail"
+      allow_any_instance_of(Case).to receive(:delete!).and_raise "Fail"
 
       expect { @patient.delete! }.to raise_error
     end
@@ -38,16 +38,16 @@ describe Patient do
     it "does not delete patient case fails to be deleted" do
       case_1 = cases(:silvia_left_foot)
 
-      Case.any_instance.stub(:delete!).and_raise "Fail"
+      allow_any_instance_of(Case).to receive(:delete!).and_raise "Fail"
 
       expect { @patient.delete! }.to raise_error
 
-      @patient.reload.active?.should == true
+      expect(@patient.reload.active?).to eq(true)
     end
 
     it "logs the deletion" do
-      Rails.logger.stub(:info)
-      Rails.logger.should_receive(:info).at_least(:once).with(
+      allow(Rails.logger).to receive(:info)
+      expect(Rails.logger).to receive(:info).at_least(:once).with(
         "id=#{@patient.id} object=Patient action=delete"
       )
 
@@ -61,7 +61,7 @@ describe Patient do
     it "is false if status is deleted" do
       patient = patients(:deleted)
 
-      patient.active?.should == false
+      expect(patient.active?).to eq(false)
     end
 
     %w(
@@ -71,7 +71,7 @@ describe Patient do
         patient = patients(:fernando)
         patient.update_attributes!(status: status)
 
-        patient.active?.should == true
+        expect(patient.active?).to eq(true)
       end
     end
   end

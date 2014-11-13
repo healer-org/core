@@ -1,9 +1,9 @@
 require "spec_helper"
 
 def validate_response_matches(response, record)
-  appointment_response_matches?(response, record).should == true
+  expect(appointment_response_matches?(response, record)).to eq(true)
   if record.patient
-    patient_response_matches?(response["patient"], record.patient).should == true
+    expect(patient_response_matches?(response["patient"], record.patient)).to eq(true)
   end
 end
 
@@ -29,10 +29,10 @@ describe "appointments", type: :api do
     it "returns all appointments as JSON, along with patient data" do
       get "/appointments", query_params, headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_records = json["appointments"]
-      response_records.size.should == 2
-      response_ids_for(response_records).any?{ |id| id.nil? }.should == false
+      expect(response_records.size).to eq(2)
+      expect(response_ids_for(response_records).any?{ |id| id.nil? }).to eq(false)
 
       response_record_1 = pluck_response_record(response_records, @persisted_1.id)
       response_record_2 = pluck_response_record(response_records, @persisted_2.id)
@@ -46,10 +46,10 @@ describe "appointments", type: :api do
 
       get "/appointments", query_params.merge(location: "room 1"), headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_records = json["appointments"]
-      response_records.size.should == 1
-      response_records.first["id"].should == @persisted_2.id
+      expect(response_records.size).to eq(1)
+      expect(response_records.first["id"]).to eq(@persisted_2.id)
     end
 
     it "filters by trip_id" do
@@ -57,10 +57,10 @@ describe "appointments", type: :api do
 
       get "/appointments", query_params.merge(trip_id: "2"), headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_records = json["appointments"]
-      response_records.size.should == 1
-      response_records.first["id"].should == @persisted_1.id
+      expect(response_records.size).to eq(1)
+      expect(response_records.first["id"]).to eq(@persisted_1.id)
     end
 
     it "filters by multiple criteria" do
@@ -71,10 +71,10 @@ describe "appointments", type: :api do
         location: "room 1", trip_id: "2"
       ), headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_records = json["appointments"]
-      response_records.size.should == 1
-      response_records.first["id"].should == @persisted_2.id
+      expect(response_records.size).to eq(1)
+      expect(response_records.first["id"]).to eq(@persisted_2.id)
     end
 
     it "does not include records belonging to deleted patients" do
@@ -82,8 +82,8 @@ describe "appointments", type: :api do
 
       get "/appointments", query_params, headers
 
-      response.code.should == "200"
-      response_ids_for(json["appointments"]).should_not include(persisted.id)
+      expect(response.code).to eq("200")
+      expect(response_ids_for(json["appointments"])).not_to include(persisted.id)
     end
   end
 
@@ -103,7 +103,7 @@ describe "appointments", type: :api do
     it "returns a single persisted record as JSON" do
       get "/appointments/#{@persisted_record.id}", query_params, headers
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       response_record = json["appointment"]
 
       validate_response_matches(response_record, @persisted_record)
@@ -151,17 +151,17 @@ describe "appointments", type: :api do
              headers
       }.to change(Appointment, :count).by(1)
 
-      response.code.should == "201"
+      expect(response.code).to eq("201")
 
       response_record = json["appointment"]
       persisted_record = Appointment.last
 
-      persisted_record.patient_id.should == patient.id
+      expect(persisted_record.patient_id).to eq(patient.id)
       APPOINTMENT_ATTRIBUTES.each do |attr|
-        attributes[attr].should == persisted_record.send(attr)
+        expect(attributes[attr]).to eq(persisted_record.send(attr))
       end
-      appointment_response_matches?(response_record, persisted_record).should == true
-      patient_response_matches?(response_record["patient"], patient).should == true
+      expect(appointment_response_matches?(response_record, persisted_record)).to eq(true)
+      expect(patient_response_matches?(response_record["patient"], patient)).to eq(true)
     end
 
     it "returns 400 if a patient id is not supplied" do
@@ -174,14 +174,14 @@ describe "appointments", type: :api do
              headers
       }.to_not change(Appointment, :count)
 
-      response.code.should == "400"
-      json["error"]["message"].should match(/patient/i)
+      expect(response.code).to eq("400")
+      expect(json["error"]["message"]).to match(/patient/i)
     end
 
     it "returns 404 if patient is not found matching id" do
       attributes = appointments(:fernando_gt15).attributes.dup.symbolize_keys
       attributes[:patient_id] = 1
-      Patient.find_by_id(1).should be_nil
+      expect(Patient.find_by_id(1)).to be_nil
 
       expect {
         post "/appointments",
@@ -233,7 +233,7 @@ describe "appointments", type: :api do
       }
 
       new_attributes.each do |k,v|
-        persisted_record.send(k).should_not == v
+        expect(persisted_record.send(k)).not_to eq(v)
       end
 
       put "/appointments/#{persisted_record.id}",
@@ -243,7 +243,7 @@ describe "appointments", type: :api do
       response_record = json["appointment"]
       persisted_record.reload
 
-      response.code.should == "200"
+      expect(response.code).to eq("200")
       attribute_keys = new_attributes.keys
 
       validate_response_matches(response_record, persisted_record)
@@ -254,8 +254,8 @@ describe "appointments", type: :api do
       persisted_record = appointments(:fernando_gt15)
       original_patient = persisted_record.patient
       different_patient = patients(:silvia)
-      different_patient.id.should_not == original_patient.id
-      persisted_record.start_ordinal.should_not == 5
+      expect(different_patient.id).not_to eq(original_patient.id)
+      expect(persisted_record.start_ordinal).not_to eq(5)
       original_start_ordinal = persisted_record.start_ordinal
       new_attributes = {
         start_ordinal: 5,
@@ -266,12 +266,12 @@ describe "appointments", type: :api do
           query_params.merge(appointment: new_attributes).to_json,
           headers
 
-      response.code.should == "400"
-      json["error"]["message"].should match(/patient/i)
+      expect(response.code).to eq("400")
+      expect(json["error"]["message"]).to match(/patient/i)
 
       persisted_record.reload
-      persisted_record.start_ordinal.should == original_start_ordinal
-      persisted_record.patient_id.should == original_patient.id
+      expect(persisted_record.start_ordinal).to eq(original_start_ordinal)
+      expect(persisted_record.patient_id).to eq(original_patient.id)
     end
 
     it "does not update patient information" do
@@ -289,7 +289,7 @@ describe "appointments", type: :api do
           headers
 
       persisted_record.reload
-      persisted_record.patient.name.should == original_patient_name
+      expect(persisted_record.patient.name).to eq(original_patient_name)
     end
 
     it "returns 404 if patient is deleted" do
@@ -323,10 +323,10 @@ describe "appointments", type: :api do
 
       delete "/appointments/#{persisted_record.id}", query_params, headers
 
-      response.code.should == "200"
-      json["message"].should == "Deleted"
+      expect(response.code).to eq("200")
+      expect(json["message"]).to eq("Deleted")
 
-      persisted_record.class.find_by_id(persisted_record.id).should be_nil
+      expect(persisted_record.class.find_by_id(persisted_record.id)).to be_nil
     end
 
     it "returns 404 if persisted record does not exist" do

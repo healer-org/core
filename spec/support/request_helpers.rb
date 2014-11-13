@@ -7,13 +7,13 @@ module Requests
 
   module ResponseHelpers
     def expect_failed_authentication
-      response.code.should == "401"
-      json["error"]["message"].should == "Bad credentials"
+      expect(response.code).to eq("401")
+      expect(json["error"]["message"]).to eq("Bad credentials")
     end
 
     def expect_not_found_response
-      response.code.should == "404"
-      json["error"]["message"].should == "Not Found"
+      expect(response.code).to eq("404")
+      expect(json["error"]["message"]).to eq("Not Found")
     end
 
     def response_ids_for(response_records)
