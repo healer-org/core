@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe Patient do
+RSpec.describe Patient do
   fixtures :patients, :cases
 
   describe "#delete!" do

@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe Case do
+RSpec.describe Case do
   fixtures :cases
 
   describe "#delete!" do

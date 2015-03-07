@@ -1,8 +1,8 @@
-require "spec_helper"
+require "rails_helper"
 
 # TODO messaging & logging behavior
 # TODO undelete functionality for administrator clients
-describe "patients", type: :api do
+RSpec.describe "patients", type: :api do
   fixtures :patients, :cases
 
   let(:query_params) { {} }
@@ -24,7 +24,7 @@ describe "patients", type: :api do
     it "returns all records as JSON" do
       get "/patients", query_params, headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_records = json["patients"]
 
       expect(response_ids_for(response_records).any?{ |id| id.nil? }).to eq(false)
@@ -41,7 +41,7 @@ describe "patients", type: :api do
 
       get "/patients", query_params, headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_records = json["patients"]
 
       expect(response_records.map{ |r| r[:id] }).not_to include(deleted_patient.id)
@@ -52,7 +52,7 @@ describe "patients", type: :api do
 
       get "/patients", query_params.merge(status: "deleted"), headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       expect(response_ids_for(json["patients"])).not_to include(@persisted_2.id)
     end
 
@@ -63,7 +63,7 @@ describe "patients", type: :api do
 
         get "/patients", query_params.merge(showCases: true), headers
 
-        expect(response.code).to eq("200")
+        expect_success_response
         response_records = json["patients"]
 
         response_record_1 = pluck_response_record(response_records, @persisted_1.id)
@@ -97,7 +97,7 @@ describe "patients", type: :api do
     it "returns a single persisted record as JSON" do
       get "/patients/#{@persisted.id}", query_params, headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_record = json["patient"]
       expect(response_record["id"]).to eq(@persisted.id)
       expect(response_record["name"]).to eq(@persisted.name)
@@ -113,7 +113,7 @@ describe "patients", type: :api do
     it "does not return status attribute" do
       get "/patients/#{@persisted.id}", query_params, headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_record = json["patient"]
       expect(response_record.keys).not_to include("status")
       expect(response_record.keys).not_to include("active")
@@ -137,7 +137,7 @@ describe "patients", type: :api do
           showCases: true
         ), headers
 
-        expect(response.code).to eq("200")
+        expect_success_response
         response_record = json["patient"]
 
         expect(patient_response_matches?(response_record, persisted)).to eq(true)
@@ -155,7 +155,7 @@ describe "patients", type: :api do
 
     it "returns 401 if authentication headers are not present" do
       post "/patients",
-           { patient: patients(:fernando).attributes }.to_json,
+           { patient: patients(:fernando).attributes },
            json_content_header
 
       expect_failed_authentication
@@ -166,11 +166,11 @@ describe "patients", type: :api do
     it "creates a new active persisted record and returns JSON" do
       expect {
         post "/patients",
-             query_params.merge( patient: patients(:fernando).attributes ).to_json,
+             query_params.merge( patient: patients(:fernando).attributes ),
              headers
       }.to change(Patient, :count).by(1)
 
-      expect(response.code).to eq("201")
+      expect_created_response
 
       response_record = json["patient"]
       persisted_record = Patient.last
@@ -184,19 +184,19 @@ describe "patients", type: :api do
       attributes.delete("name")
 
       post "/patients",
-           query_params.merge(patient: attributes).to_json,
+           query_params.merge(patient: attributes),
            headers
 
-      expect(response.code).to eq("400")
+      expect_bad_request
       expect(json["error"]["message"]).to match(/name/i)
     end
 
     it "ignores status in request input" do
       post "/patients",
-           query_params.merge(patient: patients(:deleted).attributes).to_json,
+           query_params.merge(patient: patients(:deleted).attributes),
            headers
 
-      expect(response.code).to eq("201")
+      expect_created_response
       persisted_record = Patient.last
       expect(persisted_record.active?).to eq(true)
     end
@@ -210,7 +210,7 @@ describe "patients", type: :api do
       attributes = { name: "Juan Marco" }
 
       put "/patients/#{persisted_record.id}",
-          { patient: attributes }.to_json,
+          { patient: attributes },
           json_content_header
 
       expect_failed_authentication
@@ -228,7 +228,7 @@ describe "patients", type: :api do
       }
 
       put "/patients/#{persisted_record.id}",
-          query_params.merge(patient: attributes).to_json,
+          query_params.merge(patient: attributes),
           headers
 
       persisted_record.reload
@@ -246,10 +246,10 @@ describe "patients", type: :api do
       }
 
       put "/patients/#{persisted_record.id}",
-          query_params.merge(patient: attributes).to_json,
+          query_params.merge(patient: attributes),
           headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_record = json["patient"]
       expect(response_record["name"]).to eq("Juana")
       expect(response_record["birth"]).to eq("1977-08-12")
@@ -261,7 +261,7 @@ describe "patients", type: :api do
         birth: Date.parse("1977-08-12")
       }
       put "/patients/1",
-          query_params.merge(patient: attributes).to_json,
+          query_params.merge(patient: attributes),
           headers
 
       expect_not_found_response
@@ -272,7 +272,7 @@ describe "patients", type: :api do
       attributes = { name: "Changed attributes" }
 
       put "/patients/#{persisted_record.id}",
-          query_params.merge(patient: attributes).to_json,
+          query_params.merge(patient: attributes),
           headers
 
       expect_not_found_response
@@ -286,7 +286,7 @@ describe "patients", type: :api do
       }
 
       put "/patients/#{persisted_record.id}",
-          query_params.merge(patient: attributes).to_json,
+          query_params.merge(patient: attributes),
           headers
 
       persisted_record.reload
@@ -311,7 +311,7 @@ describe "patients", type: :api do
 
       delete "/patients/#{persisted_record.id}", query_params, headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       expect(json["message"]).to eq("Deleted")
 
       expect(persisted_record.reload.active?).to eq(false)
@@ -337,7 +337,7 @@ describe "patients", type: :api do
       search_query = {}
       get "/patients/search", query_params.merge(search_query), headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_records = json["patients"]
       expect(response_records.size).to eq(0)
     end
@@ -349,7 +349,7 @@ describe "patients", type: :api do
       search_query = {q: "Ramon"}
       get "/patients/search", query_params.merge(search_query), headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
@@ -365,7 +365,7 @@ describe "patients", type: :api do
       search_query = {q: "Ramon"}
       get "/patients/search", query_params.merge(search_query), headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
@@ -379,7 +379,7 @@ describe "patients", type: :api do
       search_query = {q: "raMon"}
       get "/patients/search", query_params.merge(search_query), headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
@@ -394,7 +394,7 @@ describe "patients", type: :api do
       search_query = {q: "Ramon"}
       get "/patients/search", query_params.merge(search_query), headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
@@ -408,7 +408,7 @@ describe "patients", type: :api do
       search_query = {q: "ramon johnson"}
       get "/patients/search", query_params.merge(search_query), headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
@@ -422,7 +422,7 @@ describe "patients", type: :api do
       search_query = {q: "ramon"}
       get "/patients/search", query_params.merge(search_query), headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
@@ -436,7 +436,7 @@ describe "patients", type: :api do
       search_query = {q: "johnson"}
       get "/patients/search", query_params.merge(search_query), headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
@@ -451,7 +451,7 @@ describe "patients", type: :api do
       search_query = {q: "ramon johnson"}
       get "/patients/search", query_params.merge(search_query), headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_records = json["patients"]
       expect(response_records.size).to eq(1)
 

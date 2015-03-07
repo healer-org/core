@@ -1,4 +1,4 @@
-require "spec_helper"
+require "rails_helper"
 
 def validate_response_matches(response, record)
   expect(appointment_response_matches?(response, record)).to eq(true)
@@ -7,7 +7,7 @@ def validate_response_matches(response, record)
   end
 end
 
-describe "appointments", type: :api do
+RSpec.describe "appointments", type: :api do
   fixtures :appointments, :patients
 
   let(:query_params) { {} }
@@ -29,7 +29,7 @@ describe "appointments", type: :api do
     it "returns all appointments as JSON, along with patient data" do
       get "/appointments", query_params, headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_records = json["appointments"]
       expect(response_records.size).to eq(2)
       expect(response_ids_for(response_records).any?{ |id| id.nil? }).to eq(false)
@@ -46,7 +46,7 @@ describe "appointments", type: :api do
 
       get "/appointments", query_params.merge(location: "room 1"), headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_records = json["appointments"]
       expect(response_records.size).to eq(1)
       expect(response_records.first["id"]).to eq(@persisted_2.id)
@@ -57,7 +57,7 @@ describe "appointments", type: :api do
 
       get "/appointments", query_params.merge(trip_id: "2"), headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_records = json["appointments"]
       expect(response_records.size).to eq(1)
       expect(response_records.first["id"]).to eq(@persisted_1.id)
@@ -71,7 +71,7 @@ describe "appointments", type: :api do
         location: "room 1", trip_id: "2"
       ), headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_records = json["appointments"]
       expect(response_records.size).to eq(1)
       expect(response_records.first["id"]).to eq(@persisted_2.id)
@@ -82,7 +82,7 @@ describe "appointments", type: :api do
 
       get "/appointments", query_params, headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       expect(response_ids_for(json["appointments"])).not_to include(persisted.id)
     end
   end
@@ -103,7 +103,7 @@ describe "appointments", type: :api do
     it "returns a single persisted record as JSON" do
       get "/appointments/#{@persisted_record.id}", query_params, headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_record = json["appointment"]
 
       validate_response_matches(response_record, @persisted_record)
@@ -131,7 +131,7 @@ describe "appointments", type: :api do
       attributes = appointments(:fernando_gt15).attributes.dup
 
       post "/appointments",
-           appointment: attributes.to_json,
+           appointment: attributes,
            "Content-Type" => "application/json"
 
       expect_failed_authentication
@@ -147,11 +147,11 @@ describe "appointments", type: :api do
 
       expect {
         post "/appointments",
-             query_params.merge(appointment: attributes).to_json,
+             query_params.merge(appointment: attributes),
              headers
       }.to change(Appointment, :count).by(1)
 
-      expect(response.code).to eq("201")
+      expect_created_response
 
       response_record = json["appointment"]
       persisted_record = Appointment.last
@@ -170,11 +170,11 @@ describe "appointments", type: :api do
 
       expect {
         post "/appointments",
-             query_params.merge(appointment: attributes).to_json,
+             query_params.merge(appointment: attributes),
              headers
       }.to_not change(Appointment, :count)
 
-      expect(response.code).to eq("400")
+      expect_bad_request
       expect(json["error"]["message"]).to match(/patient/i)
     end
 
@@ -185,7 +185,7 @@ describe "appointments", type: :api do
 
       expect {
         post "/appointments",
-             query_params.merge(appointment: attributes).to_json,
+             query_params.merge(appointment: attributes),
              headers
       }.to_not change(Appointment, :count)
 
@@ -199,7 +199,7 @@ describe "appointments", type: :api do
 
       expect {
         post "/appointments",
-             query_params.merge(appointment: attributes).to_json,
+             query_params.merge(appointment: attributes),
              headers
       }.to_not change(Appointment, :count)
 
@@ -215,7 +215,7 @@ describe "appointments", type: :api do
       new_attributes = { start_time: Time.now.utc + 1.week }
 
       put "/appointments/#{persisted_record.id}",
-          appointment: new_attributes.to_json,
+          appointment: new_attributes,
           "Content-Type" => "application/json"
 
       expect_failed_authentication
@@ -237,14 +237,13 @@ describe "appointments", type: :api do
       end
 
       put "/appointments/#{persisted_record.id}",
-          query_params.merge(appointment: new_attributes).to_json,
+          query_params.merge(appointment: new_attributes),
           headers
 
       response_record = json["appointment"]
       persisted_record.reload
 
-      expect(response.code).to eq("200")
-      attribute_keys = new_attributes.keys
+      expect_success_response
 
       validate_response_matches(response_record, persisted_record)
       validate_response_matches(response_record, Appointment.new(new_attributes))
@@ -263,10 +262,10 @@ describe "appointments", type: :api do
       }
 
       put "/appointments/#{persisted_record.id}",
-          query_params.merge(appointment: new_attributes).to_json,
+          query_params.merge(appointment: new_attributes),
           headers
 
-      expect(response.code).to eq("400")
+      expect_bad_request
       expect(json["error"]["message"]).to match(/patient/i)
 
       persisted_record.reload
@@ -285,7 +284,7 @@ describe "appointments", type: :api do
       }
 
       put "/appointments/#{persisted_record.id}",
-          query_params.merge(appointment: new_attributes).to_json,
+          query_params.merge(appointment: new_attributes),
           headers
 
       persisted_record.reload
@@ -300,7 +299,7 @@ describe "appointments", type: :api do
       }
 
       put "/appointments/#{persisted_record.id}",
-          query_params.merge(appointment: new_attributes).to_json,
+          query_params.merge(appointment: new_attributes),
           headers
 
       expect_not_found_response
@@ -323,7 +322,7 @@ describe "appointments", type: :api do
 
       delete "/appointments/#{persisted_record.id}", query_params, headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       expect(json["message"]).to eq("Deleted")
 
       expect(persisted_record.class.find_by_id(persisted_record.id)).to be_nil

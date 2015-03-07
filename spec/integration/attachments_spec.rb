@@ -12,7 +12,7 @@ def setup_attachment_attributes(record_type, record_id)
     }
 end
 
-describe "attachments", type: :api do
+RSpec.describe "attachments", type: :api do
   fixtures :cases, :patients
 
   let(:query_params) { {} }
@@ -21,10 +21,11 @@ describe "attachments", type: :api do
     let(:headers) { token_auth_header.merge(json_content_header) }
 
     it "returns 401 if authentication headers are not present" do
-      ff = fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png")
+      extend ActionDispatch::TestProcess
+      ff = fixture_file_upload("../attachments/1x1.png", "image/png")
 
       post "/attachments",
-           attachment: { path: ff.path }.to_json,
+           attachment: { path: ff.path },
            "Content-Type" => "application/json"
 
       expect_failed_authentication
@@ -38,16 +39,16 @@ describe "attachments", type: :api do
 
       expect {
         post "/attachments",
-             query_params.merge(attachment: @attachment_attributes).to_json,
+             query_params.merge(attachment: @attachment_attributes),
              headers
       }.to change(Attachment, :count).by(1)
-      expect(response.code).to eq("201")
+      expect_created_response
 
       expect(persisted_case.reload.attachments.size).to eq(1)
 
       get "/cases/#{persisted_case.id}", query_params.merge(showAttachments: true), headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_record = json["case"]
       expect(response_record["attachments"].size).to eq(1)
       returned_attachment = response_record["attachments"].first
@@ -60,7 +61,7 @@ describe "attachments", type: :api do
 
       expect {
         post "/attachments",
-             query_params.merge(attachment: @attachment_attributes).to_json,
+             query_params.merge(attachment: @attachment_attributes),
              headers
       }.to_not change(Attachment, :count)
       expect_not_found_response
@@ -75,10 +76,10 @@ describe "attachments", type: :api do
 
         expect {
           post "/attachments",
-               query_params.merge(attachment: @attachment_attributes).to_json,
+               query_params.merge(attachment: @attachment_attributes),
                headers
         }.to_not change(Attachment, :count)
-        expect(response.code).to eq("400")
+        expect_bad_request
         expect(json["error"]["message"]).to match(/#{required}/)
       end
     end

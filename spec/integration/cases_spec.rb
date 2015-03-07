@@ -1,9 +1,14 @@
 require "spec_helper"
 
-describe "cases", type: :api do
+RSpec.describe "cases", type: :api do
   fixtures :cases, :patients
 
   let(:query_params) { {} }
+
+  def uploaded_file
+    extend ActionDispatch::TestProcess
+    fixture_file_upload("../attachments/1x1.png", "image/png")
+  end
 
   describe "GET index" do
     let(:headers) { token_auth_header }
@@ -23,7 +28,7 @@ describe "cases", type: :api do
 
       get "/cases", query_params, headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_records = json["cases"]
 
       expect(response_ids_for(response_records).any?{ |id| id.nil? }).to eq(false)
@@ -42,7 +47,7 @@ describe "cases", type: :api do
 
       get "/cases", query_params, headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       expect(response_ids_for(json["cases"])).not_to include(deleted_case.id)
     end
 
@@ -55,7 +60,7 @@ describe "cases", type: :api do
 
       response_ids = response_ids_for(json["cases"])
 
-      expect(response.code).to eq("200")
+      expect_success_response
       expect(response_ids).to include(persisted_1.id)
       expect(response_ids).not_to include(persisted_2.id)
     end
@@ -69,7 +74,7 @@ describe "cases", type: :api do
 
       response_ids = response_ids_for(json["cases"])
 
-      expect(response.code).to eq("200")
+      expect_success_response
       expect(response_ids).not_to include(persisted_1.id)
     end
 
@@ -77,12 +82,12 @@ describe "cases", type: :api do
       persisted = cases(:fernando_left_hip)
       attachment = Attachment.create!(
         record: persisted,
-        document: fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png")
+        document: uploaded_file
       )
 
       get "/cases", query_params, headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_records = json["cases"]
 
       response_record = pluck_response_record(response_records, persisted.id)
@@ -93,13 +98,13 @@ describe "cases", type: :api do
       persisted = cases(:fernando_left_hip)
       attachment = Attachment.create!(
         record: persisted,
-        document: fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png")
+        document: uploaded_file
       )
       expect(Attachment.count).to eq(1)
 
       get "/cases", query_params.merge(showAttachments: true), headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_records = json["cases"]
 
       response_record = pluck_response_record(response_records, persisted.id)
@@ -127,7 +132,7 @@ describe "cases", type: :api do
 
       get "/cases/#{persisted_case.id}", query_params, headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_record = json["case"]
       expect(case_response_matches?(json["case"], persisted_case)).to eq(true)
       expect(patient_response_matches?(json["case"]["patient"], persisted_patient)).to eq(true)
@@ -139,7 +144,7 @@ describe "cases", type: :api do
 
       get "/cases/#{persisted_case.id}", query_params, headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_record = json["case"]
       expect(response_record["id"]).to eq(persisted_case.id)
     end
@@ -157,7 +162,7 @@ describe "cases", type: :api do
 
       get "/cases/#{persisted_case.id}", query_params, headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_record = json["case"]
       expect(response_record.keys).not_to include("status")
       expect(response_record.keys).not_to include("active")
@@ -167,15 +172,15 @@ describe "cases", type: :api do
       persisted = cases(:fernando_left_hip)
       attachment = Attachment.create!(
         record: persisted,
-        document: fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png")
+        document: uploaded_file
       )
 
       get "/cases/#{persisted.id}", query_params, headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_records = json["cases"]
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_record = json["case"]
       expect(response_record.keys).not_to include("attachments")
     end
@@ -184,12 +189,12 @@ describe "cases", type: :api do
       persisted = cases(:fernando_left_hip)
       attachment = Attachment.create!(
         record: persisted,
-        document: fixture_file_upload("#{Rails.root}/spec/attachments/1x1.png", "image/png")
+        document: uploaded_file
       )
 
       get "/cases/#{persisted.id}", query_params.merge(showAttachments: true), headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       response_record = json["case"]
       expect(response_record["attachments"].size).to eq(1)
       returned_attachment = response_record["attachments"].first
@@ -221,7 +226,7 @@ describe "cases", type: :api do
       attributes = cases(:fernando_left_hip).attributes.dup
 
       post "/cases",
-           case: attributes.to_json,
+           case: attributes,
            "Content-Type" => "application/json"
 
       expect_failed_authentication
@@ -240,11 +245,11 @@ describe "cases", type: :api do
 
         expect {
           post "/cases",
-               query_params.merge(case: case_attributes).to_json,
+               query_params.merge(case: case_attributes),
                headers
         }.to change(Case, :count).by(1)
 
-        expect(response.code).to eq("201")
+        expect_created_response
 
         response_record = json["case"]
         persisted_record = Case.last
@@ -266,7 +271,7 @@ describe "cases", type: :api do
 
         expect {
           post "/cases",
-               query_params.merge(case: case_attributes).to_json,
+               query_params.merge(case: case_attributes),
                headers
         }.to change(Patient, :count).by(1)
 
@@ -291,11 +296,11 @@ describe "cases", type: :api do
 
         expect {
           post "/cases",
-               query_params.merge(case: case_attributes).to_json,
+               query_params.merge(case: case_attributes),
                headers
         }.to_not change(Case, :count)
 
-        expect(response.code).to eq("400")
+        expect_bad_request
         expect(json["error"]["message"]).to match(/name/i)
       end
 
@@ -312,11 +317,11 @@ describe "cases", type: :api do
 
         expect {
           post "/cases",
-               query_params.merge(case: case_attributes).to_json,
+               query_params.merge(case: case_attributes),
                headers
         }.to change(Case, :count).by(1)
 
-        expect(response.code).to eq("201")
+        expect_created_response
         persisted_case_record = Case.last
         persisted_patient_record = Patient.last
         expect(persisted_case_record.active?).to eq(true)
@@ -332,7 +337,7 @@ describe "cases", type: :api do
 
         expect {
           post "/cases",
-               query_params.merge(case: case_attributes).to_json,
+               query_params.merge(case: case_attributes),
                headers
         }.to change(Case, :count).by(1)
 
@@ -359,7 +364,7 @@ describe "cases", type: :api do
 
           expect {
             post "/cases",
-                 query_params.merge(case: case_attributes).to_json,
+                 query_params.merge(case: case_attributes),
                  headers
           }.to change(Case, :count).by(1)
 
@@ -382,7 +387,7 @@ describe "cases", type: :api do
 
           expect {
             post "/cases",
-                 query_params.merge(case: case_attributes).to_json,
+                 query_params.merge(case: case_attributes),
                  headers
           }.to_not change(Patient, :count)
         end
@@ -395,7 +400,7 @@ describe "cases", type: :api do
         case_attributes[:patient] = { name: "Patient Info" }
 
         post "/cases",
-             query_params.merge(case: case_attributes).to_json,
+             query_params.merge(case: case_attributes),
              headers
 
         expect_not_found_response
@@ -408,10 +413,10 @@ describe "cases", type: :api do
         case_attributes.delete(:patient_id)
 
         post "/cases",
-             query_params.merge(case: case_attributes).to_json,
+             query_params.merge(case: case_attributes),
              headers
 
-        expect(response.code).to eq("400")
+        expect_bad_request
         expect(json["error"]["message"]).to match(/patient/i)
       end
     end
@@ -426,7 +431,7 @@ describe "cases", type: :api do
       new_attributes = { anatomy: "hip" }
 
       put "/cases/#{persisted_record.id}",
-          { case: new_attributes }.to_json,
+          { case: new_attributes },
           json_content_header
 
       expect_failed_authentication
@@ -442,7 +447,7 @@ describe "cases", type: :api do
       }
 
       put "/cases/#{persisted_record.id}",
-          query_params.merge(case: new_attributes).to_json,
+          query_params.merge(case: new_attributes),
           headers
 
       persisted_record.reload
@@ -464,7 +469,7 @@ describe "cases", type: :api do
       }
 
       put "/cases/#{persisted_record.id}",
-          query_params.merge(case: new_attributes).to_json,
+          query_params.merge(case: new_attributes),
           headers
 
       persisted_record.reload
@@ -476,7 +481,7 @@ describe "cases", type: :api do
       persisted_record = cases(:fernando_deleted_right_knee)
 
       put "/cases/#{persisted_record.id}",
-          query_params.merge(case: { status: "active" }).to_json,
+          query_params.merge(case: { status: "active" }),
           headers
 
       persisted_record.reload
@@ -488,7 +493,7 @@ describe "cases", type: :api do
       new_attributes = { anatomy: "hip" }
 
       put "/cases/#{persisted_record.id}",
-          query_params.merge(case: new_attributes).to_json,
+          query_params.merge(case: new_attributes),
           headers
 
       expect_not_found_response
@@ -513,7 +518,7 @@ describe "cases", type: :api do
 
       delete "/cases/#{persisted_record.id}", query_params, headers
 
-      expect(response.code).to eq("200")
+      expect_success_response
       expect(json["message"]).to eq("Deleted")
 
       expect(persisted_record.reload.active?).to eq(false)
