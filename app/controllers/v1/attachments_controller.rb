@@ -30,7 +30,7 @@ class V1::AttachmentsController < V1::BaseController
       !params[:attachment][req].present?
     end
 
-      @missing_params.present?
+    @missing_params.present?
   end
 
   def prep_document

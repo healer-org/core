@@ -6,8 +6,6 @@ class V1::PatientsController < V1::BaseController
       cases_records = Case.where(:patient_id => patients.map(&:id)).active
     end
 
-    # TODO there's probably a nice simple way to do this via AR, but avoiding
-    # that dependency for now. decide whether to depend on AR or refactor as is.
     presented_patients = patients.map do |patient|
       patient_attributes = patient.attributes
       if cases_records
@@ -29,8 +27,6 @@ class V1::PatientsController < V1::BaseController
     patient = Patient.active.find_by!(id: params[:id])
     patient_attributes = patient.attributes
 
-    # TODO there's probably a nice simple way to do this via AR, but avoiding
-    # that dependency for now. decide whether to depend on AR or refactor as is.
     if params[:showCases]
       case_records = Case.active.where(:patient_id => patient.id)
       patient_attributes[:cases] = case_records.map(&:attributes)

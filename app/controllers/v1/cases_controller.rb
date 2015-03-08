@@ -22,8 +22,6 @@ class V1::CasesController < V1::BaseController
   end
 
   def create
-    # TODO this method is kinda filthy.
-    #      there must be a more elegant way with strong params.
     case_record = Case.new(case_params)
 
     if case_record.patient_id
