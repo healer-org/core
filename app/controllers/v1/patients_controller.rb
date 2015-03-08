@@ -1,5 +1,4 @@
-class PatientsController < ApplicationController
-  include Authentication
+class V1::PatientsController < V1::BaseController
 
   def index
     patients = Patient.all.active
@@ -54,7 +53,7 @@ class PatientsController < ApplicationController
   end
 
   def delete
-    patient = Patient.find(params[:id])
+    patient = Patient.active.find_by!(id: params[:id])
     patient.delete!
 
     render(
@@ -74,7 +73,7 @@ class PatientsController < ApplicationController
   private
 
   def present(patient_attributes)
-    PatientPresenter.new(patient_attributes).present
+    V1::PatientPresenter.new(patient_attributes).present
   end
 
   def patient_params

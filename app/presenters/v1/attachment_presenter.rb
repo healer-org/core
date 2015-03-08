@@ -1,4 +1,4 @@
-class AttachmentPresenter
+class V1::AttachmentPresenter < V1::BasePresenter
 
   def initialize(attributes)
     @attributes = HashWithIndifferentAccess.new(attributes)

@@ -1,4 +1,4 @@
-class AppointmentPresenter
+class V1::AppointmentPresenter < V1::BasePresenter
 
   def initialize(attributes)
     @attributes = attributes
@@ -12,7 +12,7 @@ class AppointmentPresenter
       presented[:startOrdinal] = attributes["start_ordinal"]
       presented[:endTime] = attributes["end_time"]
       presented[:location] = attributes["location"]
-      presented[:patient] = PatientPresenter.new(patient_attributes).present
+      presented[:patient] = V1::PatientPresenter.new(patient_attributes).present
     end
   end
 

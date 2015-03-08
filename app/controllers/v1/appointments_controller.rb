@@ -1,5 +1,4 @@
-class AppointmentsController < ApplicationController
-  include Authentication
+class V1::AppointmentsController < V1::BaseController
 
   def index
     appointments = Appointment.includes(:patient).
@@ -67,7 +66,7 @@ class AppointmentsController < ApplicationController
       attributes[k] = attributes[k].to_s(:iso8601) if attributes[k]
     end
     attributes[:patient] = appointment.patient.attributes
-    AppointmentPresenter.new(attributes).present
+    V1::AppointmentPresenter.new(attributes).present
   end
 
   def render_one(appointment_record, status = :ok)

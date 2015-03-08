@@ -1,4 +1,4 @@
-class CasePresenter
+class V1::CasePresenter < V1::BasePresenter
 
   def initialize(case_attributes)
     @case_attributes = case_attributes
@@ -11,7 +11,7 @@ class CasePresenter
       presented[:id] = case_attributes["id"]
       presented[:anatomy] = case_attributes["anatomy"]
       presented[:side] = case_attributes["side"]
-      presented[:patient] = PatientPresenter.new(patient_attributes).present
+      presented[:patient] = V1::PatientPresenter.new(patient_attributes).present
       presented[:attachments] = presented_attachments if attachment_attributes
     end
   end
@@ -22,7 +22,7 @@ class CasePresenter
   attr_reader :case_attributes, :patient_attributes, :attachment_attributes
 
   def presented_attachments
-    attachment_attributes.map{ |attrs| AttachmentPresenter.new(attrs).present }
+    attachment_attributes.map{ |attrs| V1::AttachmentPresenter.new(attrs).present }
   end
 
 end

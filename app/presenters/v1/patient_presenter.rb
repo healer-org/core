@@ -1,4 +1,4 @@
-class PatientPresenter
+class V1::PatientPresenter < V1::BasePresenter
 
   def initialize(patient_attributes)
     @patient_attributes = HashWithIndifferentAccess.new(patient_attributes)

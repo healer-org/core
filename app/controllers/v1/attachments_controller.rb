@@ -1,5 +1,4 @@
-class AttachmentsController < ApplicationController
-  include Authentication
+class V1::AttachmentsController < V1::BaseController
 
   def create
     raise ActionController::ParameterMissing.new(@missing_params.join(", ")) if required_params_missing?

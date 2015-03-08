@@ -9,37 +9,35 @@ RSpec.describe "patients", type: :api do
 
   describe "GET index" do
     let(:headers) { token_auth_header }
-
-    before(:each) do
-      @persisted_1 = patients(:fernando)
-      @persisted_2 = patients(:silvia)
-    end
+    let(:endpoint_url) { "/v1/patients" }
+    let(:persisted_record_1) { patients(:fernando) }
+    let(:persisted_record_2) { patients(:silvia) }
 
     it "returns 401 if authentication headers are not present" do
-      get "/patients"
+      get(endpoint_url)
 
       expect_failed_authentication
     end
 
     it "returns all records as JSON" do
-      get "/patients", query_params, headers
+      get(endpoint_url, query_params, headers)
 
       expect_success_response
       response_records = json["patients"]
 
       expect(response_ids_for(response_records).any?{ |id| id.nil? }).to eq(false)
 
-      response_record_1 = pluck_response_record(response_records, @persisted_1.id)
-      response_record_2 = pluck_response_record(response_records, @persisted_2.id)
+      response_record_1 = pluck_response_record(response_records, persisted_record_1.id)
+      response_record_2 = pluck_response_record(response_records, persisted_record_2.id)
 
-      expect(patient_response_matches?(response_record_1, @persisted_1)).to eq(true)
-      expect(patient_response_matches?(response_record_2, @persisted_2)).to eq(true)
+      expect(patient_response_matches?(response_record_1, persisted_record_1)).to eq(true)
+      expect(patient_response_matches?(response_record_2, persisted_record_2)).to eq(true)
     end
 
     it "does not return deleted records" do
       deleted_patient = patients(:deleted)
 
-      get "/patients", query_params, headers
+      get(endpoint_url, query_params, headers)
 
       expect_success_response
       response_records = json["patients"]
@@ -48,12 +46,12 @@ RSpec.describe "patients", type: :api do
     end
 
     it "does not return results for deleted records, even if asked" do
-      @persisted_2.delete!
+      persisted_record_2.delete!
 
-      get "/patients", query_params.merge(status: "deleted"), headers
+      get(endpoint_url, query_params.merge(status: "deleted"), headers)
 
       expect_success_response
-      expect(response_ids_for(json["patients"])).not_to include(@persisted_2.id)
+      expect(response_ids_for(json["patients"])).not_to include(persisted_record_2.id)
     end
 
     context "when showCases param is true" do
@@ -61,13 +59,13 @@ RSpec.describe "patients", type: :api do
         case1 = cases(:fernando_left_hip)
         case2 = cases(:silvia_right_foot)
 
-        get "/patients", query_params.merge(showCases: true), headers
+        get(endpoint_url, query_params.merge(showCases: true), headers)
 
         expect_success_response
         response_records = json["patients"]
 
-        response_record_1 = pluck_response_record(response_records, @persisted_1.id)
-        response_record_2 = pluck_response_record(response_records, @persisted_2.id)
+        response_record_1 = pluck_response_record(response_records, persisted_record_1.id)
+        response_record_2 = pluck_response_record(response_records, persisted_record_2.id)
 
         expect(response_record_1["cases"].size).to eq(1)
         expect(response_record_2["cases"].size).to eq(2)
@@ -83,35 +81,35 @@ RSpec.describe "patients", type: :api do
 
   describe "GET show" do
     let(:headers) { token_auth_header }
-
-    before(:each) do
-      @persisted = patients(:fernando)
-    end
+    let(:persisted_record) { patients(:fernando) }
+    let(:endpoint_url) { "/v1/patients/#{persisted_record.id}" }
 
     it "returns 401 if authentication headers are not present" do
-      get "/patients/#{@persisted.id}"
+      get(endpoint_url)
 
       expect_failed_authentication
     end
 
     it "returns a single persisted record as JSON" do
-      get "/patients/#{@persisted.id}", query_params, headers
+      get(endpoint_url, query_params, headers)
 
       expect_success_response
       response_record = json["patient"]
-      expect(response_record["id"]).to eq(@persisted.id)
-      expect(response_record["name"]).to eq(@persisted.name)
-      expect(response_record["birth"].to_s).to eq(@persisted.birth.to_s)
+      expect(response_record["id"]).to eq(persisted_record.id)
+      expect(response_record["name"]).to eq(persisted_record.name)
+      expect(response_record["birth"].to_s).to eq(persisted_record.birth.to_s)
     end
 
     it "returns 404 if there is no persisted record" do
-      get "/patients/#{@persisted.id + 1}", query_params, headers
+      endpoint_url = "/v1/patients/#{persisted_record.id + 1}"
+
+      get(endpoint_url, query_params, headers)
 
       expect_not_found_response
     end
 
     it "does not return status attribute" do
-      get "/patients/#{@persisted.id}", query_params, headers
+      get(endpoint_url, query_params, headers)
 
       expect_success_response
       response_record = json["patient"]
@@ -121,26 +119,28 @@ RSpec.describe "patients", type: :api do
 
     it "returns 404 if the record is deleted" do
       persisted_record = patients(:deleted)
+      endpoint_url = "/v1/patients/#{persisted_record.id}"
 
-      get "/patients/#{persisted_record.id}", query_params, headers
+      get(endpoint_url, query_params, headers)
 
       expect_not_found_response
     end
 
     context "when showCases param is true" do
+      let(:persisted_record) { patients(:silvia) }
+
       it "returns all cases as JSON" do
-        persisted = patients(:silvia)
         case1 = cases(:silvia_left_foot)
         case2 = cases(:silvia_right_foot)
 
-        get "/patients/#{persisted.id}", query_params.merge(
-          showCases: true
-        ), headers
+        get(endpoint_url, query_params.merge(showCases: true), headers)
 
         expect_success_response
         response_record = json["patient"]
 
-        expect(patient_response_matches?(response_record, persisted)).to eq(true)
+        expect(
+          patient_response_matches?(response_record, persisted_record)
+        ).to eq(true)
 
         cases = response_record["cases"]
         expect(cases.size).to eq(2)
@@ -152,11 +152,12 @@ RSpec.describe "patients", type: :api do
 
   describe "POST create" do
     let(:headers) { token_auth_header.merge(json_content_header) }
+    let(:endpoint_url) { "/v1/patients" }
 
     it "returns 401 if authentication headers are not present" do
-      post "/patients",
+      post(endpoint_url,
            { patient: patients(:fernando).attributes },
-           json_content_header
+           json_content_header)
 
       expect_failed_authentication
     end
@@ -165,9 +166,9 @@ RSpec.describe "patients", type: :api do
 
     it "creates a new active persisted record and returns JSON" do
       expect {
-        post "/patients",
+        post(endpoint_url,
              query_params.merge( patient: patients(:fernando).attributes ),
-             headers
+             headers)
       }.to change(Patient, :count).by(1)
 
       expect_created_response
@@ -183,18 +184,16 @@ RSpec.describe "patients", type: :api do
       attributes = patients(:fernando).attributes
       attributes.delete("name")
 
-      post "/patients",
-           query_params.merge(patient: attributes),
-           headers
+      post(endpoint_url, query_params.merge(patient: attributes), headers)
 
       expect_bad_request
       expect(json["error"]["message"]).to match(/name/i)
     end
 
     it "ignores status in request input" do
-      post "/patients",
+      post(endpoint_url,
            query_params.merge(patient: patients(:deleted).attributes),
-           headers
+           headers)
 
       expect_created_response
       persisted_record = Patient.last
@@ -204,14 +203,13 @@ RSpec.describe "patients", type: :api do
 
   describe "PUT update" do
     let(:headers) { token_auth_header.merge(json_content_header) }
+    let(:persisted_record) { patients(:fernando) }
+    let(:endpoint_url) { "/v1/patients/#{persisted_record.id}" }
 
     it "returns 401 if authentication headers are not present" do
-      persisted_record = patients(:fernando)
       attributes = { name: "Juan Marco" }
 
-      put "/patients/#{persisted_record.id}",
-          { patient: attributes },
-          json_content_header
+      put(endpoint_url, { patient: attributes }, json_content_header)
 
       expect_failed_authentication
     end
@@ -219,7 +217,6 @@ RSpec.describe "patients", type: :api do
     it "returns 400 if JSON content-type not specified"
 
     it "updates an existing persisted record" do
-      persisted_record = patients(:fernando)
       attributes = {
         name: "Juan Marco",
         birth: Date.parse("1977-08-12"),
@@ -227,9 +224,7 @@ RSpec.describe "patients", type: :api do
         death: Date.parse("2014-07-12")
       }
 
-      put "/patients/#{persisted_record.id}",
-          query_params.merge(patient: attributes),
-          headers
+      put(endpoint_url, query_params.merge(patient: attributes), headers)
 
       persisted_record.reload
       expect(persisted_record.name).to eq("Juan Marco")
@@ -240,14 +235,14 @@ RSpec.describe "patients", type: :api do
 
     it "returns the updated record as JSON" do
       persisted_record = patients(:silvia)
+      endpoint_url = "/v1/patients/#{persisted_record.id}"
+
       attributes = {
         name: "Juana",
         birth: Date.parse("1977-08-12")
       }
 
-      put "/patients/#{persisted_record.id}",
-          query_params.merge(patient: attributes),
-          headers
+      put(endpoint_url, query_params.merge(patient: attributes), headers)
 
       expect_success_response
       response_record = json["patient"]
@@ -256,38 +251,35 @@ RSpec.describe "patients", type: :api do
     end
 
     it "returns 404 if record does not exist" do
+      endpoint_url = "/v1/patients/#{persisted_record.id + 1}"
       attributes = {
         name: "Juana",
         birth: Date.parse("1977-08-12")
       }
-      put "/patients/1",
-          query_params.merge(patient: attributes),
-          headers
+
+      put(endpoint_url, query_params.merge(patient: attributes), headers)
 
       expect_not_found_response
     end
 
     it "returns 404 if the record is deleted" do
       persisted_record = patients(:deleted)
+      endpoint_url = "/v1/patients/#{persisted_record.id}"
+
       attributes = { name: "Changed attributes" }
 
-      put "/patients/#{persisted_record.id}",
-          query_params.merge(patient: attributes),
-          headers
+      put(endpoint_url, query_params.merge(patient: attributes), headers)
 
       expect_not_found_response
     end
 
     it "ignores status in request input" do
-      persisted_record = patients(:fernando)
       attributes = {
         name: "Juan Marco",
         status: "should_not_change"
       }
 
-      put "/patients/#{persisted_record.id}",
-          query_params.merge(patient: attributes),
-          headers
+      put(endpoint_url, query_params.merge(patient: attributes), headers)
 
       persisted_record.reload
       expect(persisted_record.name).to eq("Juan Marco")
@@ -297,19 +289,17 @@ RSpec.describe "patients", type: :api do
 
   describe "DELETE" do
     let(:headers) { token_auth_header }
+    let(:persisted_record) { patients(:fernando) }
+    let(:endpoint_url) { "/v1/patients/#{persisted_record.id}" }
 
     it "returns 401 if authentication headers are not present" do
-      persisted_record = patients(:fernando)
-
-      delete "/patients/#{persisted_record.id}"
+      delete(endpoint_url)
 
       expect_failed_authentication
     end
 
     it "soft-deletes an existing persisted record" do
-      persisted_record = patients(:fernando)
-
-      delete "/patients/#{persisted_record.id}", query_params, headers
+      delete(endpoint_url, query_params, headers)
 
       expect_success_response
       expect(json["message"]).to eq("Deleted")
@@ -318,7 +308,18 @@ RSpec.describe "patients", type: :api do
     end
 
     it "returns 404 if persisted record does not exist" do
-      delete "/patients/100", query_params, headers
+      endpoint_url = "/v1/patients/#{persisted_record.id + 1}"
+
+      delete(endpoint_url, query_params, headers)
+
+      expect_not_found_response
+    end
+
+    it "returns 404 if persisted record is already deleted" do
+      persisted_record = patients(:deleted)
+      endpoint_url = "/v1/patients/#{persisted_record.id}"
+
+      delete(endpoint_url, query_params, headers)
 
       expect_not_found_response
     end
@@ -326,16 +327,18 @@ RSpec.describe "patients", type: :api do
 
   describe "GET search" do
     let(:headers) { token_auth_header }
+    let(:persisted_record) { patients(:fernando) }
+    let(:endpoint_url) { "/v1/patients/search" }
 
     it "returns 401 if authentication headers are not present" do
-      get "/patients/search", query_params.merge({})
+      get(endpoint_url, query_params.merge({}))
 
       expect_failed_authentication
     end
 
     it "returns empty result set on no query terms" do
       search_query = {}
-      get "/patients/search", query_params.merge(search_query), headers
+      get(endpoint_url, query_params.merge(search_query), headers)
 
       expect_success_response
       response_records = json["patients"]
@@ -343,119 +346,127 @@ RSpec.describe "patients", type: :api do
     end
 
     it "returns patients by full name" do
-      persisted_record = patients(:fernando)
       persisted_record.update_attributes!(name: "Ramon")
 
-      search_query = {q: "Ramon"}
-      get "/patients/search", query_params.merge(search_query), headers
+      search_query = { q: "Ramon" }
+      get(endpoint_url, query_params.merge(search_query), headers)
 
       expect_success_response
       response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
-      expect(patient_response_matches?(response_records[0], persisted_record)).to eq(true)
+      expect(
+        patient_response_matches?(response_records[0], persisted_record)
+      ).to eq(true)
     end
 
     it "returns only patients that match the query" do
-      persisted_1 = patients(:fernando)
-      persisted_2 = patients(:silvia)
-      persisted_1.update_attributes!(name: "DeBarge")
-      persisted_2.update_attributes!(name: "Ramon")
+      other_persisted_record = patients(:silvia)
+      persisted_record.update_attributes!(name: "DeBarge")
+      other_persisted_record.update_attributes!(name: "Ramon")
 
-      search_query = {q: "Ramon"}
-      get "/patients/search", query_params.merge(search_query), headers
+      search_query = { q: "Ramon" }
+      get(endpoint_url, query_params.merge(search_query), headers)
 
       expect_success_response
       response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
-      expect(patient_response_matches?(response_records[0], persisted_2)).to eq(true)
+      expect(
+        patient_response_matches?(response_records[0], other_persisted_record)
+      ).to eq(true)
     end
 
     it "performs case-insensitive lookup" do
-      persisted = patients(:silvia)
-      persisted.update_attributes!(name: "Ramon")
+      persisted_record.update_attributes!(name: "Ramon")
 
-      search_query = {q: "raMon"}
-      get "/patients/search", query_params.merge(search_query), headers
+      search_query = { q: "raMon" }
+      get(endpoint_url, query_params.merge(search_query), headers)
 
       expect_success_response
       response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
-      expect(patient_response_matches?(response_records[0], persisted)).to eq(true)
+      expect(
+        patient_response_matches?(response_records[0], persisted_record)
+      ).to eq(true)
     end
 
     it "performs unicode-insensitive lookup" do
       skip("This feature may require some DB trickery or Sphinx conversion")
-      persisted = patients(:fernando)
-      persisted.update_attributes!(name: "Ramón")
+      persisted_record.update_attributes!(name: "Ramón")
 
-      search_query = {q: "Ramon"}
-      get "/patients/search", query_params.merge(search_query), headers
+      search_query = { q: "Ramon" }
+      get(endpoint_url, query_params.merge(search_query), headers)
 
       expect_success_response
       response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
-      expect(patient_response_matches?(response_records[0], persisted)).to eq(true)
+      expect(
+        patient_response_matches?(response_records[0], persisted_record)
+      ).to eq(true)
     end
 
     it "searches by name containing spaces" do
-      persisted = patients(:fernando)
-      persisted.update_attributes!(name: "Ramon Johnson")
+      persisted_record.update_attributes!(name: "Ramon Johnson")
 
-      search_query = {q: "ramon johnson"}
-      get "/patients/search", query_params.merge(search_query), headers
+      search_query = { q: "ramon johnson" }
+      get(endpoint_url, query_params.merge(search_query), headers)
 
       expect_success_response
       response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
-      expect(patient_response_matches?(response_records[0], persisted)).to eq(true)
+      expect(
+        patient_response_matches?(response_records[0], persisted_record)
+      ).to eq(true)
     end
 
     it "searches by partial name" do
-      persisted = patients(:fernando)
-      persisted.update_attributes!(name: "Ramon Johnson")
+      persisted_record.update_attributes!(name: "Ramon Johnson")
 
-      search_query = {q: "ramon"}
-      get "/patients/search", query_params.merge(search_query), headers
+      search_query = { q: "ramon" }
+      get(endpoint_url, query_params.merge(search_query), headers)
 
       expect_success_response
       response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
-      expect(patient_response_matches?(response_records[0], persisted)).to eq(true)
+      expect(
+        patient_response_matches?(response_records[0], persisted_record)
+      ).to eq(true)
     end
 
     it "searches by partial name" do
-      persisted = patients(:fernando)
-      persisted.update_attributes!(name: "Ramon Johnson")
+      persisted_record.update_attributes!(name: "Ramon Johnson")
 
-      search_query = {q: "johnson"}
-      get "/patients/search", query_params.merge(search_query), headers
+      search_query = { q: "johnson" }
+      get(endpoint_url, query_params.merge(search_query), headers)
 
       expect_success_response
       response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
-      expect(patient_response_matches?(response_records[0], persisted)).to eq(true)
+      expect(
+        patient_response_matches?(response_records[0], persisted_record)
+      ).to eq(true)
     end
 
     it "searches by fragments of name" do
       skip("Snakes in the burning pet shop")
-      persisted = patients(:fernando)
-      persisted.update_attributes!(name: "Ramon The Rock Johnson")
+      persisted_record.update_attributes!(name: "Ramon The Rock Johnson")
 
-      search_query = {q: "ramon johnson"}
-      get "/patients/search", query_params.merge(search_query), headers
+      search_query = { q: "ramon johnson" }
+      get(endpoint_url, query_params.merge(search_query), headers)
 
       expect_success_response
       response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
-      expect(patient_response_matches?(response_records[0], persisted)).to eq(true)
+      expect(
+        patient_response_matches?(response_records[0], persisted_record)
+      ).to eq(true)
     end
   end#search
 

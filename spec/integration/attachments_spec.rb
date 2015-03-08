@@ -19,14 +19,15 @@ RSpec.describe "attachments", type: :api do
 
   describe "POST create" do
     let(:headers) { token_auth_header.merge(json_content_header) }
+    let(:endpoint_url) { "/v1/attachments" }
 
     it "returns 401 if authentication headers are not present" do
       extend ActionDispatch::TestProcess
       ff = fixture_file_upload("../attachments/1x1.png", "image/png")
 
-      post "/attachments",
+      post(endpoint_url,
            attachment: { path: ff.path },
-           "Content-Type" => "application/json"
+           "Content-Type" => "application/json")
 
       expect_failed_authentication
     end
@@ -38,15 +39,15 @@ RSpec.describe "attachments", type: :api do
       expect(persisted_case.attachments.size).to eq(0)
 
       expect {
-        post "/attachments",
+        post(endpoint_url,
              query_params.merge(attachment: @attachment_attributes),
-             headers
+             headers)
       }.to change(Attachment, :count).by(1)
       expect_created_response
 
       expect(persisted_case.reload.attachments.size).to eq(1)
 
-      get "/cases/#{persisted_case.id}", query_params.merge(showAttachments: true), headers
+      get "/v1/cases/#{persisted_case.id}", query_params.merge(showAttachments: true), headers
 
       expect_success_response
       response_record = json["case"]
@@ -60,9 +61,9 @@ RSpec.describe "attachments", type: :api do
       setup_attachment_attributes("Case", 99999)
 
       expect {
-        post "/attachments",
+        post(endpoint_url,
              query_params.merge(attachment: @attachment_attributes),
-             headers
+             headers)
       }.to_not change(Attachment, :count)
       expect_not_found_response
     end
@@ -75,9 +76,9 @@ RSpec.describe "attachments", type: :api do
         @attachment_attributes.delete(required)
 
         expect {
-          post "/attachments",
+          post(endpoint_url,
                query_params.merge(attachment: @attachment_attributes),
-               headers
+               headers)
         }.to_not change(Attachment, :count)
         expect_bad_request
         expect(json["error"]["message"]).to match(/#{required}/)

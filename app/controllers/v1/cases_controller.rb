@@ -1,5 +1,4 @@
-class CasesController < ApplicationController
-  include Authentication
+class V1::CasesController < V1::BaseController
 
   def index
     scope = Case.active.includes(:patient)
@@ -72,7 +71,7 @@ class CasesController < ApplicationController
       attributes[:attachments] = case_record.attachments.map{ |a| a.attributes }
     end
 
-    CasePresenter.new(attributes).present
+    V1::CasePresenter.new(attributes).present
   end
 
   def case_params
