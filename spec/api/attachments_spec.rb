@@ -1,5 +1,3 @@
-require "spec_helper"
-
 def setup_attachment_attributes(record_type, record_id)
     file_path = "#{Rails.root}/spec/attachments/1x1.png"
     file = File.open(file_path, "rb")

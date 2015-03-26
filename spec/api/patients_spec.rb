@@ -1,5 +1,3 @@
-require "rails_helper"
-
 # TODO messaging & logging behavior
 # TODO undelete functionality for administrator clients
 RSpec.describe "patients", type: :api do

@@ -1,5 +1,3 @@
-require "spec_helper"
-
 RSpec.describe Patient do
   fixtures :patients, :cases
 

@@ -1,5 +1,3 @@
-require "rails_helper"
-
 def validate_response_matches(response, record)
   expect(appointment_response_matches?(response, record)).to eq(true)
   if record.patient

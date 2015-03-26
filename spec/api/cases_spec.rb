@@ -1,5 +1,3 @@
-require "spec_helper"
-
 RSpec.describe "cases", type: :api do
   fixtures :cases, :patients
 
