@@ -10,6 +10,10 @@ RSpec.describe "appointments", type: :api do
 
   let(:query_params) { {} }
 
+  def response_records
+    json["appointments"]
+  end
+
   describe "GET index" do
     let(:headers) { token_auth_header }
     let(:endpoint_url) { "/v1/appointments" }
@@ -29,7 +33,6 @@ RSpec.describe "appointments", type: :api do
       get(endpoint_url, query_params, headers)
 
       expect_success_response
-      response_records = json["appointments"]
       expect(response_records.size).to eq(2)
       expect(response_ids_for(response_records).any?{ |id| id.nil? }).to eq(false)
 
@@ -46,7 +49,6 @@ RSpec.describe "appointments", type: :api do
       get(endpoint_url, query_params.merge(location: "room 1"), headers)
 
       expect_success_response
-      response_records = json["appointments"]
       expect(response_records.size).to eq(1)
       expect(response_records.first["id"]).to eq(@persisted_2.id)
     end
@@ -57,7 +59,6 @@ RSpec.describe "appointments", type: :api do
       get(endpoint_url, query_params.merge(trip_id: "2"), headers)
 
       expect_success_response
-      response_records = json["appointments"]
       expect(response_records.size).to eq(1)
       expect(response_records.first["id"]).to eq(@persisted_1.id)
     end
@@ -71,7 +72,6 @@ RSpec.describe "appointments", type: :api do
       ), headers)
 
       expect_success_response
-      response_records = json["appointments"]
       expect(response_records.size).to eq(1)
       expect(response_records.first["id"]).to eq(@persisted_2.id)
     end

@@ -8,6 +8,14 @@ RSpec.describe "cases", type: :api do
     fixture_file_upload("../attachments/1x1.png", "image/png")
   end
 
+  def response_records
+    json["cases"]
+  end
+
+  def response_record
+    json["case"]
+  end
+
   describe "GET index" do
     let(:headers) { token_auth_header }
     let(:endpoint_url) { "/v1/cases" }
@@ -28,8 +36,6 @@ RSpec.describe "cases", type: :api do
       get(endpoint_url, query_params, headers)
 
       expect_success_response
-      response_records = json["cases"]
-
       expect(response_ids_for(response_records).any?{ |id| id.nil? }).to eq(false)
 
       response_record_1 = pluck_response_record(response_records, persisted_1.id)
@@ -93,7 +99,6 @@ RSpec.describe "cases", type: :api do
       get(endpoint_url, query_params, headers)
 
       expect_success_response
-      response_records = json["cases"]
 
       response_record = pluck_response_record(response_records, persisted.id)
       expect(response_record.keys).not_to include("attachments")
@@ -110,7 +115,6 @@ RSpec.describe "cases", type: :api do
       get(endpoint_url, query_params.merge(showAttachments: true), headers)
 
       expect_success_response
-      response_records = json["cases"]
 
       response_record = pluck_response_record(response_records, persisted.id)
       expect(response_record["attachments"].size).to eq(1)
@@ -141,7 +145,6 @@ RSpec.describe "cases", type: :api do
       get(endpoint_url, query_params, headers)
 
       expect_success_response
-      response_record = json["case"]
       expect(case_response_matches?(json["case"], persisted_record)).to eq(true)
       expect(patient_response_matches?(json["case"]["patient"], persisted_patient)).to eq(true)
     end
@@ -152,7 +155,6 @@ RSpec.describe "cases", type: :api do
       get(endpoint_url, query_params, headers)
 
       expect_success_response
-      response_record = json["case"]
       expect(response_record["id"]).to eq(persisted_record.id)
     end
 
@@ -168,7 +170,6 @@ RSpec.describe "cases", type: :api do
       get(endpoint_url, query_params, headers)
 
       expect_success_response
-      response_record = json["case"]
       expect(response_record.keys).not_to include("status")
       expect(response_record.keys).not_to include("active")
     end
@@ -182,10 +183,6 @@ RSpec.describe "cases", type: :api do
       get(endpoint_url, query_params, headers)
 
       expect_success_response
-      response_records = json["cases"]
-
-      expect_success_response
-      response_record = json["case"]
       expect(response_record.keys).not_to include("attachments")
     end
 
@@ -198,7 +195,6 @@ RSpec.describe "cases", type: :api do
       get(endpoint_url, query_params.merge(showAttachments: true), headers)
 
       expect_success_response
-      response_record = json["case"]
       expect(response_record["attachments"].size).to eq(1)
       returned_attachment = response_record["attachments"].first
       expect(returned_attachment.keys).to match_array(
@@ -257,7 +253,6 @@ RSpec.describe "cases", type: :api do
 
         expect_created_response
 
-        response_record = json["case"]
         persisted_record = Case.last
         expect(persisted_record.active?).to eq(true)
         CASE_ATTRIBUTES.each do |attr|

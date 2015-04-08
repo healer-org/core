@@ -5,6 +5,14 @@ RSpec.describe "patients", type: :api do
 
   let(:query_params) { {} }
 
+  def response_records
+    json["patients"]
+  end
+
+  def response_record
+    json["patient"]
+  end
+
   describe "GET index" do
     let(:headers) { token_auth_header }
     let(:endpoint_url) { "/v1/patients" }
@@ -21,8 +29,6 @@ RSpec.describe "patients", type: :api do
       get(endpoint_url, query_params, headers)
 
       expect_success_response
-      response_records = json["patients"]
-
       expect(response_ids_for(response_records).any?{ |id| id.nil? }).to eq(false)
 
       response_record_1 = pluck_response_record(response_records, persisted_record_1.id)
@@ -38,8 +44,6 @@ RSpec.describe "patients", type: :api do
       get(endpoint_url, query_params, headers)
 
       expect_success_response
-      response_records = json["patients"]
-
       expect(response_records.map{ |r| r[:id] }).not_to include(deleted_patient.id)
     end
 
@@ -60,7 +64,6 @@ RSpec.describe "patients", type: :api do
         get(endpoint_url, query_params.merge(showCases: true), headers)
 
         expect_success_response
-        response_records = json["patients"]
 
         response_record_1 = pluck_response_record(response_records, persisted_record_1.id)
         response_record_2 = pluck_response_record(response_records, persisted_record_2.id)
@@ -92,7 +95,6 @@ RSpec.describe "patients", type: :api do
       get(endpoint_url, query_params, headers)
 
       expect_success_response
-      response_record = json["patient"]
       expect(response_record["id"]).to eq(persisted_record.id)
       expect(response_record["name"]).to eq(persisted_record.name)
       expect(response_record["birth"].to_s).to eq(persisted_record.birth.to_s)
@@ -110,7 +112,6 @@ RSpec.describe "patients", type: :api do
       get(endpoint_url, query_params, headers)
 
       expect_success_response
-      response_record = json["patient"]
       expect(response_record.keys).not_to include("status")
       expect(response_record.keys).not_to include("active")
     end
@@ -134,7 +135,6 @@ RSpec.describe "patients", type: :api do
         get(endpoint_url, query_params.merge(showCases: true), headers)
 
         expect_success_response
-        response_record = json["patient"]
 
         expect(
           patient_response_matches?(response_record, persisted_record)
@@ -171,7 +171,6 @@ RSpec.describe "patients", type: :api do
 
       expect_created_response
 
-      response_record = json["patient"]
       persisted_record = Patient.last
       expect(persisted_record.active?).to eq(true)
 
@@ -243,7 +242,6 @@ RSpec.describe "patients", type: :api do
       put(endpoint_url, query_params.merge(patient: attributes), headers)
 
       expect_success_response
-      response_record = json["patient"]
       expect(response_record["name"]).to eq("Juana")
       expect(response_record["birth"]).to eq("1977-08-12")
     end
@@ -339,7 +337,6 @@ RSpec.describe "patients", type: :api do
       get(endpoint_url, query_params.merge(search_query), headers)
 
       expect_success_response
-      response_records = json["patients"]
       expect(response_records.size).to eq(0)
     end
 
@@ -350,7 +347,6 @@ RSpec.describe "patients", type: :api do
       get(endpoint_url, query_params.merge(search_query), headers)
 
       expect_success_response
-      response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
       expect(
@@ -367,9 +363,7 @@ RSpec.describe "patients", type: :api do
       get(endpoint_url, query_params.merge(search_query), headers)
 
       expect_success_response
-      response_records = json["patients"]
       expect(response_records.size).to eq(1)
-
       expect(
         patient_response_matches?(response_records[0], other_persisted_record)
       ).to eq(true)
@@ -382,7 +376,6 @@ RSpec.describe "patients", type: :api do
       get(endpoint_url, query_params.merge(search_query), headers)
 
       expect_success_response
-      response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
       expect(
@@ -398,7 +391,6 @@ RSpec.describe "patients", type: :api do
       get(endpoint_url, query_params.merge(search_query), headers)
 
       expect_success_response
-      response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
       expect(
@@ -413,7 +405,6 @@ RSpec.describe "patients", type: :api do
       get(endpoint_url, query_params.merge(search_query), headers)
 
       expect_success_response
-      response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
       expect(
@@ -428,7 +419,6 @@ RSpec.describe "patients", type: :api do
       get(endpoint_url, query_params.merge(search_query), headers)
 
       expect_success_response
-      response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
       expect(
@@ -443,7 +433,6 @@ RSpec.describe "patients", type: :api do
       get(endpoint_url, query_params.merge(search_query), headers)
 
       expect_success_response
-      response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
       expect(
@@ -459,7 +448,6 @@ RSpec.describe "patients", type: :api do
       get(endpoint_url, query_params.merge(search_query), headers)
 
       expect_success_response
-      response_records = json["patients"]
       expect(response_records.size).to eq(1)
 
       expect(
