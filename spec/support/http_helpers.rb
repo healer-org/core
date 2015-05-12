@@ -24,7 +24,6 @@ module HTTP
 
     def expect_failed_authentication
       expect(response.status).to eq(401)
-      expect(json["error"]["message"]).to eq("Bad credentials")
     end
 
     def expect_not_found_response
@@ -43,7 +42,11 @@ module HTTP
 
   module HeaderHelpers
     def token_auth_header
-      {"HTTP_AUTHORIZATION" => ActionController::HttpAuthentication::Token.encode_credentials("ABCDEF0123456789")}
+      test_key = "test-key-12345"
+      {
+        "HTTP_AUTHORIZATION" =>
+        ActionController::HttpAuthentication::Token.encode_credentials(test_key)
+      }
     end
 
     def json_content_header
