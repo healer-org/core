@@ -1,0 +1,7 @@
+development:
+  email: healer@localhost
+  key: development-key-12345
+
+test:
+  email: healer@localhost
+  key: test-key-12345

@@ -1,6 +1,6 @@
 require File.expand_path('../boot', __FILE__)
 
-require 'rails/all'
+require "rails/all"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -20,9 +20,12 @@ module Healer
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
 
+    Dir[Rails.root.join("app/middleware/**/*.rb")].each { |f| require f }
+
     config.autoload_paths += %W(
       #{config.root}/app/presenters
       #{config.root}/lib
     )
+
   end
 end
