@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::API
   BAD_REQUESTS = [
+    ActionController::BadRequest,
     ActiveRecord::RecordInvalid,
     ActionController::ParameterMissing,
     Errors::MismatchedPatient
