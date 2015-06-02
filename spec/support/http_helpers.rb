@@ -49,8 +49,11 @@ module HTTP
       }
     end
 
-    def json_content_header
-      { "Content-Type" => "application/json" }
+    def json_content_headers
+      {
+        "Content-Type" => "application/json",
+        "CONTENT_TYPE" => "application/json",
+      }
     end
   end
 end

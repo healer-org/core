@@ -1,5 +1,6 @@
 # TODO messaging & logging behavior
 # TODO undelete functionality for administrator clients
+
 RSpec.describe "patients", type: :api do
   fixtures :patients, :cases
 
@@ -149,24 +150,30 @@ RSpec.describe "patients", type: :api do
   end#show
 
   describe "POST create" do
-    let(:headers) { token_auth_header.merge(json_content_header) }
+    let(:headers) { token_auth_header.merge(json_content_headers) }
     let(:endpoint_url) { "/v1/patients" }
 
     it "returns 401 if authentication headers are not present" do
-      post(endpoint_url,
-           { patient: patients(:fernando).attributes },
-           json_content_header)
+      payload = { patient: patients(:fernando).attributes }
+
+      post(endpoint_url, payload.to_json, json_content_headers)
 
       expect_failed_authentication
     end
 
-    it "returns 400 if JSON content-type not specified"
+    it "returns 400 if JSON not provided" do
+      payload = { patient: patients(:fernando).attributes }
+
+      post(endpoint_url, payload, token_auth_header)
+
+      expect_bad_request
+    end
 
     it "creates a new active persisted record and returns JSON" do
+      payload = query_params.merge( patient: patients(:fernando).attributes )
+
       expect {
-        post(endpoint_url,
-             query_params.merge( patient: patients(:fernando).attributes ),
-             headers)
+        post(endpoint_url, payload.to_json, headers)
       }.to change(Patient, :count).by(1)
 
       expect_created_response
@@ -180,17 +187,18 @@ RSpec.describe "patients", type: :api do
     it "returns 400 if name is not supplied" do
       attributes = patients(:fernando).attributes
       attributes.delete("name")
+      payload = query_params.merge(patient: attributes)
 
-      post(endpoint_url, query_params.merge(patient: attributes), headers)
+      post(endpoint_url, payload.to_json, headers)
 
       expect_bad_request
       expect(json["error"]["message"]).to match(/name/i)
     end
 
     it "ignores status in request input" do
-      post(endpoint_url,
-           query_params.merge(patient: patients(:deleted).attributes),
-           headers)
+      payload = query_params.merge(patient: patients(:deleted).attributes)
+
+      post(endpoint_url, payload.to_json, headers)
 
       expect_created_response
       persisted_record = Patient.last
@@ -199,19 +207,25 @@ RSpec.describe "patients", type: :api do
   end#create
 
   describe "PUT update" do
-    let(:headers) { token_auth_header.merge(json_content_header) }
+    let(:headers) { token_auth_header.merge(json_content_headers) }
     let(:persisted_record) { patients(:fernando) }
     let(:endpoint_url) { "/v1/patients/#{persisted_record.id}" }
 
     it "returns 401 if authentication headers are not present" do
-      attributes = { name: "Juan Marco" }
+      payload = { patient: { name: "Juan Marco" } }
 
-      put(endpoint_url, { patient: attributes }, json_content_header)
+      put(endpoint_url, payload.to_json, json_content_headers)
 
       expect_failed_authentication
     end
 
-    it "returns 400 if JSON content-type not specified"
+    it "returns 400 if JSON not provided" do
+      payload = { patient: { name: "Juan Marco" } }
+
+      put(endpoint_url, payload, token_auth_header)
+
+      expect_bad_request
+    end
 
     it "updates an existing persisted record" do
       attributes = {
@@ -220,8 +234,9 @@ RSpec.describe "patients", type: :api do
         gender: "M",
         death: Date.parse("2014-07-12")
       }
+      payload = query_params.merge(patient: attributes)
 
-      put(endpoint_url, query_params.merge(patient: attributes), headers)
+      put(endpoint_url, payload.to_json, headers)
 
       persisted_record.reload
       expect(persisted_record.name).to eq("Juan Marco")
@@ -238,8 +253,9 @@ RSpec.describe "patients", type: :api do
         name: "Juana",
         birth: Date.parse("1977-08-12")
       }
+      payload = query_params.merge(patient: attributes)
 
-      put(endpoint_url, query_params.merge(patient: attributes), headers)
+      put(endpoint_url, payload.to_json, headers)
 
       expect_success_response
       expect(response_record["name"]).to eq("Juana")
@@ -252,8 +268,9 @@ RSpec.describe "patients", type: :api do
         name: "Juana",
         birth: Date.parse("1977-08-12")
       }
+      payload = query_params.merge(patient: attributes)
 
-      put(endpoint_url, query_params.merge(patient: attributes), headers)
+      put(endpoint_url, payload.to_json, headers)
 
       expect_not_found_response
     end
@@ -262,9 +279,9 @@ RSpec.describe "patients", type: :api do
       persisted_record = patients(:deleted)
       endpoint_url = "/v1/patients/#{persisted_record.id}"
 
-      attributes = { name: "Changed attributes" }
+      payload = query_params.merge(patient: { name: "Changed attributes" })
 
-      put(endpoint_url, query_params.merge(patient: attributes), headers)
+      put(endpoint_url, payload.to_json, headers)
 
       expect_not_found_response
     end
@@ -274,8 +291,9 @@ RSpec.describe "patients", type: :api do
         name: "Juan Marco",
         status: "should_not_change"
       }
+      payload = query_params.merge(patient: attributes)
 
-      put(endpoint_url, query_params.merge(patient: attributes), headers)
+      put(endpoint_url, payload.to_json, headers)
 
       persisted_record.reload
       expect(persisted_record.name).to eq("Juan Marco")

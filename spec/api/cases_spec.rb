@@ -225,18 +225,24 @@ RSpec.describe "cases", type: :api do
   end#show
 
   describe "POST create" do
-    let(:headers) { token_auth_header.merge(json_content_header) }
+    let(:headers) { token_auth_header.merge(json_content_headers) }
     let(:endpoint_url) { "/v1/cases" }
 
     it "returns 401 if authentication headers are not present" do
-      attributes = cases(:fernando_left_hip).attributes.dup
+      payload = { case: cases(:fernando_left_hip).attributes.dup }
 
-      post(endpoint_url, case: attributes, "Content-Type" => "application/json")
+      post(endpoint_url, payload.to_json, json_content_headers)
 
       expect_failed_authentication
     end
 
-    it "returns 400 if JSON content-type not specified"
+    it "returns 400 if JSON not provided" do
+      payload = { case: cases(:fernando_left_hip).attributes.dup }
+
+      post(endpoint_url, payload, token_auth_header)
+
+      expect_bad_request
+    end
 
     context "when patient is posted as nested attribute" do
       it "creates a new active persisted record for the case and returns JSON" do
@@ -246,9 +252,10 @@ RSpec.describe "cases", type: :api do
         case_attributes.delete(:patient_id)
         a_case.patient.destroy
         a_case.destroy
+        payload = query_params.merge(case: case_attributes)
 
         expect {
-          post(endpoint_url, query_params.merge(case: case_attributes), headers)
+          post(endpoint_url, payload.to_json, headers)
         }.to change(Case, :count).by(1)
 
         expect_created_response
@@ -269,9 +276,10 @@ RSpec.describe "cases", type: :api do
         case_attributes.delete(:patient_id)
         a_case.patient.destroy
         a_case.destroy
+        payload = query_params.merge(case: case_attributes)
 
         expect {
-          post(endpoint_url, query_params.merge(case: case_attributes), headers)
+          post(endpoint_url, payload.to_json, headers)
         }.to change(Patient, :count).by(1)
 
         persisted_record = Patient.last
@@ -292,9 +300,10 @@ RSpec.describe "cases", type: :api do
         case_attributes.delete(:patient_id)
         a_case.patient.destroy
         a_case.destroy
+        payload = query_params.merge(case: case_attributes)
 
         expect {
-          post(endpoint_url, query_params.merge(case: case_attributes), headers)
+          post(endpoint_url, payload.to_json, headers)
         }.to_not change(Case, :count)
 
         expect_bad_request
@@ -311,9 +320,10 @@ RSpec.describe "cases", type: :api do
         case_attributes.delete(:patient_id)
         a_case.patient.destroy
         a_case.destroy
+        payload = query_params.merge(case: case_attributes)
 
         expect {
-          post(endpoint_url, query_params.merge(case: case_attributes), headers)
+          post(endpoint_url, payload.to_json, headers)
         }.to change(Case, :count).by(1)
 
         expect_created_response
@@ -329,9 +339,10 @@ RSpec.describe "cases", type: :api do
         patient = patients(:silvia)
         case_attributes = cases(:fernando_left_hip).attributes.dup.symbolize_keys
         case_attributes[:patient_id] = patient.id
+        payload = query_params.merge(case: case_attributes)
 
         expect {
-          post(endpoint_url, query_params.merge(case: case_attributes), headers)
+          post(endpoint_url, payload.to_json, headers)
         }.to change(Case, :count).by(1)
 
         response_record = json["case"]["patient"]
@@ -354,9 +365,10 @@ RSpec.describe "cases", type: :api do
             name: "Changed #{original_patient_name}",
             status: "deleted"
           }
+          payload = query_params.merge(case: case_attributes)
 
           expect {
-            post(endpoint_url, query_params.merge(case: case_attributes), headers)
+            post(endpoint_url, payload.to_json, headers)
           }.to change(Case, :count).by(1)
 
           patient.reload
@@ -375,9 +387,10 @@ RSpec.describe "cases", type: :api do
           case_attributes = cases(:fernando_left_hip).attributes.dup.symbolize_keys
           case_attributes[:patient_id] = patient.id
           case_attributes[:patient] = { name: "New Patient Info" }
+          payload = query_params.merge(case: case_attributes)
 
           expect {
-            post(endpoint_url, query_params.merge(case: case_attributes), headers)
+            post(endpoint_url, payload.to_json, headers)
           }.to_not change(Patient, :count)
         end
       end
@@ -387,8 +400,9 @@ RSpec.describe "cases", type: :api do
         case_attributes = cases(:fernando_left_hip).attributes.dup.symbolize_keys
         case_attributes[:patient_id] = 100
         case_attributes[:patient] = { name: "Patient Info" }
+        payload = query_params.merge(case: case_attributes)
 
-        post(endpoint_url, query_params.merge(case: case_attributes), headers)
+        post(endpoint_url, payload.to_json, headers)
 
         expect_not_found_response
       end
@@ -398,8 +412,9 @@ RSpec.describe "cases", type: :api do
       it "returns 400 on absent patient or patient id" do
         case_attributes = cases(:fernando_left_hip).attributes.dup.symbolize_keys
         case_attributes.delete(:patient_id)
+        payload = query_params.merge(case: case_attributes)
 
-        post(endpoint_url, query_params.merge(case: case_attributes), headers)
+        post(endpoint_url, payload.to_json, headers)
 
         expect_bad_request
         expect(json["error"]["message"]).to match(/patient/i)
@@ -408,24 +423,30 @@ RSpec.describe "cases", type: :api do
   end#create
 
   describe "PUT update" do
-    let(:headers) { token_auth_header.merge(json_content_header) }
+    let(:headers) { token_auth_header.merge(json_content_headers) }
     let(:persisted_record) { cases(:fernando_left_hip) }
     let(:endpoint_url) { "/v1/cases/#{persisted_record.id}" }
 
     it "returns 401 if authentication headers are not present" do
-      new_attributes = { anatomy: "hip" }
+      payload = { case: { anatomy: "hip" } }
 
-      put(endpoint_url, { case: new_attributes }, json_content_header)
+      put(endpoint_url, payload.to_json, json_content_headers)
 
       expect_failed_authentication
     end
 
-    it "returns 400 if JSON content-type not specified"
+    it "returns 400 if JSON not provided" do
+      payload = { case: { anatomy: "hip" } }
+
+      put(endpoint_url, payload, token_auth_header)
+
+      expect_bad_request
+    end
 
     it "updates an existing case record" do
-      new_attributes = { anatomy: "knee", side: "right" }
+      payload = { case: { anatomy: "knee", side: "right" } }
 
-      put(endpoint_url, query_params.merge(case: new_attributes), headers)
+      put(endpoint_url, payload.to_json, headers)
 
       persisted_record.reload
       expect(persisted_record.anatomy).to eq("knee")
@@ -443,8 +464,9 @@ RSpec.describe "cases", type: :api do
           name: "New Patient Name"
         }
       }
+      payload = query_params.merge(case: new_attributes)
 
-      put(endpoint_url, query_params.merge(case: new_attributes), headers)
+      put(endpoint_url, payload.to_json, headers)
 
       persisted_record.reload
       expect(persisted_record.patient.reload).to eq(patient)
@@ -454,8 +476,9 @@ RSpec.describe "cases", type: :api do
     it "ignores status in request input" do
       persisted_record = cases(:fernando_deleted_right_knee)
       endpoint_url = "/v1/cases/#{persisted_record.id}"
+      payload = query_params.merge(case: { status: "active" })
 
-      put(endpoint_url, query_params.merge(case: { status: "active" }), headers)
+      put(endpoint_url, payload.to_json, headers)
 
       persisted_record.reload
       expect(persisted_record.active?).to eq(false)
@@ -465,8 +488,9 @@ RSpec.describe "cases", type: :api do
       persisted_record = cases(:fernando_deleted_right_knee)
       endpoint_url = "/v1/cases/#{persisted_record.id}"
       new_attributes = { anatomy: "hip" }
+      payload = query_params.merge(case: new_attributes)
 
-      put(endpoint_url, query_params.merge(case: new_attributes), headers)
+      put(endpoint_url, payload.to_json, headers)
 
       expect_not_found_response
       persisted_record.reload

@@ -22,6 +22,8 @@ class V1::AppointmentsController < V1::BaseController
   end
 
   def create
+    validate_json_request!
+
     appointment_record = Appointment.new(appointment_params)
     raise ActionController::ParameterMissing.new("Missing patient id") unless appointment_record.patient_id
 
@@ -32,6 +34,8 @@ class V1::AppointmentsController < V1::BaseController
   end
 
   def update
+    validate_json_request!
+
     appointment_record = Appointment.includes(:patient).
       where.not(patients: { status: "deleted" }).find(params[:id])
 

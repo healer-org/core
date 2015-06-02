@@ -125,31 +125,34 @@ RSpec.describe "appointments", type: :api do
   end#show
 
   describe "POST create" do
-    let(:headers) { token_auth_header.merge(json_content_header) }
+    let(:headers) { token_auth_header.merge(json_content_headers) }
     let(:endpoint_url) { "/v1/appointments" }
 
     it "returns 401 if authentication headers are not present" do
-      attributes = appointments(:fernando_gt15).attributes.dup
+      payload = { appointment: appointments(:fernando_gt15).attributes.dup }
 
-      post(endpoint_url,
-           appointment: attributes,
-           "Content-Type" => "application/json")
+      post(endpoint_url, payload.to_json, json_content_headers)
 
       expect_failed_authentication
     end
 
-    it "returns 400 if JSON content-type not specified"
+    it "returns 400 if JSON not provided" do
+      payload = { appointment: appointments(:fernando_gt15).attributes.dup }
+
+      post(endpoint_url, payload, token_auth_header)
+
+      expect_bad_request
+    end
 
     it "persists a new patient-associated record and returns JSON" do
       patient = patients(:fernando)
       appointment = appointments(:fernando_gt15)
       attributes = appointment.attributes.dup.symbolize_keys
       appointment.destroy
+      payload = query_params.merge(appointment: attributes)
 
       expect {
-        post(endpoint_url,
-             query_params.merge(appointment: attributes),
-             headers)
+        post(endpoint_url, payload.to_json, headers)
       }.to change(Appointment, :count).by(1)
 
       expect_created_response
@@ -168,11 +171,10 @@ RSpec.describe "appointments", type: :api do
     it "returns 400 if a patient id is not supplied" do
       attributes = appointments(:fernando_gt15).attributes.dup.symbolize_keys
       attributes.delete(:patient_id)
+      payload = query_params.merge(appointment: attributes)
 
       expect {
-        post(endpoint_url,
-             query_params.merge(appointment: attributes),
-             headers)
+        post(endpoint_url, payload.to_json, headers)
       }.to_not change(Appointment, :count)
 
       expect_bad_request
@@ -183,11 +185,10 @@ RSpec.describe "appointments", type: :api do
       attributes = appointments(:fernando_gt15).attributes.dup.symbolize_keys
       attributes[:patient_id] = 1
       expect(Patient.find_by_id(1)).to be_nil
+      payload = query_params.merge(appointment: attributes)
 
       expect {
-        post(endpoint_url,
-             query_params.merge(appointment: attributes),
-             headers)
+        post(endpoint_url, payload.to_json, headers)
       }.to_not change(Appointment, :count)
 
       expect_not_found_response
@@ -197,11 +198,10 @@ RSpec.describe "appointments", type: :api do
       patient = patients(:deleted)
       attributes = appointments(:fernando_gt15).attributes.dup.symbolize_keys
       attributes[:patient_id] = patient.id
+      payload = query_params.merge(appointment: attributes)
 
       expect {
-        post(endpoint_url,
-             query_params.merge(appointment: attributes),
-             headers)
+        post(endpoint_url, payload.to_json, headers)
       }.to_not change(Appointment, :count)
 
       expect_not_found_response
@@ -209,21 +209,25 @@ RSpec.describe "appointments", type: :api do
   end
 
   describe "PUT update" do
-    let(:headers) { token_auth_header.merge(json_content_header) }
+    let(:headers) { token_auth_header.merge(json_content_headers) }
     let(:persisted_record) { appointments(:fernando_gt15) }
     let(:endpoint_url) { "/v1/appointments/#{persisted_record.id}" }
 
     it "returns 401 if authentication headers are not present" do
-      new_attributes = { start_time: Time.now.utc + 1.week }
+      payload = { appointment: { start_time: Time.now.utc + 1.week } }
 
-      put(endpoint_url,
-          appointment: new_attributes,
-          "Content-Type" => "application/json")
+      put(endpoint_url, payload.to_json, json_content_headers)
 
       expect_failed_authentication
     end
 
-    it "returns 400 if JSON content-type not specified"
+    it "returns 400 if JSON not provided" do
+      payload = { appointment: { start_time: Time.now.utc + 1.week } }
+
+      put(endpoint_url, payload, token_auth_header)
+
+      expect_bad_request
+    end
 
     it "updates an existing appointment record" do
       new_attributes = {
@@ -232,14 +236,13 @@ RSpec.describe "appointments", type: :api do
         location: "room 1",
         end_time: Time.now.utc + 2.weeks
       }
+      payload = query_params.merge(appointment: new_attributes)
 
       new_attributes.each do |k,v|
         expect(persisted_record.send(k)).not_to eq(v)
       end
 
-      put(endpoint_url,
-          query_params.merge(appointment: new_attributes),
-          headers)
+      put(endpoint_url, payload.to_json, headers)
 
       response_record = json["appointment"]
       persisted_record.reload
@@ -260,10 +263,9 @@ RSpec.describe "appointments", type: :api do
         start_ordinal: 5,
         patient_id: different_patient.id
       }
+      payload = query_params.merge(appointment: new_attributes)
 
-      put(endpoint_url,
-          query_params.merge(appointment: new_attributes),
-          headers)
+      put(endpoint_url, payload.to_json, headers)
 
       expect_bad_request
       expect(json["error"]["message"]).to match(/patient/i)
@@ -281,10 +283,9 @@ RSpec.describe "appointments", type: :api do
           name: "New Patient Name"
         }
       }
+      payload = query_params.merge(appointment: new_attributes)
 
-      put(endpoint_url,
-          query_params.merge(appointment: new_attributes),
-          headers)
+      put(endpoint_url, payload.to_json, headers)
 
       persisted_record.reload
       expect(persisted_record.patient.name).to eq(original_patient_name)
@@ -297,10 +298,9 @@ RSpec.describe "appointments", type: :api do
         start_time: Time.now + 1.week,
         start_ordinal: 5
       }
+      payload = query_params.merge(appointment: new_attributes)
 
-      put(endpoint_url,
-          query_params.merge(appointment: new_attributes),
-          headers)
+      put(endpoint_url, payload.to_json, headers)
 
       expect_not_found_response
     end

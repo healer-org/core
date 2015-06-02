@@ -54,14 +54,6 @@ class Response
       @root.present? ? { @root => @data } : @data
     end
 
-    # if body && body.is_a?(Hash)
-    #   if @pagination
-    #     body[:pagination] = @pagination
-    #   elsif @data.respond_to?(:current_page)
-    #     body[:pagination] = { :page => @data.current_page, :perPage => @data.per_page, :total => @data.total_entries }
-    #   end
-    # end
-
     body ? body.to_json : ""
   end
 

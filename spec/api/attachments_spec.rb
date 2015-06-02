@@ -16,16 +16,15 @@ RSpec.describe "attachments", type: :api do
   let(:query_params) { {} }
 
   describe "POST create" do
-    let(:headers) { token_auth_header.merge(json_content_header) }
+    let(:headers) { token_auth_header.merge(json_content_headers) }
     let(:endpoint_url) { "/v1/attachments" }
 
     it "returns 401 if authentication headers are not present" do
       extend ActionDispatch::TestProcess
       ff = fixture_file_upload("../attachments/1x1.png", "image/png")
+      payload = { attachment: { path: ff.path } }
 
-      post(endpoint_url,
-           attachment: { path: ff.path },
-           "Content-Type" => "application/json")
+      post(endpoint_url, payload.to_json, json_content_headers)
 
       expect_failed_authentication
     end
@@ -33,13 +32,12 @@ RSpec.describe "attachments", type: :api do
     it "creates an attachment on a case" do
       persisted_case = cases(:fernando_left_hip)
       setup_attachment_attributes("Case", persisted_case.id)
+      payload = query_params.merge(attachment: @attachment_attributes)
 
       expect(persisted_case.attachments.size).to eq(0)
 
       expect {
-        post(endpoint_url,
-             query_params.merge(attachment: @attachment_attributes),
-             headers)
+        post(endpoint_url, payload.to_json, headers)
       }.to change(Attachment, :count).by(1)
       expect_created_response
 
@@ -57,11 +55,10 @@ RSpec.describe "attachments", type: :api do
     it "returns 404 if a record is not found" do
       expect(Case.find_by_id(99999)).to eq(nil)
       setup_attachment_attributes("Case", 99999)
+      payload = query_params.merge(attachment: @attachment_attributes)
 
       expect {
-        post(endpoint_url,
-             query_params.merge(attachment: @attachment_attributes),
-             headers)
+        post(endpoint_url, payload.to_json, headers)
       }.to_not change(Attachment, :count)
       expect_not_found_response
     end
@@ -72,11 +69,10 @@ RSpec.describe "attachments", type: :api do
         setup_attachment_attributes("Case", persisted_case.id)
 
         @attachment_attributes.delete(required)
+        payload = query_params.merge(attachment: @attachment_attributes)
 
         expect {
-          post(endpoint_url,
-               query_params.merge(attachment: @attachment_attributes),
-               headers)
+          post(endpoint_url, payload.to_json, headers)
         }.to_not change(Attachment, :count)
         expect_bad_request
         expect(json["error"]["message"]).to match(/#{required}/)

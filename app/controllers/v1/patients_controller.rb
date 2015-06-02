@@ -36,12 +36,16 @@ class V1::PatientsController < V1::BaseController
   end
 
   def create
+    validate_json_request!
+
     patient = Patient.create!(patient_params)
 
     render_one(patient.attributes, :created)
   end
 
   def update
+    validate_json_request!
+
     patient = Patient.active.find(params[:id])
     patient.update_attributes!(patient_params)
 
