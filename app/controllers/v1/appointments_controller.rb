@@ -1,8 +1,7 @@
 class V1::AppointmentsController < V1::BaseController
 
   def index
-    appointments = Appointment.includes(:patient).
-      where(filter_params).
+    appointments = Appointment.includes(:patient).where(filter_params).
       where.not(patients: { status: "deleted" })
 
     presented = appointments.map { |r| presented(r) }
@@ -66,7 +65,7 @@ class V1::AppointmentsController < V1::BaseController
 
   def presented(appointment)
     attributes = appointment.attributes
-    %w(start_time end_time).each do |k|
+    %w(start end).each do |k|
       attributes[k] = attributes[k].to_s(:iso8601) if attributes[k]
     end
     attributes[:patient] = appointment.patient.attributes
@@ -82,20 +81,21 @@ class V1::AppointmentsController < V1::BaseController
 
   def appointment_params
     filtered_params = params.require(:appointment).permit(
+      :trip_id,
       :patient_id,
-      :start_time,
-      :start_ordinal,
+      :start,
+      :order,
       :location,
-      :end_time)
+      :end)
 
-    [:start_time, :end_time].each do |param|
+    [:start, :end].each do |param|
       filtered_params[param] = DateTime.parse(filtered_params[param]) if filtered_params[param]
     end
     filtered_params
   end
 
   def filter_params
-    params.slice(:trip_id, :location)
+    params.permit(:trip_id, :location).slice(:trip_id, :location)
   end
 
 end

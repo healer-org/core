@@ -231,10 +231,10 @@ RSpec.describe "appointments", type: :api do
 
     it "updates an existing appointment record" do
       new_attributes = {
-        start_time: Time.now.utc + 1.week,
-        start_ordinal: 5,
+        start: Time.now.utc + 1.week,
+        order: 5,
         location: "room 1",
-        end_time: Time.now.utc + 2.weeks
+        end: Time.now.utc + 2.weeks
       }
       payload = query_params.merge(appointment: new_attributes)
 
@@ -257,10 +257,10 @@ RSpec.describe "appointments", type: :api do
       original_patient = persisted_record.patient
       different_patient = patients(:silvia)
       expect(different_patient.id).not_to eq(original_patient.id)
-      expect(persisted_record.start_ordinal).not_to eq(5)
-      original_start_ordinal = persisted_record.start_ordinal
+      expect(persisted_record.order).not_to eq(5)
+      original_order = persisted_record.order
       new_attributes = {
-        start_ordinal: 5,
+        order: 5,
         patient_id: different_patient.id
       }
       payload = query_params.merge(appointment: new_attributes)
@@ -271,14 +271,14 @@ RSpec.describe "appointments", type: :api do
       expect(json["error"]["message"]).to match(/patient/i)
 
       persisted_record.reload
-      expect(persisted_record.start_ordinal).to eq(original_start_ordinal)
+      expect(persisted_record.order).to eq(original_order)
       expect(persisted_record.patient_id).to eq(original_patient.id)
     end
 
     it "does not update patient information" do
       original_patient_name = persisted_record.patient.name
       new_attributes = {
-        start_ordinal: 500,
+        order: 500,
         patient: {
           name: "New Patient Name"
         }
@@ -296,7 +296,7 @@ RSpec.describe "appointments", type: :api do
       endpoint_url = "/v1/appointments/#{persisted_record.id + 1}"
       new_attributes = {
         start_time: Time.now + 1.week,
-        start_ordinal: 5
+        order: 5
       }
       payload = query_params.merge(appointment: new_attributes)
 

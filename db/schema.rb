@@ -13,21 +13,22 @@
 
 ActiveRecord::Schema.define(version: 20141002092952) do
 
-  create_table "appointments", force: true do |t|
+  create_table "appointments", force: :cascade do |t|
     t.integer  "patient_id"
     t.integer  "trip_id"
-    t.datetime "start_time"
-    t.integer  "start_ordinal"
-    t.datetime "end_time"
+    t.integer  "order"
+    t.date     "date"
+    t.datetime "start"
+    t.datetime "end"
     t.string   "location"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
   add_index "appointments", ["patient_id"], name: "index_appointments_on_patient_id"
-  add_index "appointments", ["trip_id", "start_time", "location"], name: "index_appointments_on_trip_id_and_start_time_and_location"
+  add_index "appointments", ["trip_id", "start", "location"], name: "index_appointments_on_trip_id_and_start_and_location"
 
-  create_table "attachments", force: true do |t|
+  create_table "attachments", force: :cascade do |t|
     t.integer  "record_id"
     t.string   "record_type"
     t.text     "description"
@@ -42,7 +43,7 @@ ActiveRecord::Schema.define(version: 20141002092952) do
   add_index "attachments", ["record_id"], name: "index_attachments_on_record_id"
   add_index "attachments", ["record_type", "record_id"], name: "index_attachments_on_record_type_and_record_id"
 
-  create_table "cases", force: true do |t|
+  create_table "cases", force: :cascade do |t|
     t.integer  "patient_id"
     t.string   "anatomy"
     t.string   "side"
@@ -53,7 +54,7 @@ ActiveRecord::Schema.define(version: 20141002092952) do
 
   add_index "cases", ["status"], name: "index_cases_on_status"
 
-  create_table "patients", force: true do |t|
+  create_table "patients", force: :cascade do |t|
     t.string   "name"
     t.date     "birth"
     t.string   "gender",     limit: 10

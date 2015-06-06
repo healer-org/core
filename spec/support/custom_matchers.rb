@@ -4,7 +4,7 @@ module CustomMatchers
       response,
       record,
       APPOINTMENT_ATTRIBUTES,
-      :time => %i(start_time end_time)
+      :time => %i(start end)
     )
   end
 
