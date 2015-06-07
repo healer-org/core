@@ -143,8 +143,10 @@ RSpec.describe "patients", type: :api do
 
         cases = response_record["cases"]
         expect(cases.size).to eq(2)
-        expect(case_response_matches?(cases[0], case1)).to eq(true)
-        expect(case_response_matches?(cases[1], case2)).to eq(true)
+        response_case1 = cases.detect{ |c| c["id"] == case1.id }
+        response_case2 = cases.detect{ |c| c["id"] == case2.id }
+        expect(case_response_matches?(response_case1, case1)).to eq(true)
+        expect(case_response_matches?(response_case2, case2)).to eq(true)
       end
     end
   end#show

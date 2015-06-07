@@ -13,6 +13,9 @@
 
 ActiveRecord::Schema.define(version: 20141002092952) do
 
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
   create_table "appointments", force: :cascade do |t|
     t.integer  "patient_id"
     t.integer  "trip_id"
@@ -25,8 +28,8 @@ ActiveRecord::Schema.define(version: 20141002092952) do
     t.datetime "updated_at"
   end
 
-  add_index "appointments", ["patient_id"], name: "index_appointments_on_patient_id"
-  add_index "appointments", ["trip_id", "start", "location"], name: "index_appointments_on_trip_id_and_start_and_location"
+  add_index "appointments", ["patient_id"], name: "index_appointments_on_patient_id", using: :btree
+  add_index "appointments", ["trip_id", "start", "location"], name: "index_appointments_on_trip_id_and_start_and_location", using: :btree
 
   create_table "attachments", force: :cascade do |t|
     t.integer  "record_id"
@@ -40,8 +43,8 @@ ActiveRecord::Schema.define(version: 20141002092952) do
     t.datetime "updated_at"
   end
 
-  add_index "attachments", ["record_id"], name: "index_attachments_on_record_id"
-  add_index "attachments", ["record_type", "record_id"], name: "index_attachments_on_record_type_and_record_id"
+  add_index "attachments", ["record_id"], name: "index_attachments_on_record_id", using: :btree
+  add_index "attachments", ["record_type", "record_id"], name: "index_attachments_on_record_type_and_record_id", using: :btree
 
   create_table "cases", force: :cascade do |t|
     t.integer  "patient_id"
@@ -52,7 +55,7 @@ ActiveRecord::Schema.define(version: 20141002092952) do
     t.datetime "updated_at"
   end
 
-  add_index "cases", ["status"], name: "index_cases_on_status"
+  add_index "cases", ["status"], name: "index_cases_on_status", using: :btree
 
   create_table "patients", force: :cascade do |t|
     t.string   "name"
@@ -64,7 +67,7 @@ ActiveRecord::Schema.define(version: 20141002092952) do
     t.datetime "updated_at"
   end
 
-  add_index "patients", ["name", "birth"], name: "index_patients_on_name_and_birth"
-  add_index "patients", ["status"], name: "index_patients_on_status"
+  add_index "patients", ["name", "birth"], name: "index_patients_on_name_and_birth", using: :btree
+  add_index "patients", ["status"], name: "index_patients_on_status", using: :btree
 
 end

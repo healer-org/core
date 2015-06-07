@@ -1,11 +1,11 @@
 source "https://rubygems.org"
 
-gem "rails", "4.1.2"
+gem "rails", "~> 4.2"
 gem "rails-api"
 
-gem "paperclip", "4.2.0"
+gem "paperclip", "~> 4.2"
 
-gem "sqlite3"
+gem "pg"
 
 group :development, :test do
   gem "spring"
