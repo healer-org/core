@@ -1,7 +1,7 @@
 class Patient < HealerRecord
   include SoftDelete
 
-  validates_presence_of :name
+  validates :name, presence: true
 
   class << self
     def search(query)

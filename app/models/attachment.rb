@@ -3,5 +3,5 @@ class Attachment < ActiveRecord::Base
   validates_attachment_content_type :document, content_type: /\Aimage\/.*\Z/
 
   belongs_to :record, polymorphic: true
-  validates_presence_of :record
+  validates :record, presence: true
 end

@@ -3,6 +3,7 @@ class V1::CasesController < V1::BaseController
   def index
     scope = Case.active.includes(:patient)
     scope = scope.includes(:attachments) if show_attachments?
+    scope = scope.includes(:procedures) if show_procedures?
     cases = scope.where(status: filtered_param_status)
     presented = cases.map { |c| presented(c) }
 
@@ -72,6 +73,9 @@ class V1::CasesController < V1::BaseController
     if show_attachments?
       attributes[:attachments] = case_record.attachments.map{ |a| a.attributes }
     end
+    if show_procedures?
+      attributes[:procedures] = case_record.procedures.map{ |p| p.attributes }
+    end
 
     V1::CasePresenter.new(attributes).present
   end
@@ -93,6 +97,10 @@ class V1::CasesController < V1::BaseController
 
   def show_attachments?
     params[:showAttachments] == "true"
+  end
+
+  def show_procedures?
+    params[:showProcedures] == "true"
   end
 
 end

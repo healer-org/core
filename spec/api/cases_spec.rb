@@ -1,5 +1,5 @@
 RSpec.describe "cases", type: :api do
-  fixtures :cases, :patients
+  fixtures :cases, :patients, :procedures
 
   let(:query_params) { {} }
 
@@ -91,7 +91,7 @@ RSpec.describe "cases", type: :api do
 
     it "does not include attachments in the output" do
       persisted = cases(:fernando_left_hip)
-      attachment = Attachment.create!(
+      Attachment.create!(
         record: persisted,
         document: uploaded_file
       )
@@ -104,13 +104,24 @@ RSpec.describe "cases", type: :api do
       expect(response_record.keys).not_to include("attachments")
     end
 
+    it "does not include procedures in the output" do
+      persisted = cases(:fernando_left_hip)
+      Procedure.create!(case: persisted, data: { date: Date.today })
+
+      get(endpoint_url, query_params, headers)
+
+      expect_success_response
+
+      response_record = pluck_response_record(response_records, persisted.id)
+      expect(response_record.keys).not_to include("procedures")
+    end
+
     it "returns attachments in JSON payload when showAttachments param is true" do
       persisted = cases(:fernando_left_hip)
       attachment = Attachment.create!(
         record: persisted,
         document: uploaded_file
       )
-      expect(Attachment.count).to eq(1)
 
       get(endpoint_url, query_params.merge(showAttachments: true), headers)
 
@@ -125,6 +136,21 @@ RSpec.describe "cases", type: :api do
       expect(
         attachment_response_matches?(returned_attachment, attachment)
       ).to eq(true)
+    end
+
+    it "returns procedures in JSON payload when showProcedures param is true" do
+      persisted = cases(:silvia_right_foot)
+      expect(persisted.procedures.size).to eq(0)
+      procedure = Procedure.create!(case: persisted, data: { date: Date.today })
+
+      get(endpoint_url, query_params.merge(showProcedures: true), headers)
+
+      expect_success_response
+
+      response_record = pluck_response_record(response_records, persisted.id)
+      expect(response_record["procedures"].size).to eq(1)
+      returned_procedure = response_record["procedures"].first
+      expect(returned_procedure["id"]).to eq(procedure.id)
     end
   end#index
 
@@ -187,6 +213,25 @@ RSpec.describe "cases", type: :api do
     end
 
     it "returns attachments in JSON payload when showAttachments param is true" do
+      attachment = Attachment.create!(
+        record: persisted_record,
+        document: uploaded_file
+      )
+
+      get(endpoint_url, query_params.merge(showAttachments: true), headers)
+
+      expect_success_response
+      expect(response_record["attachments"].size).to eq(1)
+      returned_attachment = response_record["attachments"].first
+      expect(returned_attachment.keys).to match_array(
+        ([:id] + ATTACHMENT_ATTRIBUTES).map{ |k| k.to_s.camelize(:lower) }
+      )
+      expect(
+        attachment_response_matches?(returned_attachment, attachment)
+      ).to eq(true)
+    end
+
+    it "returns procedures in JSON payload when showProcedures param is true" do
       attachment = Attachment.create!(
         record: persisted_record,
         document: uploaded_file
