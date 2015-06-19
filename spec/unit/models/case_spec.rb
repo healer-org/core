@@ -19,8 +19,6 @@ RSpec.describe Case do
 
       @case.delete!
     end
-
-    it "sends an event message"
   end
 
   describe "#active?" do
