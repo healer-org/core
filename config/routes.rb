@@ -20,5 +20,7 @@ Rails.application.routes.draw do
     post    "patients"        => "patients#create"
     put     "patients/:id"    => "patients#update"
     delete  "patients/:id"    => "patients#delete"
+
+    post    "procedures" => "procedures#create"
   end
 end

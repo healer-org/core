@@ -1,0 +1,6 @@
+fernando_left_hip_transplant:
+  case: fernando_left_hip
+  appointment: fernando_gt15
+  data: {
+    screw_count: 5
+  }

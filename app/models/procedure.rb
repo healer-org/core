@@ -5,5 +5,4 @@ class Procedure < HealerRecord
   store_accessor :data, :date
 
   validates :case, presence: true
-  validates :date, presence: true
 end

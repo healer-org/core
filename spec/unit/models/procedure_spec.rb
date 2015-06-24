@@ -18,10 +18,5 @@ RSpec.describe Procedure do
         Procedure.create(valid_attributes_without(:case))
       }.to_not change(Procedure, :count)
     end
-    it "date is required" do
-      expect{
-        Procedure.create(valid_attributes_without(:date))
-      }.to_not change(Procedure, :count)
-    end
   end
 end
