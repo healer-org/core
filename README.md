@@ -1,17 +1,23 @@
 ![](https://github.com/sisk/healer-core/blob/master/app/assets/images/healer_logo_trans.png)
 
+# Healer README
 
-#What is this?
+## What is this code?
+This is the main repository for its core API.
 
-This is the repository for the Healer ecosystem Core API.
+## What is Healer?
+Healer is an emerging technology initiative designed to facilitate the efforts of volunteer medical workers worldwide. This is the main repository for its core API.
 
-#What is Healer?
+## Glossary
 
-Healer is a technology initiative being developed to support the efforts of medical aid workers worldwide. We manage patients, cases, scheduling, and other types of associated data and logistics.
+### Caregiver
+A caregiver is an individual who provides medical services.
 
-In short, if you provide charitable medical services, Healer's goal is to help provide you the type of information and workflow that enables you to do that work better than you ever imagined possible.
+### Procedure
+A procedure is a medical action comprised of a single patient and one or more caregivers. Procedures may be grouped together into a single interaction. Procedures may be scheduled.
 
-#Where can I get more information?
+### Patient
+A patient is an individual who receives medical services from a caregiver.
 
+## Where can I get more information?
 This document is pretty much it for right now. If you'd like to get in touch with a human, [look here](https://github.com/sisk).
-
