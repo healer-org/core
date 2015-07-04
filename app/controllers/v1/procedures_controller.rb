@@ -3,7 +3,7 @@ class V1::ProceduresController < V1::BaseController
   def create
     validate_json_request!
 
-    procedure = Procedure.create!(filter_params)
+    procedure = Procedure.create!(procedure_params)
 
     render_one(procedure.attributes, :created)
   end
@@ -11,8 +11,8 @@ class V1::ProceduresController < V1::BaseController
 
   private
 
-  def filter_params
-    params.require(:procedure).permit(:case_id)
+  def procedure_params
+    params.require(:procedure).permit! # (danger: whitelisting)
   end
 
   def render_one(attributes, status = :ok)

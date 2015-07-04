@@ -1,0 +1,37 @@
+total_knee_replacement: &total_knee_replacement
+  title: arthroplasty.total.knee
+  description: "Total knee replacement"
+  properties:
+    required:
+      - sites
+    sites:
+      type: array
+      minItems: 1
+      uniqueItems: true
+      description: Patient anatomy
+      items:
+        type: object
+        properties:
+          required:
+            - body_part
+          body_part:
+            description: The name of the body part
+            type: string
+          side:
+            description: The side of the body
+            required: false
+            enum: ["L", "R"]
+    implants:
+      type: array
+      description: Hardware implants used in the procedure
+      items:
+        type: object
+        properties:
+          required:
+            - type
+          type:
+            description: Type of equipment implanted
+            type: string
+          manufacturer:
+            description: The equipment maker
+            type: string

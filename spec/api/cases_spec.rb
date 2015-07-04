@@ -19,6 +19,14 @@ RSpec.describe "cases", type: :api do
   describe "GET index" do
     let(:headers) { token_auth_header }
     let(:endpoint_url) { "/v1/cases" }
+    let(:valid_procedure_data) do
+      {
+        date: Date.today,
+        type: "a_procedure",
+        version: "v1",
+        providers: { "doc_1" => { role: :primary } }
+      }
+    end
 
     it "returns 401 if authentication headers are not present" do
       get(endpoint_url)
@@ -106,7 +114,7 @@ RSpec.describe "cases", type: :api do
 
     it "does not include procedures in the output" do
       persisted = cases(:fernando_left_hip)
-      Procedure.create!(case: persisted, data: { date: Date.today })
+      Procedure.create!(case: persisted, data: valid_procedure_data)
 
       get(endpoint_url, query_params, headers)
 
@@ -141,7 +149,7 @@ RSpec.describe "cases", type: :api do
     it "returns procedures in JSON payload when showProcedures param is true" do
       persisted = cases(:silvia_right_foot)
       expect(persisted.procedures.size).to eq(0)
-      procedure = Procedure.create!(case: persisted, data: { date: Date.today })
+      procedure = Procedure.create!(case: persisted, data: valid_procedure_data)
 
       get(endpoint_url, query_params.merge(showProcedures: true), headers)
 

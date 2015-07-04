@@ -2,6 +2,8 @@ source "https://rubygems.org"
 
 gem "rails", "~> 4.2"
 gem "rails-api"
+gem "hashie"
+gem "json-schema"
 
 gem "paperclip", "~> 4.2"
 
