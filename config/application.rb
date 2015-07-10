@@ -23,7 +23,7 @@ module Healer
     Dir[Rails.root.join("app/middleware/**/*.rb")].each { |f| require f }
 
     config.autoload_paths += %W(
-      #{config.root}/app/presenters
+      #{config.root}/app/**/
       #{config.root}/lib
     )
 

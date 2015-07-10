@@ -26,7 +26,10 @@ RSpec.describe "procedures", type: :api do
 
     it "persists a new case-associated record and returns JSON" do
       attributes = {
-        case_id: the_case.id
+        case_id: the_case.id,
+        type: "a_procedure",
+        version: "opwalk_2015",
+        providers: { "doc_1" => { role: :primary } }
       }
 
       payload = query_params.merge(procedure: attributes)
