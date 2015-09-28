@@ -2,6 +2,7 @@ RSpec.describe "cases", type: :api do
   fixtures :cases, :patients, :procedures
 
   let(:query_params) { {} }
+  let(:endpoint_root_path) { "/v1/cases" }
 
   def uploaded_file
     extend ActionDispatch::TestProcess
@@ -18,7 +19,7 @@ RSpec.describe "cases", type: :api do
 
   describe "GET index" do
     let(:headers) { token_auth_header }
-    let(:endpoint_url) { "/v1/cases" }
+    let(:endpoint_url) { endpoint_root_path }
     let(:valid_procedure_data) do
       {
         date: Date.today,
@@ -28,11 +29,7 @@ RSpec.describe "cases", type: :api do
       }
     end
 
-    it "returns 401 if authentication headers are not present" do
-      get(endpoint_url)
-
-      expect_failed_authentication
-    end
+    it_behaves_like "an authentication-protected #index endpoint"
 
     it "returns all records as JSON" do
       persisted_1 = cases(:fernando_left_hip)
@@ -160,18 +157,13 @@ RSpec.describe "cases", type: :api do
       returned_procedure = response_record["procedures"].first
       expect(returned_procedure["id"]).to eq(procedure.id)
     end
-  end#index
+  end
 
   describe "GET show" do
     let(:headers) { token_auth_header }
     let(:persisted_record) { cases(:fernando_left_hip) }
-    let(:endpoint_url) { "/v1/cases/#{persisted_record.id}" }
+    let(:endpoint_url) { "#{endpoint_root_path}/#{persisted_record.id}" }
 
-    it "returns 401 if authentication headers are not present" do
-      get(endpoint_url)
-
-      expect_failed_authentication
-    end
 
     it "returns a single persisted record as JSON" do
       persisted_patient = persisted_record.patient
@@ -275,19 +267,13 @@ RSpec.describe "cases", type: :api do
 
       expect_not_found_response
     end
-  end#show
+  end
 
   describe "POST create" do
     let(:headers) { token_auth_header.merge(json_content_headers) }
-    let(:endpoint_url) { "/v1/cases" }
+    let(:endpoint_url) { endpoint_root_path }
 
-    it "returns 401 if authentication headers are not present" do
-      payload = { case: cases(:fernando_left_hip).attributes.dup }
-
-      post(endpoint_url, payload.to_json, json_content_headers)
-
-      expect_failed_authentication
-    end
+    it_behaves_like "an authentication-protected #create endpoint"
 
     it "returns 400 if JSON not provided" do
       payload = { case: cases(:fernando_left_hip).attributes.dup }
@@ -473,20 +459,14 @@ RSpec.describe "cases", type: :api do
         expect(json["error"]["message"]).to match(/patient/i)
       end
     end
-  end#create
+  end
 
   describe "PUT update" do
     let(:headers) { token_auth_header.merge(json_content_headers) }
     let(:persisted_record) { cases(:fernando_left_hip) }
-    let(:endpoint_url) { "/v1/cases/#{persisted_record.id}" }
+    let(:endpoint_url) { "#{endpoint_root_path}/#{persisted_record.id}" }
 
-    it "returns 401 if authentication headers are not present" do
-      payload = { case: { anatomy: "hip" } }
-
-      put(endpoint_url, payload.to_json, json_content_headers)
-
-      expect_failed_authentication
-    end
+    it_behaves_like "an authentication-protected #update endpoint"
 
     it "returns 400 if JSON not provided" do
       payload = { case: { anatomy: "hip" } }
@@ -528,7 +508,7 @@ RSpec.describe "cases", type: :api do
 
     it "ignores status in request input" do
       persisted_record = cases(:fernando_deleted_right_knee)
-      endpoint_url = "/v1/cases/#{persisted_record.id}"
+      endpoint_url = "#{endpoint_root_path}/#{persisted_record.id}"
       payload = query_params.merge(case: { status: "active" })
 
       put(endpoint_url, payload.to_json, headers)
@@ -539,7 +519,7 @@ RSpec.describe "cases", type: :api do
 
     it "returns 404 and does not update when attempting to update a deleted record" do
       persisted_record = cases(:fernando_deleted_right_knee)
-      endpoint_url = "/v1/cases/#{persisted_record.id}"
+      endpoint_url = "#{endpoint_root_path}/#{persisted_record.id}"
       new_attributes = { anatomy: "hip" }
       payload = query_params.merge(case: new_attributes)
 
@@ -549,18 +529,14 @@ RSpec.describe "cases", type: :api do
       persisted_record.reload
       expect(persisted_record.anatomy).to eq("hip")
     end
-  end#update
+  end
 
   describe "DELETE" do
     let(:headers) { token_auth_header }
     let(:persisted_record) { cases(:fernando_left_hip) }
-    let(:endpoint_url) { "/v1/cases/#{persisted_record.id}" }
+    let(:endpoint_url) { "#{endpoint_root_path}/#{persisted_record.id}" }
 
-    it "returns 401 if authentication headers are not present" do
-      delete(endpoint_url)
-
-      expect_failed_authentication
-    end
+    it_behaves_like "an authentication-protected #delete endpoint"
 
     it "soft-deletes an existing persisted record" do
       delete(endpoint_url, query_params, headers)
@@ -574,19 +550,19 @@ RSpec.describe "cases", type: :api do
     it "returns 404 if persisted record does not exist" do
       expect(Case.find_by_id(100)).to be_nil
 
-      delete("/v1/cases/100", query_params, headers)
+      delete("#{endpoint_root_path}/100", query_params, headers)
 
       expect_not_found_response
     end
 
     it "returns 404 if record is already deleted" do
       persisted_record = cases(:fernando_deleted_right_knee)
-      endpoint_url = "/v1/cases/#{persisted_record.id}"
+      endpoint_url = "#{endpoint_root_path}/#{persisted_record.id}"
 
       delete(endpoint_url, query_params, headers)
 
       expect_not_found_response
     end
-  end#delete
+  end
 
 end
