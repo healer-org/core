@@ -14,20 +14,13 @@ RSpec.describe "attachments", type: :api do
   fixtures :cases, :patients
 
   let(:query_params) { {} }
+  let(:endpoint_root_path) { "/v1/attachments" }
 
   describe "POST create" do
     let(:headers) { token_auth_header.merge(json_content_headers) }
-    let(:endpoint_url) { "/v1/attachments" }
+    let(:endpoint_url) { endpoint_root_path }
 
-    it "returns 401 if authentication headers are not present" do
-      extend ActionDispatch::TestProcess
-      ff = fixture_file_upload("../attachments/1x1.png", "image/png")
-      payload = { attachment: { path: ff.path } }
-
-      post(endpoint_url, payload.to_json, json_content_headers)
-
-      expect_failed_authentication
-    end
+    it_behaves_like "an authentication-protected #create endpoint"
 
     it "creates an attachment on a case" do
       persisted_case = cases(:fernando_left_hip)
@@ -78,6 +71,6 @@ RSpec.describe "attachments", type: :api do
         expect(json["error"]["message"]).to match(/#{required}/)
       end
     end
-
   end
+
 end
