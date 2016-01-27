@@ -1,4 +1,4 @@
-class Case < HealerRecord
+class Case < Base
   include SoftDelete
 
   belongs_to :patient

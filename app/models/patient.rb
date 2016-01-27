@@ -1,4 +1,4 @@
-class Patient < HealerRecord
+class Patient < Base
   include SoftDelete
 
   validates :name, presence: true

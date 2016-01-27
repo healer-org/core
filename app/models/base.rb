@@ -1,4 +1,4 @@
-class HealerRecord < ActiveRecord::Base
+class Base < ActiveRecord::Base
   self.abstract_class = true
 
   def to_json(options = {})

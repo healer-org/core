@@ -1,4 +1,4 @@
-class Procedure < HealerRecord
+class Procedure < Base
   belongs_to :appointment
   belongs_to :case
 
