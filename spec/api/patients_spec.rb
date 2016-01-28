@@ -1,5 +1,5 @@
-# TODO messaging & logging behavior
-# TODO undelete functionality for administrator clients
+# TODO: messaging & logging behavior
+# TODO: undelete functionality for administrator clients
 
 RSpec.describe "patients", type: :api do
   fixtures :patients, :cases
@@ -27,7 +27,7 @@ RSpec.describe "patients", type: :api do
       get(endpoint_url, query_params, headers)
 
       expect_success_response
-      expect(response_ids_for(response_records).any?{ |id| id.nil? }).to eq(false)
+      expect(response_ids_for(response_records).any?(&:nil?)).to eq(false)
 
       response_record_1 = pluck_response_record(response_records, persisted_record_1.id)
       response_record_2 = pluck_response_record(response_records, persisted_record_2.id)
@@ -42,7 +42,7 @@ RSpec.describe "patients", type: :api do
       get(endpoint_url, query_params, headers)
 
       expect_success_response
-      expect(response_records.map{ |r| r[:id] }).not_to include(deleted_patient.id)
+      expect(response_records.map { |r| r[:id] }).not_to include(deleted_patient.id)
     end
 
     it "does not return results for deleted records, even if asked" do
@@ -70,7 +70,7 @@ RSpec.describe "patients", type: :api do
         expect(response_record_2["cases"].size).to eq(2)
 
         case1_result = response_record_1["cases"].first
-        case2_result = response_record_2["cases"].detect{ |c| c["side"] == "right" }
+        case2_result = response_record_2["cases"].detect { |c| c["side"] == "right" }
 
         expect(case_response_matches?(case1_result, case1)).to eq(true)
         expect(case_response_matches?(case2_result, case2)).to eq(true)
@@ -136,8 +136,8 @@ RSpec.describe "patients", type: :api do
 
         cases = response_record["cases"]
         expect(cases.size).to eq(2)
-        response_case1 = cases.detect{ |c| c["id"] == case1.id }
-        response_case2 = cases.detect{ |c| c["id"] == case2.id }
+        response_case1 = cases.detect { |c| c["id"] == case1.id }
+        response_case2 = cases.detect { |c| c["id"] == case2.id }
         expect(case_response_matches?(response_case1, case1)).to eq(true)
         expect(case_response_matches?(response_case2, case2)).to eq(true)
       end
@@ -159,7 +159,7 @@ RSpec.describe "patients", type: :api do
     end
 
     it "creates a new active persisted record and returns JSON" do
-      payload = query_params.merge( patient: patients(:fernando).attributes )
+      payload = query_params.merge(patient: patients(:fernando).attributes)
 
       expect {
         post(endpoint_url, payload.to_json, headers)
@@ -446,5 +446,4 @@ RSpec.describe "patients", type: :api do
       ).to eq(true)
     end
   end
-
 end

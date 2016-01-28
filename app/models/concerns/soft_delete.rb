@@ -20,7 +20,7 @@ module SoftDelete
   end
 
   def log_delete
-    Rails.logger.info("id=#{self.id} object=#{self.class.name} action=delete")
+    Rails.logger.info("id=#{id} object=#{self.class.name} action=delete")
   end
 
   def delete_associations!; end

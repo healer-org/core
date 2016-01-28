@@ -1,5 +1,4 @@
 RSpec.describe V1::ProcedureDefinitionReader do
-
   describe "reading a config file" do
     it "reads a configuration file into JSON" do
       reader = V1::ProcedureDefinitionReader.new(
@@ -15,8 +14,7 @@ RSpec.describe V1::ProcedureDefinitionReader do
     it "raises error if config definition is not present" do
       reader = V1::ProcedureDefinitionReader.new(:derp)
 
-      expect{ reader.definition[:input_values] }.to raise_error
+      expect { reader.definition[:input_values] }.to raise_error
     end
   end
-
 end

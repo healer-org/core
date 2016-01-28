@@ -14,51 +14,51 @@ RSpec.describe Procedure do
   end
 
   def valid_attributes_without(key)
-    valid_attributes.reject{ |k,v| k == key }
+    valid_attributes.reject { |k, _| k == key }
   end
 
   describe "validates" do
     it "is valid with valid_attributes" do
-      expect{ Procedure.create(valid_attributes) }.to change(Procedure, :count)
+      expect { Procedure.create(valid_attributes) }.to change(Procedure, :count)
     end
 
     it "case is required" do
-      expect{
+      expect {
         Procedure.create(valid_attributes_without(:case))
       }.to_not change(Procedure, :count)
     end
 
     it "type is required" do
-      expect{
+      expect {
         Procedure.create(valid_attributes_without(:type))
       }.to_not change(Procedure, :count)
     end
 
     it "version is required" do
-      expect{
+      expect {
         Procedure.create(valid_attributes_without(:version))
       }.to_not change(Procedure, :count)
     end
 
     it "at least one provider is required" do
-      expect{
+      expect {
         Procedure.create(valid_attributes_without(:providers))
       }.to_not change(Procedure, :count)
 
       attrs = valid_attributes.merge(providers: [])
-      expect{ Procedure.create(attrs) }.to_not change(Procedure, :count)
+      expect { Procedure.create(attrs) }.to_not change(Procedure, :count)
     end
 
     it "providers are well-formed" do
       attrs = valid_attributes.merge(providers: "junk")
-      expect{ Procedure.create(attrs) }.to_not change(Procedure, :count)
+      expect { Procedure.create(attrs) }.to_not change(Procedure, :count)
 
-      attrs = valid_attributes.merge(providers: ["junk", "stuff"])
-      expect{ Procedure.create(attrs) }.to_not change(Procedure, :count)
+      attrs = valid_attributes.merge(providers: %w(junk stuff))
+      expect { Procedure.create(attrs) }.to_not change(Procedure, :count)
 
       # punting on this one for now...
       # attrs = valid_attributes.merge(providers: {{this: :is} => "more junk" })
-      # expect{ Procedure.create(attrs) }.to_not change(Procedure, :count)
+      # expect { Procedure.create(attrs) }.to_not change(Procedure, :count)
     end
 
     context "conformance to type definition" do
@@ -68,21 +68,21 @@ RSpec.describe Procedure do
 
       it "is not valid without required inputs" do
         skip("failing for now due to possible bug in json-schema gem?")
-        expect{
+        expect {
           Procedure.create(valid_attributes_without(:sites))
         }.to_not change(Procedure, :count)
       end
 
       it "is not valid if nested requirements are absent" do
         attrs = valid_attributes.merge(sites: [])
-        expect{
+        expect {
           Procedure.create(attrs)
         }.to_not change(Procedure, :count)
       end
 
       it "is not valid if nested requirements are invalid data type" do
         attrs = valid_attributes.merge(sites: "junk")
-        expect{
+        expect {
           Procedure.create(attrs)
         }.to_not change(Procedure, :count)
       end

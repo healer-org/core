@@ -1,6 +1,5 @@
 module Healer
   class Cutover
-
     def initialize(options = {})
     end
 
@@ -9,7 +8,6 @@ module Healer
       move_objects
       cleanup
     end
-
 
     private
 
@@ -35,6 +33,5 @@ module Healer
     def cleanup
       # Drop temporary DB
     end
-
   end
 end

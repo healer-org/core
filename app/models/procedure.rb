@@ -3,18 +3,18 @@ class Procedure < Base
   belongs_to :case
 
   store_accessor :data,
-    :date,
-    :providers,
-    :type,
-    :version
+                 :date,
+                 :providers,
+                 :type,
+                 :version
 
   serialize :data, ProcedureSerializer
 
   validates :case, presence: true
   validates :type, presence: true
   validates :version, presence: true
-  validate  :providers_correctly_formatted
-  validate  :conforms_to_definition
+  validate :providers_correctly_formatted
+  validate :conforms_to_definition
 
   def method_missing(method_name, *args)
     data.send(method_name, *args)
@@ -23,9 +23,7 @@ class Procedure < Base
   private
 
   def providers_correctly_formatted
-    unless providers.is_a?(Hash)# && providers.keys.all?{ |k| k.is_a?(String) }
-      errors.add(:providers, "are malformed")
-    end
+    errors.add(:providers, "are malformed") unless providers.is_a?(Hash)
   end
 
   def conforms_to_definition
@@ -37,12 +35,17 @@ class Procedure < Base
   end
 
   def definition
-    # TODO the V1 namespace will eventually be replaced by "version"
+    # TODO: the V1 namespace will eventually be replaced by "version"
     #      which will require some error checking
 
     # inline rescue is to alleviate missing type, which is responsible for
     # determining which definition to use. maybe raise after_initialize instead?
-    @definition ||= V1::ProcedureDefinitionReader.new(type.to_sym).definition rescue {}.to_json
+    @definition ||= definition_reader_for(type)
   end
 
+  def definition_reader_for(type)
+    V1::ProcedureDefinitionReader.new(type.to_sym).definition
+  rescue
+    {}.to_json
+  end
 end

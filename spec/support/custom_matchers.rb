@@ -4,7 +4,7 @@ module CustomMatchers
       response,
       record,
       APPOINTMENT_ATTRIBUTES,
-      :time => %i(start end)
+      time: %i(start end)
     )
   end
 
@@ -13,7 +13,7 @@ module CustomMatchers
       response,
       record,
       PATIENT_ATTRIBUTES,
-      :date => %i(birth)
+      date: %i(birth)
     )
   end
 
@@ -30,10 +30,11 @@ module CustomMatchers
       response,
       record,
       ATTACHMENT_ATTRIBUTES,
-      :time => %i(created_at)
+      time: %i(created_at)
     )
   end
 
+  # rubocop:disable Metrics/AbcSize
   def response_and_record_match?(response, record, attributes, custom_types = {})
     attributes.all? do |attr|
       value = response[attr.to_s.camelize(:lower)]
@@ -46,4 +47,5 @@ module CustomMatchers
       end
     end
   end
+  # rubocop:enable Metrics/AbcSize
 end

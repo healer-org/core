@@ -1,6 +1,5 @@
 module V1
   class BaseController < ApplicationController
-
     use(Middleware::Authentication) do |config|
       config[:authenticator] = lambda do |req|
         auth_data = req.env["HTTP_AUTHORIZATION"]
@@ -13,9 +12,7 @@ module V1
     end
 
     def validate_json_request!
-      if request.content_type != "application/json"
-        raise ActionController::BadRequest
-      end
+      fail ActionController::BadRequest if request.content_type != "application/json"
     end
   end
 end

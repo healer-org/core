@@ -26,16 +26,12 @@ RSpec.describe Patient do
     end
 
     it "does not swallow errors if case fails to be deleted" do
-      case_1 = cases(:silvia_left_foot)
-
       allow_any_instance_of(Case).to receive(:delete!).and_raise "Fail"
 
       expect { @patient.delete! }.to raise_error
     end
 
     it "does not delete patient case fails to be deleted" do
-      case_1 = cases(:silvia_left_foot)
-
       allow_any_instance_of(Case).to receive(:delete!).and_raise "Fail"
 
       expect { @patient.delete! }.to raise_error
@@ -60,9 +56,7 @@ RSpec.describe Patient do
       expect(patient.active?).to eq(false)
     end
 
-    %w(
-      active
-    ).each do |status|
+    %w(active).each do |status|
       it "is true if status is #{status}" do
         patient = patients(:fernando)
         patient.update_attributes!(status: status)

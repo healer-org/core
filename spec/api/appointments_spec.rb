@@ -1,8 +1,8 @@
 def validate_response_matches(response, record)
   expect(appointment_response_matches?(response, record)).to eq(true)
-  if record.patient
-    expect(patient_response_matches?(response["patient"], record.patient)).to eq(true)
-  end
+  expect(
+    patient_response_matches?(response["patient"], record.patient)
+  ).to eq(true) if record.patient
 end
 
 RSpec.describe "appointments", type: :api do
@@ -31,7 +31,7 @@ RSpec.describe "appointments", type: :api do
 
       expect_success_response
       expect(response_records.size).to eq(2)
-      expect(response_ids_for(response_records).any?{ |id| id.nil? }).to eq(false)
+      expect(response_ids_for(response_records).any?(&:nil?)).to eq(false)
 
       response_record_1 = pluck_response_record(response_records, @persisted_1.id)
       response_record_2 = pluck_response_record(response_records, @persisted_2.id)
@@ -64,9 +64,11 @@ RSpec.describe "appointments", type: :api do
       @persisted_1.update_attributes!(location: "room 1", trip_id: "1")
       @persisted_2.update_attributes!(location: "room 1", trip_id: "2")
 
-      get(endpoint_url, query_params.merge(
-        location: "room 1", trip_id: "2"
-      ), headers)
+      get(
+        endpoint_url,
+        query_params.merge(location: "room 1", trip_id: "2"),
+        headers
+      )
 
       expect_success_response
       expect(response_records.size).to eq(1)
@@ -219,7 +221,7 @@ RSpec.describe "appointments", type: :api do
       }
       payload = query_params.merge(appointment: new_attributes)
 
-      new_attributes.each do |k,v|
+      new_attributes.each do |k, v|
         expect(persisted_record.send(k)).not_to eq(v)
       end
 
@@ -311,5 +313,4 @@ RSpec.describe "appointments", type: :api do
       expect_not_found_response
     end
   end
-
 end

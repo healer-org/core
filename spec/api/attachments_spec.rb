@@ -1,13 +1,13 @@
 def setup_attachment_attributes(record_type, record_id)
-    file_path = "#{Rails.root}/spec/attachments/1x1.png"
-    file = File.open(file_path, "rb")
-    @attachment_attributes = {
-      data: Base64.encode64(file.read()),
-      file_name: File.basename(file_path),
-      content_type: `file -Ib #{file_path}`.gsub(/\n/,""),
-      record_id: record_id,
-      record_type: record_type
-    }
+  file_path = "#{Rails.root}/spec/attachments/1x1.png"
+  file = File.open(file_path, "rb")
+  @attachment_attributes = {
+    data: Base64.encode64(file.read),
+    file_name: File.basename(file_path),
+    content_type: `file -Ib #{file_path}`.gsub(/\n/, ""),
+    record_id: record_id,
+    record_type: record_type
+  }
 end
 
 RSpec.describe "attachments", type: :api do
@@ -46,8 +46,8 @@ RSpec.describe "attachments", type: :api do
     end
 
     it "returns 404 if a record is not found" do
-      expect(Case.find_by_id(99999)).to eq(nil)
-      setup_attachment_attributes("Case", 99999)
+      expect(Case.find_by_id(99_999)).to eq(nil)
+      setup_attachment_attributes("Case", 99_999)
       payload = query_params.merge(attachment: @attachment_attributes)
 
       expect {
@@ -72,5 +72,4 @@ RSpec.describe "attachments", type: :api do
       end
     end
   end
-
 end

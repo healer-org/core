@@ -1,23 +1,28 @@
-class V1::AttachmentPresenter < V1::BasePresenter
+module V1
+  class AttachmentPresenter < BasePresenter
+    SIMPLE_ATTRIBUTES = %i(
+      id
+      description
+      documentContentType
+      documentFileName
+      documentFileSize
+      createdAt
+    )
 
-  def initialize(attributes)
-    @attributes = HashWithIndifferentAccess.new(attributes)
-  end
-
-  def present
-    {}.tap do |presented|
-      presented[:id] = attributes["id"]
-      presented[:description] = attributes["description"]
-      presented[:documentContentType] = attributes["document_content_type"]
-      presented[:documentFileName] = attributes["document_file_name"]
-      presented[:documentFileSize] = attributes["document_file_size"]
-      presented[:createdAt] = attributes["created_at"]
+    def initialize(attributes)
+      @attributes = HashWithIndifferentAccess.new(attributes)
     end
+
+    def present
+      {}.tap do |presented|
+        SIMPLE_ATTRIBUTES.each do |k|
+          presented[k] = attributes[k.to_s.underscore]
+        end
+      end
+    end
+
+    private
+
+    attr_reader :attributes
   end
-
-
-  private
-
-  attr_reader :attributes
-
 end

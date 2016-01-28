@@ -41,7 +41,7 @@ RSpec.describe "cases", type: :api do
       get(endpoint_url, query_params, headers)
 
       expect_success_response
-      expect(response_ids_for(response_records).any?{ |id| id.nil? }).to eq(false)
+      expect(response_ids_for(response_records).any?(&:nil?)).to eq(false)
 
       response_record_1 = pluck_response_record(response_records, persisted_1.id)
       response_record_2 = pluck_response_record(response_records, persisted_2.id)
@@ -72,7 +72,7 @@ RSpec.describe "cases", type: :api do
       persisted_2 = cases(:silvia_right_foot)
       persisted_1.update_attributes!(status: "pending")
 
-      get(endpoint_url, query_params.merge({ status: "pending" }), headers)
+      get(endpoint_url, query_params.merge(status: "pending"), headers)
 
       response_ids = response_ids_for(json["cases"])
 
@@ -83,10 +83,9 @@ RSpec.describe "cases", type: :api do
 
     it "does not return results for deleted records, even if asked" do
       persisted_1 = cases(:fernando_left_hip)
-      persisted_2 = cases(:silvia_right_foot)
       persisted_1.update_attributes!(status: "deleted")
 
-      get(endpoint_url, query_params.merge({ status: "deleted" }), headers)
+      get(endpoint_url, query_params.merge(status: "deleted"), headers)
 
       response_ids = response_ids_for(json["cases"])
 
@@ -136,7 +135,7 @@ RSpec.describe "cases", type: :api do
       expect(response_record["attachments"].size).to eq(1)
       returned_attachment = response_record["attachments"].first
       expect(returned_attachment.keys).to match_array(
-        ([:id] + ATTACHMENT_ATTRIBUTES).map{ |k| k.to_s.camelize(:lower) }
+        ([:id] + ATTACHMENT_ATTRIBUTES).map { |k| k.to_s.camelize(:lower) }
       )
       expect(
         attachment_response_matches?(returned_attachment, attachment)
@@ -163,7 +162,6 @@ RSpec.describe "cases", type: :api do
     let(:headers) { token_auth_header }
     let(:persisted_record) { cases(:fernando_left_hip) }
     let(:endpoint_url) { "#{endpoint_root_path}/#{persisted_record.id}" }
-
 
     it "returns a single persisted record as JSON" do
       persisted_patient = persisted_record.patient
@@ -201,7 +199,7 @@ RSpec.describe "cases", type: :api do
     end
 
     it "does not include attachments in the output" do
-      attachment = Attachment.create!(
+      Attachment.create!(
         record: persisted_record,
         document: uploaded_file
       )
@@ -224,7 +222,7 @@ RSpec.describe "cases", type: :api do
       expect(response_record["attachments"].size).to eq(1)
       returned_attachment = response_record["attachments"].first
       expect(returned_attachment.keys).to match_array(
-        ([:id] + ATTACHMENT_ATTRIBUTES).map{ |k| k.to_s.camelize(:lower) }
+        ([:id] + ATTACHMENT_ATTRIBUTES).map { |k| k.to_s.camelize(:lower) }
       )
       expect(
         attachment_response_matches?(returned_attachment, attachment)
@@ -243,7 +241,7 @@ RSpec.describe "cases", type: :api do
       expect(response_record["attachments"].size).to eq(1)
       returned_attachment = response_record["attachments"].first
       expect(returned_attachment.keys).to match_array(
-        ([:id] + ATTACHMENT_ATTRIBUTES).map{ |k| k.to_s.camelize(:lower) }
+        ([:id] + ATTACHMENT_ATTRIBUTES).map { |k| k.to_s.camelize(:lower) }
       )
       expect(
         attachment_response_matches?(returned_attachment, attachment)
@@ -384,7 +382,6 @@ RSpec.describe "cases", type: :api do
           post(endpoint_url, payload.to_json, headers)
         }.to change(Case, :count).by(1)
 
-        response_record = json["case"]["patient"]
         persisted_record = Case.last
 
         CASE_ATTRIBUTES.each do |attr|
@@ -564,5 +561,4 @@ RSpec.describe "cases", type: :api do
       expect_not_found_response
     end
   end
-
 end
