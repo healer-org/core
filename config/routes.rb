@@ -22,5 +22,8 @@ Rails.application.routes.draw do
     delete  "patients/:id"    => "patients#delete"
 
     post    "procedures" => "procedures#create"
+
+    get     "teams/:id" => "teams#show"
+    post    "teams"     => "teams#create"
   end
 end

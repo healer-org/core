@@ -1,0 +1,2 @@
+class Team < Base
+end
