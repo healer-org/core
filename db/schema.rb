@@ -39,8 +39,8 @@ ActiveRecord::Schema.define(version: 20160211033714) do
     t.string   "document_content_type"
     t.integer  "document_file_size"
     t.datetime "document_updated_at"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at",            null: false
+    t.datetime "updated_at",            null: false
   end
 
   add_index "attachments", ["record_id"], name: "index_attachments_on_record_id", using: :btree

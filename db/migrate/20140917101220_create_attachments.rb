@@ -5,7 +5,7 @@ class CreateAttachments < ActiveRecord::Migration
       t.string      :record_type
       t.text        :description
       t.attachment  :document
-      t.timestamps
+      t.timestamps  null: false
     end
     add_index :attachments, :record_id
     add_index :attachments, [:record_type, :record_id]
