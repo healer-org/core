@@ -4,7 +4,7 @@ def setup_attachment_attributes(record_type, record_id)
   @attachment_attributes = {
     data: Base64.encode64(file.read),
     file_name: File.basename(file_path),
-    content_type: `file -Ib #{file_path}`.gsub(/\n/, ""),
+    content_type: `file -Ib #{file_path}`.delete("\n"),
     record_id: record_id,
     record_type: record_type
   }

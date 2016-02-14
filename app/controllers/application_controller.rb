@@ -4,7 +4,7 @@ class ApplicationController < ActionController::API
     ActiveRecord::RecordInvalid,
     ActionController::ParameterMissing,
     Errors::MismatchedPatient
-  ]
+  ].freeze
 
   after_filter :set_access_control_headers
 
@@ -17,7 +17,7 @@ class ApplicationController < ActionController::API
   end
 
   def render_error(code: nil, message: nil)
-    fail ArgumentError unless code
+    raise ArgumentError unless code
 
     code ||= :not_found
     data = { http_code: Rack::Utils.status_code(code) }

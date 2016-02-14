@@ -1,6 +1,6 @@
 module V1
   class CasePresenter < BasePresenter
-    SIMPLE_ATTRIBUTES = %i(id anatomy side)
+    SIMPLE_ATTRIBUTES = %i(id anatomy side).freeze
 
     def initialize(case_attributes)
       @case_attributes = case_attributes
@@ -9,7 +9,6 @@ module V1
       @procedure_attributes = case_attributes[:procedures] || nil
     end
 
-    # rubocop:disable Metrics/AbcSize
     def present
       {}.tap do |presented|
         SIMPLE_ATTRIBUTES.each do |k|
@@ -20,7 +19,6 @@ module V1
         presented[:procedures] = presented_procedures if procedure_attributes
       end
     end
-    # rubocop:enable Metrics/AbcSize
 
     private
 

@@ -6,7 +6,7 @@ module V1
       order
       end
       location
-    )
+    ).freeze
 
     def initialize(attributes)
       @attributes = attributes

@@ -14,7 +14,7 @@ Style/BlockDelimiters:
   Exclude:
     - "spec/**/*_spec.rb"
 
-Style/SingleSpaceBeforeFirstArg:
+Style/SpaceBeforeFirstArg:
   Exclude:
     - "config/routes.rb"
 

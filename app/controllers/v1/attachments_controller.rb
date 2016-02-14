@@ -3,9 +3,9 @@ module V1
     # rubocop:disable Style/RaiseArgs
     def create
       if required_params_missing?
-        fail ActionController::ParameterMissing.new(@missing_params.join(", "))
+        raise ActionController::ParameterMissing.new(@missing_params.join(", "))
       end
-      fail ActiveRecord::RecordNotFound if record_not_found?
+      raise ActiveRecord::RecordNotFound if record_not_found?
 
       Attachment.create!(attachment_params)
 
@@ -36,7 +36,7 @@ module V1
       @missing_params.present?
     end
 
-    # rubocop:disable Metrics/AbcSize, Style/GuardClause
+    # rubocop:disable Metrics/AbcSize
     def prep_document
       if params[:attachment] && params[:attachment][:data]
         data = StringIO.new(Base64.decode64(params[:attachment][:data]))
@@ -46,6 +46,6 @@ module V1
         params[:attachment][:document] = data
       end
     end
-    # rubocop:enable Metrics/AbcSize, Style/GuardClause
+    # rubocop:enable Metrics/AbcSize
   end
 end

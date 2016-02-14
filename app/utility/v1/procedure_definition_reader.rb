@@ -14,7 +14,7 @@ module V1
     private
 
     def read_definition
-      fail "config not found" unless File.exist?(config_file_path)
+      raise "config not found" unless File.exist?(config_file_path)
 
       YAML.load(
         File.read(config_file_path)

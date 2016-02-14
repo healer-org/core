@@ -24,7 +24,7 @@ module V1
 
       appointment_record = Appointment.new(appointment_params)
       unless appointment_record.patient_id
-        fail ActionController::ParameterMissing.new("Missing patient id")
+        raise ActionController::ParameterMissing.new("Missing patient id")
       end
 
       Patient.active.find(appointment_record.patient_id)
@@ -40,7 +40,7 @@ module V1
       appointment_record = base_appointment_scope.find(params[:id])
 
       params = appointment_params
-      fail Errors::MismatchedPatient if mismatched_patient?(appointment_record, params)
+      raise Errors::MismatchedPatient if mismatched_patient?(appointment_record, params)
 
       appointment_record.update_attributes!(params)
       render_one(appointment_record)

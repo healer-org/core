@@ -16,7 +16,7 @@ module Middleware
 
       yield config if block_given?
 
-      fail UndefinedAuthenticatorError if config.fetch(:authenticator, nil).nil?
+      raise UndefinedAuthenticatorError if config.fetch(:authenticator, nil).nil?
       @failed_response = Rack::Response.new(
         config[:failed_auth_message], 401, "Content-Type" => "text/plain"
       )

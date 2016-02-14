@@ -7,7 +7,7 @@ module V1
       documentFileName
       documentFileSize
       createdAt
-    )
+    ).freeze
 
     def initialize(attributes)
       @attributes = HashWithIndifferentAccess.new(attributes)

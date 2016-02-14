@@ -16,7 +16,6 @@ module V1
       render_one(case_record)
     end
 
-    # rubocop:disable Metrics/AbcSize
     def create
       validate_json_request!
 
@@ -32,7 +31,6 @@ module V1
       case_record.save!
       render_one(case_record, :created)
     end
-    # rubocop:enable Metrics/AbcSize
 
     def update
       validate_json_request!
@@ -69,7 +67,6 @@ module V1
       params[:status] || "active"
     end
 
-    # rubocop:disable Metrics/AbcSize
     def presented(case_record)
       attributes = case_record.attributes
       attributes[:patient] = case_record.patient.attributes
@@ -82,7 +79,6 @@ module V1
 
       CasePresenter.new(attributes).present
     end
-    # rubocop:enable Metrics/AbcSize
 
     def case_params
       params.require(:case).permit(:patient_id, :anatomy, :side)

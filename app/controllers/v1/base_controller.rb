@@ -12,7 +12,7 @@ module V1
     end
 
     def validate_json_request!
-      fail ActionController::BadRequest if request.content_type != "application/json"
+      raise ActionController::BadRequest if request.content_type != "application/json"
     end
   end
 end
