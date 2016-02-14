@@ -6,9 +6,13 @@ class ApplicationController < ActionController::API
     Errors::MismatchedPatient
   ].freeze
 
+  NOT_FOUND_REQUESTS = [
+    ActiveRecord::RecordNotFound
+  ].freeze
+
   after_filter :set_access_control_headers
 
-  rescue_from(ActiveRecord::RecordNotFound) do
+  rescue_from(*NOT_FOUND_REQUESTS) do
     render_error(code: :not_found, message: "Not Found")
   end
 
@@ -28,6 +32,11 @@ class ApplicationController < ActionController::API
       json: Response.new(data: data, root: "error"),
       status: code
     )
+  end
+
+  def routing_error
+    # handles ActionController::RoutingError directed from routes
+    render_error(code: :not_found, message: "Not Found")
   end
 
   private

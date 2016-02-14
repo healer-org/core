@@ -26,4 +26,7 @@ Rails.application.routes.draw do
     get     "teams/:id" => "teams#show"
     post    "teams"     => "teams#create"
   end
+
+  # handle routing errors differently
+  match "*path", to: "application#routing_error", via: :all
 end
