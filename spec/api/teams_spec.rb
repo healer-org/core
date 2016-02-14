@@ -58,11 +58,9 @@ RSpec.describe "teams", type: :api do
 
       expect_created_response
 
-      response_record = json["team"]
       persisted_record = Team.last
 
       expect(persisted_record.name).to eq("Derp")
     end
   end
-
 end
