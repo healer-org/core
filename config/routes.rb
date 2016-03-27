@@ -14,6 +14,9 @@ Rails.application.routes.draw do
     put     "cases/:id" => "cases#update"
     delete  "cases/:id" => "cases#delete"
 
+    get     "missions/:id" => "missions#show"
+    post    "missions"     => "missions#create"
+
     get     "patients/search" => "patients#search"
     get     "patients"        => "patients#index"
     get     "patients/:id"    => "patients#show"

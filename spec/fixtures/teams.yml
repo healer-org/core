@@ -1,4 +1,6 @@
 op_good:
   name: "Operation Good"
+  missions: [gt_2015, ni_2016]
 superdocs:
   name: "Super Docs"
+  missions: ni_2016
