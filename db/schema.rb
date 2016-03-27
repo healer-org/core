@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160211033714) do
+ActiveRecord::Schema.define(version: 20160327101859) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -56,6 +56,24 @@ ActiveRecord::Schema.define(version: 20160211033714) do
   end
 
   add_index "cases", ["status"], name: "index_cases_on_status", using: :btree
+
+  create_table "missions", force: :cascade do |t|
+    t.string "name",                 null: false
+    t.string "country",    limit: 2
+    t.string "location"
+    t.string "facility"
+    t.date   "begin_date"
+    t.date   "end_date"
+  end
+
+  add_index "missions", ["begin_date"], name: "index_missions_on_begin_date", using: :btree
+
+  create_table "missions_teams", force: :cascade do |t|
+    t.integer "mission_id", null: false
+    t.integer "team_id",    null: false
+  end
+
+  add_index "missions_teams", ["team_id"], name: "index_missions_teams_on_team_id", using: :btree
 
   create_table "patients", force: :cascade do |t|
     t.string   "name"

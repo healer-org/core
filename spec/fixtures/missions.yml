@@ -1,0 +1,14 @@
+gt_2015:
+  name: "Guatemala 2015"
+  country: "GT"
+  location: "Antigua"
+  facility: "Hospital Amatitlan"
+  begin_date: <%= Date.parse("2015-01-11") %>
+  end_date: <%= Date.parse("2015-01-14") %>
+ni_2016:
+  name: "Nicaragua 2016"
+  country: "NI"
+  location: "Managua"
+  facility: "Mospital Militar"
+  begin_date: <%= Date.parse("2016-01-20") %>
+  end_date: <%= Date.parse("2016-01-25") %>
