@@ -3,8 +3,6 @@
 module V1
   class ProceduresController < BaseController
     def create
-      validate_json_request!
-
       procedure = Procedure.create!(procedure_params)
 
       render_one(procedure.attributes, :created)

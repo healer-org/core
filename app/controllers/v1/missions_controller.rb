@@ -7,8 +7,6 @@ module V1
     end
 
     def create
-      validate_json_request!
-
       mission = Mission.create!(mission_params)
 
       render_one(mission.attributes, :created)

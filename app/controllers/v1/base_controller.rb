@@ -13,8 +13,12 @@ module V1
     #   end
     # end
 
-    def validate_json_request!
-      raise ActionController::BadRequest if request.content_type != "application/json"
+    def validate_json_content_type!
+      return if !request.content_type && (request.get? || request.delete?)
+      if request.content_type != "application/json"
+        return if request.delete? && request.content_type == "application/x-www-form-urlencoded" # allow internet defaults
+        raise ActionController::BadRequest, "Content-Type must be application/json"
+      end
     end
   end
 end

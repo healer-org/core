@@ -21,19 +21,19 @@ RSpec.describe "appointments", type: :request do
   end
 
   describe "GET index" do
-    let(:endpoint_url) { endpoint_root_path }
+    let(:path) { endpoint_root_path }
 
     before(:each) do
       @persisted_1 = appointments(:fernando_gt15)
       @persisted_2 = appointments(:silvia_gt15)
     end
 
-    # it_behaves_like "an authentication-protected #index endpoint"
+    it_behaves_like "a standard JSON-compliant endpoint", :get
 
     it "returns all appointments as JSON, along with patient data" do
-      get(endpoint_url, params: query_params, headers: headers)
+      get(path, params: query_params, headers: headers)
 
-      expect_success_response
+      expect(response).to have_http_status(:ok)
       expect(response_records.size).to eq(2)
       expect(response_ids_for(response_records).any?(&:nil?)).to eq(false)
 
@@ -47,9 +47,9 @@ RSpec.describe "appointments", type: :request do
     it "filters by location" do
       @persisted_2.update_attributes!(location: "room 1")
 
-      get(endpoint_url, params: query_params.merge(location: "room 1"), headers: headers)
+      get(path, params: query_params.merge(location: "room 1"), headers: headers)
 
-      expect_success_response
+      expect(response).to have_http_status(:ok)
       expect(response_records.size).to eq(1)
       expect(response_records.first["id"]).to eq(@persisted_2.id)
     end
@@ -57,9 +57,9 @@ RSpec.describe "appointments", type: :request do
     it "filters by trip_id" do
       @persisted_1.update_attributes!(trip_id: "2")
 
-      get(endpoint_url, params: query_params.merge(trip_id: "2"), headers: headers)
+      get(path, params: query_params.merge(trip_id: "2"), headers: headers)
 
-      expect_success_response
+      expect(response).to have_http_status(:ok)
       expect(response_records.size).to eq(1)
       expect(response_records.first["id"]).to eq(@persisted_1.id)
     end
@@ -69,12 +69,12 @@ RSpec.describe "appointments", type: :request do
       @persisted_2.update_attributes!(location: "room 1", trip_id: "2")
 
       get(
-        endpoint_url,
+        path,
         params: query_params.merge(location: "room 1", trip_id: "2"),
         headers: headers
       )
 
-      expect_success_response
+      expect(response).to have_http_status(:ok)
       expect(response_records.size).to eq(1)
       expect(response_records.first["id"]).to eq(@persisted_2.id)
     end
@@ -82,58 +82,55 @@ RSpec.describe "appointments", type: :request do
     it "does not include records belonging to deleted patients" do
       persisted = appointments(:for_deleted_patient)
 
-      get(endpoint_url, params: query_params, headers: headers)
+      get(path, params: query_params, headers: headers)
 
-      expect_success_response
+      expect(response).to have_http_status(:ok)
       expect(response_ids_for(json["appointments"])).not_to include(persisted.id)
     end
   end
 
   describe "GET show" do
     let(:persisted_record) { appointments(:fernando_gt15) }
-    let(:endpoint_url) { "#{endpoint_root_path}/#{persisted_record.id}" }
+    let(:path) { "#{endpoint_root_path}/#{persisted_record.id}" }
 
-    # it_behaves_like "an authentication-protected #show endpoint"
+    it_behaves_like "a standard JSON-compliant endpoint", :get
 
     it "returns a single persisted record as JSON" do
-      get(endpoint_url, params: query_params, headers: headers)
+      get(path, params: query_params, headers: headers)
 
-      expect_success_response
+      expect(response).to have_http_status(:ok)
       response_record = json["appointment"]
 
       validate_response_matches(response_record, persisted_record)
     end
 
     it "returns 404 if there is no persisted record" do
-      endpoint_url = "#{endpoint_root_path}/#{persisted_record.id + 1}"
+      path = "#{endpoint_root_path}/#{persisted_record.id + 1}"
 
-      get(endpoint_url, params: query_params, headers: headers)
+      get(path, params: query_params, headers: headers)
 
-      expect_not_found_response
+      expect(response).to have_http_status(:not_found)
     end
 
     it "returns 404 if patient is deleted" do
       persisted_record = appointments(:for_deleted_patient)
-      endpoint_url = "#{endpoint_root_path}/#{persisted_record.id + 1}"
+      path = "#{endpoint_root_path}/#{persisted_record.id + 1}"
 
-      get(endpoint_url, params: query_params, headers: headers)
+      get(path, params: query_params, headers: headers)
 
-      expect_not_found_response
+      expect(response).to have_http_status(:not_found)
     end
   end
 
   describe "POST create" do
-    let(:endpoint_url) { endpoint_root_path }
-
-    # it_behaves_like "an authentication-protected #create endpoint"
-
-    it "returns 400 if JSON not provided" do
-      payload = { appointment: appointments(:fernando_gt15).attributes.dup }
-
-      post(endpoint_url, params: payload, headers: v1_accept_header)
-
-      expect_bad_request
+    let(:path) { endpoint_root_path }
+    let(:valid_params) do
+      {
+        appointment: appointments(:fernando_gt15).attributes.dup
+      }
     end
+
+    it_behaves_like "a standard JSON-compliant endpoint", :post
 
     it "persists a new patient-associated record and returns JSON" do
       patient = patients(:fernando)
@@ -143,10 +140,10 @@ RSpec.describe "appointments", type: :request do
       payload = query_params.merge(appointment: attributes)
 
       expect {
-        post(endpoint_url, params: payload.to_json, headers: headers)
+        post(path, params: payload.to_json, headers: headers)
       }.to change(Appointment, :count).by(1)
 
-      expect_created_response
+      expect(response).to have_http_status(:created)
 
       response_record = json["appointment"]
       persisted_record = Appointment.last
@@ -165,10 +162,10 @@ RSpec.describe "appointments", type: :request do
       payload = query_params.merge(appointment: attributes)
 
       expect {
-        post(endpoint_url, params: payload.to_json, headers: headers)
+        post(path, params: payload.to_json, headers: headers)
       }.to_not change(Appointment, :count)
 
-      expect_bad_request
+      expect(response).to have_http_status(:bad_request)
       expect(json["error"]["message"]).to match(/patient/i)
     end
 
@@ -179,10 +176,10 @@ RSpec.describe "appointments", type: :request do
       payload = query_params.merge(appointment: attributes)
 
       expect {
-        post(endpoint_url, params: payload.to_json, headers: headers)
+        post(path, params: payload.to_json, headers: headers)
       }.to_not change(Appointment, :count)
 
-      expect_not_found_response
+      expect(response).to have_http_status(:not_found)
     end
 
     it "returns 404 if patient is deleted" do
@@ -192,26 +189,23 @@ RSpec.describe "appointments", type: :request do
       payload = query_params.merge(appointment: attributes)
 
       expect {
-        post(endpoint_url, params: payload.to_json, headers: headers)
+        post(path, params: payload.to_json, headers: headers)
       }.to_not change(Appointment, :count)
 
-      expect_not_found_response
+      expect(response).to have_http_status(:not_found)
     end
   end
 
   describe "PATCH update" do
     let(:persisted_record) { appointments(:fernando_gt15) }
-    let(:endpoint_url) { "#{endpoint_root_path}/#{persisted_record.id}" }
-
-    # it_behaves_like "an authentication-protected #update endpoint"
-
-    it "returns 400 if JSON not provided" do
-      payload = { appointment: { start_time: Time.now.utc + 1.week } }
-
-      patch(endpoint_url, params: payload, headers: v1_accept_header)
-
-      expect_bad_request
+    let(:path) { "#{endpoint_root_path}/#{persisted_record.id}" }
+    let(:valid_params) do
+      {
+        appointment: appointments(:fernando_gt15).attributes.dup
+      }
     end
+
+    it_behaves_like "a standard JSON-compliant endpoint", :patch
 
     it "updates an existing appointment record" do
       new_attributes = {
@@ -226,12 +220,12 @@ RSpec.describe "appointments", type: :request do
         expect(persisted_record.send(k)).not_to eq(v)
       end
 
-      patch(endpoint_url, params: payload.to_json, headers: headers)
+      patch(path, params: payload.to_json, headers: headers)
 
       response_record = json["appointment"]
       persisted_record.reload
 
-      expect_success_response
+      expect(response).to have_http_status(:ok)
 
       validate_response_matches(response_record, persisted_record)
       validate_response_matches(response_record, Appointment.new(new_attributes))
@@ -249,9 +243,9 @@ RSpec.describe "appointments", type: :request do
       }
       payload = query_params.merge(appointment: new_attributes)
 
-      patch(endpoint_url, params: payload.to_json, headers: headers)
+      patch(path, params: payload.to_json, headers: headers)
 
-      expect_bad_request
+      expect(response).to have_http_status(:bad_request)
       expect(json["error"]["message"]).to match(/patient/i)
 
       persisted_record.reload
@@ -269,7 +263,7 @@ RSpec.describe "appointments", type: :request do
       }
       payload = query_params.merge(appointment: new_attributes)
 
-      patch(endpoint_url, params: payload.to_json, headers: headers)
+      patch(path, params: payload.to_json, headers: headers)
 
       persisted_record.reload
       expect(persisted_record.patient.name).to eq(original_patient_name)
@@ -277,40 +271,40 @@ RSpec.describe "appointments", type: :request do
 
     it "returns 404 if patient is deleted" do
       persisted_record = appointments(:for_deleted_patient)
-      endpoint_url = "#{endpoint_root_path}/#{persisted_record.id + 1}"
+      path = "#{endpoint_root_path}/#{persisted_record.id + 1}"
       new_attributes = {
         start_time: Time.now + 1.week,
         order: 5
       }
       payload = query_params.merge(appointment: new_attributes)
 
-      patch(endpoint_url, params: payload.to_json, headers: headers)
+      patch(path, params: payload.to_json, headers: headers)
 
-      expect_not_found_response
+      expect(response).to have_http_status(:not_found)
     end
   end
 
   describe "DELETE" do
     let(:persisted_record) { appointments(:fernando_gt15) }
-    let(:endpoint_url) { "#{endpoint_root_path}/#{persisted_record.id}" }
+    let(:path) { "#{endpoint_root_path}/#{persisted_record.id}" }
 
-    # it_behaves_like "an authentication-protected #delete endpoint"
+    it_behaves_like "a standard JSON-compliant endpoint", :delete
 
     it "hard-deletes an existing persisted record" do
-      delete(endpoint_url, params: query_params, headers: headers)
+      delete(path, headers: headers)
 
-      expect_success_response
+      expect(response).to have_http_status(:ok)
       expect(json["message"]).to eq("Deleted")
 
       expect(persisted_record.class.find_by_id(persisted_record.id)).to be_nil
     end
 
     it "returns 404 if persisted record does not exist" do
-      endpoint_url = "#{endpoint_root_path}/#{persisted_record.id + 1}"
+      path = "#{endpoint_root_path}/#{persisted_record.id + 1}"
 
-      delete(endpoint_url, params: query_params, headers: headers)
+      delete(path, headers: headers)
 
-      expect_not_found_response
+      expect(response).to have_http_status(:not_found)
     end
   end
 end

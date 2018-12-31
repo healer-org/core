@@ -19,8 +19,6 @@ module V1
     end
 
     def create
-      validate_json_request!
-
       case_record = Case.new(case_params)
 
       if case_record.patient_id
@@ -35,8 +33,6 @@ module V1
     end
 
     def update
-      validate_json_request!
-
       case_record = Case.active.find(params[:id])
       params = case_params
       params.delete(:patient_id) if params[:patient_id]

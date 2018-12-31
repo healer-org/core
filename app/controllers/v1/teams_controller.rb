@@ -10,8 +10,6 @@ module V1
     end
 
     def create
-      validate_json_request!
-
       team = Team.create!(team_params)
 
       render_one(team.attributes, :created)

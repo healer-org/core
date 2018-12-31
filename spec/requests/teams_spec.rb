@@ -13,51 +13,50 @@ RSpec.describe "teams", type: :request do
 
   describe "GET show" do
     let(:persisted_record) { teams(:superdocs) }
-    let(:endpoint_url) { "#{endpoint_root_path}/#{persisted_record.id}" }
+    let(:path) { "#{endpoint_root_path}/#{persisted_record.id}" }
 
-    # it_behaves_like "an authentication-protected #show endpoint"
+    it_behaves_like "a standard JSON-compliant endpoint", :get
 
     it "returns a single persisted record as JSON" do
-      get(endpoint_url, params: query_params, headers: headers)
+      get(path, params: query_params, headers: headers)
 
       response_record = json["team"]
 
-      expect_success_response
+      expect(response).to have_http_status(:ok)
       expect(response_record["name"]).to eq(persisted_record.name)
     end
 
     it "returns 404 if there is no persisted record" do
-      endpoint_url = "#{endpoint_root_path}/#{persisted_record.id + 1}"
+      path = "#{endpoint_root_path}/#{persisted_record.id + 1}"
 
-      get(endpoint_url, params: query_params, headers: headers)
+      get(path, params: query_params, headers: headers)
 
-      expect_not_found_response
+      expect(response).to have_http_status(:not_found)
     end
   end
 
   describe "POST create" do
-    let(:endpoint_url) { endpoint_root_path }
+    let(:path) { endpoint_root_path }
     let(:team) { teams(:op_good) }
-
-    # it_behaves_like "an authentication-protected #create endpoint"
-
-    it "returns 400 if JSON not provided" do
-      payload = { team: { name: "Derp" } }
-
-      post(endpoint_url, params: payload, headers: v1_accept_header)
-
-      expect_bad_request
+    let(:valid_params) do
+      {
+        team: {
+          name: "Operation Walk Mooresville"
+        }
+      }
     end
+
+    it_behaves_like "a standard JSON-compliant endpoint", :post
 
     it "persists a new team record and returns JSON" do
       attributes = { name: "Derp" }
       payload = query_params.merge(team: attributes)
 
       expect {
-        post(endpoint_url, params: payload.to_json, headers: headers)
+        post(path, params: payload.to_json, headers: headers)
       }.to change(Team, :count).by(1)
 
-      expect_created_response
+      expect(response).to have_http_status(:created)
 
       persisted_record = Team.last
 

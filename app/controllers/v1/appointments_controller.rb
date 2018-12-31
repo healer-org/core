@@ -20,8 +20,6 @@ module V1
     end
 
     def create
-      validate_json_request!
-
       appointment_record = Appointment.new(appointment_params)
       unless appointment_record.patient_id
         raise ActionController::ParameterMissing, "Missing patient id"
@@ -34,8 +32,6 @@ module V1
     end
 
     def update
-      validate_json_request!
-
       appointment_record = base_appointment_scope.find(params[:id])
 
       params = appointment_params

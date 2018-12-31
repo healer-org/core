@@ -8,27 +8,6 @@ module HTTP
   end
 
   module ResponseHelpers
-    def expect_success_response
-      expect(response.status).to eq(200)
-    end
-
-    def expect_created_response
-      expect(response.status).to eq(201)
-    end
-
-    def expect_bad_request
-      expect(response.status).to eq(400)
-    end
-
-    def expect_failed_authentication
-      expect(response.status).to eq(401)
-    end
-
-    def expect_not_found_response
-      expect(response.status).to eq(404)
-      expect(json["error"]["message"]).to eq("Not Found")
-    end
-
     def response_ids_for(response_records)
       response_records.map { |r| r["id"] }
     end

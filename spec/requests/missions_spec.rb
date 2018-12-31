@@ -13,57 +13,51 @@ RSpec.describe "missions", type: :request do
 
   describe "GET show" do
     let(:persisted_record) { missions(:gt_2015) }
-    let(:endpoint_url) { "#{endpoint_root_path}/#{persisted_record.id}" }
+    let(:path) { "#{endpoint_root_path}/#{persisted_record.id}" }
 
-    # it_behaves_like "an authentication-protected #show endpoint"
+    it_behaves_like "a standard JSON-compliant endpoint", :get
 
     it "returns a single persisted record as JSON" do
-      get(endpoint_url, params: default_params, headers: headers)
+      get(path, params: default_params, headers: headers)
 
       response_record = json["mission"]
 
-      expect_success_response
+      expect(response).to have_http_status(:ok)
       expect(response_record["name"]).to eq(persisted_record.name)
     end
 
     it "returns 404 if there is no persisted record" do
-      endpoint_url = "#{endpoint_root_path}/#{persisted_record.id + 1}"
+      path = "#{endpoint_root_path}/#{persisted_record.id + 1}"
 
-      get(endpoint_url, params: default_params, headers: headers)
+      get(path, params: default_params, headers: headers)
 
-      expect_not_found_response
+      expect(response).to have_http_status(:not_found)
     end
   end
 
   describe "POST create" do
-    let(:endpoint_url) { endpoint_root_path }
+    let(:path) { endpoint_root_path }
     let(:mission) { missions(:gt_2015) }
-    let(:valid_attrs) do
+    let(:valid_params) do
       {
-        name: "New Mission",
-        team_ids: [teams(:op_good).id]
+        mission: {
+          name: "New Mission",
+          team_ids: [teams(:op_good).id]
+        }
       }
     end
 
-    # it_behaves_like "an authentication-protected #create endpoint"
-
-    it "returns 400 if JSON not provided" do
-      params = { mission: { name: "Malformed Mission" } }
-
-      post(endpoint_url, params: params, headers: v1_accept_header)
-
-      expect(response).to have_http_status(:bad_request)
-    end
+    it_behaves_like "a standard JSON-compliant endpoint", :post
 
     it "persists a new mission record and returns JSON" do
-      params = default_params.merge(mission: valid_attrs.merge(name: "Helping People"))
+      params = default_params.merge(valid_params)
 
       expect {
-        post(endpoint_url, params: params.to_json, headers: headers)
+        post(path, params: params.to_json, headers: headers)
       }.to change(Mission, :count).by(1)
 
       expect(response).to have_http_status(:created)
-      expect(json.dig("mission", "name")).to eq("Helping People")
+      expect(json.dig("mission", "name")).to eq("New Mission")
     end
 
     it "allows multiple teams to be assigned on create"

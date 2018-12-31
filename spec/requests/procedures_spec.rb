@@ -8,18 +8,19 @@ RSpec.describe "procedures", type: :request do
   let(:headers) { default_headers }
 
   describe "POST create" do
-    let(:endpoint_url) { endpoint_root_path }
+    let(:path) { endpoint_root_path }
     let(:the_case) { cases(:fernando_left_hip) }
-
-    # it_behaves_like "an authentication-protected #create endpoint"
-
-    it "returns 400 if JSON not provided" do
-      payload = { procedure: { case_id: the_case.id } }
-
-      post(endpoint_url, params: payload, headers: v1_accept_header)
-
-      expect_bad_request
+    let(:valid_params) do
+      {
+        procedure: {
+          case_id: the_case.id,
+          type: "total_knee_replacement",
+          version: "v1"
+        }
+      }
     end
+
+    it_behaves_like "a standard JSON-compliant endpoint", :post
 
     it "persists a new case-associated record and returns JSON" do
       attributes = {
@@ -32,10 +33,10 @@ RSpec.describe "procedures", type: :request do
       payload = query_params.merge(procedure: attributes)
 
       expect {
-        post(endpoint_url, params: payload.to_json, headers: headers)
+        post(path, params: payload.to_json, headers: headers)
       }.to change(Procedure, :count).by(1)
 
-      expect_created_response
+      expect(response).to have_http_status(:created)
 
       response_record = json["procedure"]
       persisted_record = Procedure.last
