@@ -1,5 +1,7 @@
 module V1
   class ProcedureDefinitionReader
+    class ConfigNotFound < StandardError; end
+
     attr_reader :definition
 
     def initialize(definition_name)
@@ -14,7 +16,7 @@ module V1
     private
 
     def read_definition
-      raise "config not found" unless File.exist?(config_file_path)
+      raise ConfigNotFound unless File.exist?(config_file_path)
 
       YAML.load(
         File.read(config_file_path)
