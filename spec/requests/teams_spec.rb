@@ -5,9 +5,7 @@ RSpec.describe "teams", type: :request do
 
   let(:query_params) { {} }
   let(:endpoint_root_path) { "/teams" }
-  let(:headers) do
-    v1_accept_header.merge(token_auth_header).merge(json_content_headers)
-  end
+  let(:headers) { default_headers }
 
   def response_records
     json["team"]
@@ -46,7 +44,7 @@ RSpec.describe "teams", type: :request do
     it "returns 400 if JSON not provided" do
       payload = { team: { name: "Derp" } }
 
-      post(endpoint_url, params: payload, headers: token_auth_header)
+      post(endpoint_url, params: payload, headers: v1_accept_header)
 
       expect_bad_request
     end

@@ -14,9 +14,7 @@ RSpec.describe "appointments", type: :request do
 
   let(:query_params) { {} }
   let(:endpoint_root_path) { "/appointments" }
-  let(:headers) do
-    v1_accept_header.merge(token_auth_header).merge(json_content_headers)
-  end
+  let(:headers) { default_headers }
 
   def response_records
     json["appointments"]
@@ -132,7 +130,7 @@ RSpec.describe "appointments", type: :request do
     it "returns 400 if JSON not provided" do
       payload = { appointment: appointments(:fernando_gt15).attributes.dup }
 
-      post(endpoint_url, params: payload, headers: token_auth_header)
+      post(endpoint_url, params: payload, headers: v1_accept_header)
 
       expect_bad_request
     end
@@ -210,7 +208,7 @@ RSpec.describe "appointments", type: :request do
     it "returns 400 if JSON not provided" do
       payload = { appointment: { start_time: Time.now.utc + 1.week } }
 
-      patch(endpoint_url, params: payload, headers: token_auth_header)
+      patch(endpoint_url, params: payload, headers: v1_accept_header)
 
       expect_bad_request
     end

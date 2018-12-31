@@ -5,9 +5,7 @@ RSpec.describe "missions", type: :request do
 
   let(:default_params) { {} }
   let(:endpoint_root_path) { "/missions" }
-  let(:headers) do
-    v1_accept_header.merge(token_auth_header).merge(json_content_headers)
-  end
+  let(:headers) { default_headers }
 
   def response_records
     json["missions"]
@@ -52,7 +50,7 @@ RSpec.describe "missions", type: :request do
     it "returns 400 if JSON not provided" do
       params = { mission: { name: "Malformed Mission" } }
 
-      post(endpoint_url, params: params, headers: token_auth_header)
+      post(endpoint_url, params: params, headers: v1_accept_header)
 
       expect(response).to have_http_status(:bad_request)
     end

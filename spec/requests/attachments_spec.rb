@@ -17,9 +17,7 @@ RSpec.describe "attachments", type: :request do
 
   let(:query_params) { {} }
   let(:endpoint_root_path) { "/attachments" }
-  let(:headers) do
-    v1_accept_header.merge(token_auth_header).merge(json_content_headers)
-  end
+  let(:headers) { default_headers }
 
   describe "POST create" do
     let(:endpoint_url) { endpoint_root_path }

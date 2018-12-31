@@ -5,9 +5,7 @@ RSpec.describe "cases", type: :request do
 
   let(:query_params) { {} }
   let(:endpoint_root_path) { "/cases" }
-  let(:headers) do
-    v1_accept_header.merge(token_auth_header).merge(json_content_headers)
-  end
+  let(:headers) { default_headers }
 
   def uploaded_file
     extend ActionDispatch::TestProcess
@@ -278,7 +276,7 @@ RSpec.describe "cases", type: :request do
     it "returns 400 if JSON not provided" do
       payload = { case: cases(:fernando_left_hip).attributes.dup }
 
-      post(endpoint_url, params: payload, headers: token_auth_header)
+      post(endpoint_url, params: payload, headers: v1_accept_header)
 
       expect_bad_request
     end
@@ -461,7 +459,6 @@ RSpec.describe "cases", type: :request do
   end
 
   describe "PATCH update" do
-    let(:headers) { token_auth_header.merge(json_content_headers) }
     let(:persisted_record) { cases(:fernando_left_hip) }
     let(:endpoint_url) { "#{endpoint_root_path}/#{persisted_record.id}" }
 
@@ -470,7 +467,7 @@ RSpec.describe "cases", type: :request do
     it "returns 400 if JSON not provided" do
       payload = { case: { anatomy: "hip" } }
 
-      patch(endpoint_url, params: payload, headers: token_auth_header)
+      patch(endpoint_url, params: payload, headers: v1_accept_header)
 
       expect_bad_request
     end
@@ -531,7 +528,6 @@ RSpec.describe "cases", type: :request do
   end
 
   describe "DELETE" do
-    let(:headers) { token_auth_header }
     let(:persisted_record) { cases(:fernando_left_hip) }
     let(:endpoint_url) { "#{endpoint_root_path}/#{persisted_record.id}" }
 

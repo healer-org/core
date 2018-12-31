@@ -8,9 +8,7 @@ RSpec.describe "patients", type: :request do
 
   let(:query_params) { {} }
   let(:endpoint_root_path) { "/patients" }
-  let(:headers) do
-    v1_accept_header.merge(token_auth_header).merge(json_content_headers)
-  end
+  let(:headers) { default_headers }
 
   def response_records
     json["patients"]
@@ -155,7 +153,7 @@ RSpec.describe "patients", type: :request do
     it "returns 400 if content-type is not provided as JSON" do
       payload = { patient: patients(:fernando).attributes }
 
-      post(endpoint_url, params: payload, headers: token_auth_header)
+      post(endpoint_url, params: payload, headers: v1_accept_header)
 
       expect_bad_request
     end
@@ -206,7 +204,7 @@ RSpec.describe "patients", type: :request do
     it "returns 400 if JSON not provided" do
       payload = { patient: { name: "Juan Marco" } }
 
-      patch(endpoint_url, params: payload, headers: token_auth_header)
+      patch(endpoint_url, params: payload, headers: v1_accept_header)
 
       expect_bad_request
     end

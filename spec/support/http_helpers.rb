@@ -39,12 +39,8 @@ module HTTP
   end
 
   module HeaderHelpers
-    def token_auth_header
-      test_key = "test-key-12345"
-      {
-        "HTTP_AUTHORIZATION" =>
-        ActionController::HttpAuthentication::Token.encode_credentials(test_key)
-      }
+    def default_headers
+      v1_accept_header.merge(json_content_headers)
     end
 
     def v1_accept_header
