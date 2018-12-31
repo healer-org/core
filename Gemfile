@@ -10,9 +10,10 @@ ruby File.read(
 ).split("-").last.chomp
 
 gem "rails", "~> 5.1"
+gem "sprockets", ">= 3.7.2"
 gem "json-schema"
 
-gem "paperclip", "~> 5.1"
+gem "paperclip", "~> 5.2.0"
 
 gem "pg"
 
