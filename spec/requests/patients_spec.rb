@@ -195,7 +195,7 @@ RSpec.describe "patients", type: :request do
     end
   end
 
-  describe "PUT update" do
+  describe "PATCH update" do
     let(:headers) { token_auth_header.merge(json_content_headers) }
     let(:persisted_record) { patients(:fernando) }
     let(:endpoint_url) { "#{endpoint_root_path}/#{persisted_record.id}" }
@@ -205,7 +205,7 @@ RSpec.describe "patients", type: :request do
     it "returns 400 if JSON not provided" do
       payload = { patient: { name: "Juan Marco" } }
 
-      put(endpoint_url, params: payload, headers: token_auth_header)
+      patch(endpoint_url, params: payload, headers: token_auth_header)
 
       expect_bad_request
     end
@@ -219,7 +219,7 @@ RSpec.describe "patients", type: :request do
       }
       payload = query_params.merge(patient: attributes)
 
-      put(endpoint_url, params: payload.to_json, headers: headers)
+      patch(endpoint_url, params: payload.to_json, headers: headers)
 
       persisted_record.reload
       expect(persisted_record.name).to eq("Juan Marco")
@@ -238,7 +238,7 @@ RSpec.describe "patients", type: :request do
       }
       payload = query_params.merge(patient: attributes)
 
-      put(endpoint_url, params: payload.to_json, headers: headers)
+      patch(endpoint_url, params: payload.to_json, headers: headers)
 
       expect_success_response
       expect(response_record["name"]).to eq("Juana")
@@ -253,7 +253,7 @@ RSpec.describe "patients", type: :request do
       }
       payload = query_params.merge(patient: attributes)
 
-      put(endpoint_url, params: payload.to_json, headers: headers)
+      patch(endpoint_url, params: payload.to_json, headers: headers)
 
       expect_not_found_response
     end
@@ -264,7 +264,7 @@ RSpec.describe "patients", type: :request do
 
       payload = query_params.merge(patient: { name: "Changed attributes" })
 
-      put(endpoint_url, params: payload.to_json, headers: headers)
+      patch(endpoint_url, params: payload.to_json, headers: headers)
 
       expect_not_found_response
     end
@@ -276,7 +276,7 @@ RSpec.describe "patients", type: :request do
       }
       payload = query_params.merge(patient: attributes)
 
-      put(endpoint_url, params: payload.to_json, headers: headers)
+      patch(endpoint_url, params: payload.to_json, headers: headers)
 
       persisted_record.reload
       expect(persisted_record.name).to eq("Juan Marco")

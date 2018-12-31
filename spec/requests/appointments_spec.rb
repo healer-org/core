@@ -197,7 +197,7 @@ RSpec.describe "appointments", type: :request do
     end
   end
 
-  describe "PUT update" do
+  describe "PATCH update" do
     let(:headers) { token_auth_header.merge(json_content_headers) }
     let(:persisted_record) { appointments(:fernando_gt15) }
     let(:endpoint_url) { "#{endpoint_root_path}/#{persisted_record.id}" }
@@ -207,7 +207,7 @@ RSpec.describe "appointments", type: :request do
     it "returns 400 if JSON not provided" do
       payload = { appointment: { start_time: Time.now.utc + 1.week } }
 
-      put(endpoint_url, params: payload, headers: token_auth_header)
+      patch(endpoint_url, params: payload, headers: token_auth_header)
 
       expect_bad_request
     end
@@ -225,7 +225,7 @@ RSpec.describe "appointments", type: :request do
         expect(persisted_record.send(k)).not_to eq(v)
       end
 
-      put(endpoint_url, params: payload.to_json, headers: headers)
+      patch(endpoint_url, params: payload.to_json, headers: headers)
 
       response_record = json["appointment"]
       persisted_record.reload
@@ -248,7 +248,7 @@ RSpec.describe "appointments", type: :request do
       }
       payload = query_params.merge(appointment: new_attributes)
 
-      put(endpoint_url, params: payload.to_json, headers: headers)
+      patch(endpoint_url, params: payload.to_json, headers: headers)
 
       expect_bad_request
       expect(json["error"]["message"]).to match(/patient/i)
@@ -268,7 +268,7 @@ RSpec.describe "appointments", type: :request do
       }
       payload = query_params.merge(appointment: new_attributes)
 
-      put(endpoint_url, params: payload.to_json, headers: headers)
+      patch(endpoint_url, params: payload.to_json, headers: headers)
 
       persisted_record.reload
       expect(persisted_record.patient.name).to eq(original_patient_name)
@@ -283,7 +283,7 @@ RSpec.describe "appointments", type: :request do
       }
       payload = query_params.merge(appointment: new_attributes)
 
-      put(endpoint_url, params: payload.to_json, headers: headers)
+      patch(endpoint_url, params: payload.to_json, headers: headers)
 
       expect_not_found_response
     end

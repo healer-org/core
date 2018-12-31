@@ -458,7 +458,7 @@ RSpec.describe "cases", type: :request do
     end
   end
 
-  describe "PUT update" do
+  describe "PATCH update" do
     let(:headers) { token_auth_header.merge(json_content_headers) }
     let(:persisted_record) { cases(:fernando_left_hip) }
     let(:endpoint_url) { "#{endpoint_root_path}/#{persisted_record.id}" }
@@ -468,7 +468,7 @@ RSpec.describe "cases", type: :request do
     it "returns 400 if JSON not provided" do
       payload = { case: { anatomy: "hip" } }
 
-      put(endpoint_url, params: payload, headers: token_auth_header)
+      patch(endpoint_url, params: payload, headers: token_auth_header)
 
       expect_bad_request
     end
@@ -476,7 +476,7 @@ RSpec.describe "cases", type: :request do
     it "updates an existing case record" do
       payload = { case: { anatomy: "knee", side: "right" } }
 
-      put(endpoint_url, params: payload.to_json, headers: headers)
+      patch(endpoint_url, params: payload.to_json, headers: headers)
 
       persisted_record.reload
       expect(persisted_record.anatomy).to eq("knee")
@@ -496,7 +496,7 @@ RSpec.describe "cases", type: :request do
       }
       payload = query_params.merge(case: new_attributes)
 
-      put(endpoint_url, params: payload.to_json, headers: headers)
+      patch(endpoint_url, params: payload.to_json, headers: headers)
 
       persisted_record.reload
       expect(persisted_record.patient.reload).to eq(patient)
@@ -508,7 +508,7 @@ RSpec.describe "cases", type: :request do
       endpoint_url = "#{endpoint_root_path}/#{persisted_record.id}"
       payload = query_params.merge(case: { status: "active" })
 
-      put(endpoint_url, params: payload.to_json, headers: headers)
+      patch(endpoint_url, params: payload.to_json, headers: headers)
 
       persisted_record.reload
       expect(persisted_record.active?).to eq(false)
@@ -520,7 +520,7 @@ RSpec.describe "cases", type: :request do
       new_attributes = { anatomy: "hip" }
       payload = query_params.merge(case: new_attributes)
 
-      put(endpoint_url, params: payload.to_json, headers: headers)
+      patch(endpoint_url, params: payload.to_json, headers: headers)
 
       expect_not_found_response
       persisted_record.reload
