@@ -10,7 +10,7 @@ def setup_attachment_attributes(record_type, record_id)
   }
 end
 
-RSpec.describe "attachments", type: :api do
+RSpec.describe "attachments", type: :request do
   fixtures :cases, :patients
 
   let(:query_params) { {} }
@@ -30,13 +30,13 @@ RSpec.describe "attachments", type: :api do
       expect(persisted_case.attachments.size).to eq(0)
 
       expect {
-        post(endpoint_url, payload.to_json, headers)
+        post(endpoint_url, params: payload.to_json, headers: headers)
       }.to change(Attachment, :count).by(1)
       expect_created_response
 
       expect(persisted_case.reload.attachments.size).to eq(1)
 
-      get "/v1/cases/#{persisted_case.id}", query_params.merge(showAttachments: true), headers
+      get("/v1/cases/#{persisted_case.id}", params: query_params.merge(showAttachments: true), headers: headers)
 
       expect_success_response
       response_record = json["case"]
@@ -51,7 +51,7 @@ RSpec.describe "attachments", type: :api do
       payload = query_params.merge(attachment: @attachment_attributes)
 
       expect {
-        post(endpoint_url, payload.to_json, headers)
+        post(endpoint_url, params: payload.to_json, headers: headers)
       }.to_not change(Attachment, :count)
       expect_not_found_response
     end
@@ -65,7 +65,7 @@ RSpec.describe "attachments", type: :api do
         payload = query_params.merge(attachment: @attachment_attributes)
 
         expect {
-          post(endpoint_url, payload.to_json, headers)
+          post(endpoint_url, params: payload.to_json, headers: headers)
         }.to_not change(Attachment, :count)
         expect_bad_request
         expect(json["error"]["message"]).to match(/#{required}/)

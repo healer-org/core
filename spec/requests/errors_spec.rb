@@ -1,4 +1,4 @@
-RSpec.describe "errors", type: :api do
+RSpec.describe "errors", type: :request do
   it "API handles 404 errors with JSON response" do
     get("/not/a/real/path")
 

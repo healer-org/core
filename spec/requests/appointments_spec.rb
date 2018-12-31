@@ -5,7 +5,7 @@ def validate_response_matches(response, record)
   ).to eq(true) if record.patient
 end
 
-RSpec.describe "appointments", type: :api do
+RSpec.describe "appointments", type: :request do
   fixtures :appointments, :patients
 
   let(:query_params) { {} }
@@ -27,7 +27,7 @@ RSpec.describe "appointments", type: :api do
     it_behaves_like "an authentication-protected #index endpoint"
 
     it "returns all appointments as JSON, along with patient data" do
-      get(endpoint_url, query_params, headers)
+      get(endpoint_url, params: query_params, headers: headers)
 
       expect_success_response
       expect(response_records.size).to eq(2)
@@ -43,7 +43,7 @@ RSpec.describe "appointments", type: :api do
     it "filters by location" do
       @persisted_2.update_attributes!(location: "room 1")
 
-      get(endpoint_url, query_params.merge(location: "room 1"), headers)
+      get(endpoint_url, params: query_params.merge(location: "room 1"), headers: headers)
 
       expect_success_response
       expect(response_records.size).to eq(1)
@@ -53,7 +53,7 @@ RSpec.describe "appointments", type: :api do
     it "filters by trip_id" do
       @persisted_1.update_attributes!(trip_id: "2")
 
-      get(endpoint_url, query_params.merge(trip_id: "2"), headers)
+      get(endpoint_url, params: query_params.merge(trip_id: "2"), headers: headers)
 
       expect_success_response
       expect(response_records.size).to eq(1)
@@ -66,8 +66,8 @@ RSpec.describe "appointments", type: :api do
 
       get(
         endpoint_url,
-        query_params.merge(location: "room 1", trip_id: "2"),
-        headers
+        params: query_params.merge(location: "room 1", trip_id: "2"),
+        headers: headers
       )
 
       expect_success_response
@@ -78,7 +78,7 @@ RSpec.describe "appointments", type: :api do
     it "does not include records belonging to deleted patients" do
       persisted = appointments(:for_deleted_patient)
 
-      get(endpoint_url, query_params, headers)
+      get(endpoint_url, params: query_params, headers: headers)
 
       expect_success_response
       expect(response_ids_for(json["appointments"])).not_to include(persisted.id)
@@ -93,7 +93,7 @@ RSpec.describe "appointments", type: :api do
     it_behaves_like "an authentication-protected #show endpoint"
 
     it "returns a single persisted record as JSON" do
-      get(endpoint_url, query_params, headers)
+      get(endpoint_url, params: query_params, headers: headers)
 
       expect_success_response
       response_record = json["appointment"]
@@ -104,7 +104,7 @@ RSpec.describe "appointments", type: :api do
     it "returns 404 if there is no persisted record" do
       endpoint_url = "#{endpoint_root_path}/#{persisted_record.id + 1}"
 
-      get(endpoint_url, query_params, headers)
+      get(endpoint_url, params: query_params, headers: headers)
 
       expect_not_found_response
     end
@@ -113,7 +113,7 @@ RSpec.describe "appointments", type: :api do
       persisted_record = appointments(:for_deleted_patient)
       endpoint_url = "#{endpoint_root_path}/#{persisted_record.id + 1}"
 
-      get(endpoint_url, query_params, headers)
+      get(endpoint_url, params: query_params, headers: headers)
 
       expect_not_found_response
     end
@@ -128,7 +128,7 @@ RSpec.describe "appointments", type: :api do
     it "returns 400 if JSON not provided" do
       payload = { appointment: appointments(:fernando_gt15).attributes.dup }
 
-      post(endpoint_url, payload, token_auth_header)
+      post(endpoint_url, params: payload, headers: token_auth_header)
 
       expect_bad_request
     end
@@ -141,7 +141,7 @@ RSpec.describe "appointments", type: :api do
       payload = query_params.merge(appointment: attributes)
 
       expect {
-        post(endpoint_url, payload.to_json, headers)
+        post(endpoint_url, params: payload.to_json, headers: headers)
       }.to change(Appointment, :count).by(1)
 
       expect_created_response
@@ -163,7 +163,7 @@ RSpec.describe "appointments", type: :api do
       payload = query_params.merge(appointment: attributes)
 
       expect {
-        post(endpoint_url, payload.to_json, headers)
+        post(endpoint_url, params: payload.to_json, headers: headers)
       }.to_not change(Appointment, :count)
 
       expect_bad_request
@@ -177,7 +177,7 @@ RSpec.describe "appointments", type: :api do
       payload = query_params.merge(appointment: attributes)
 
       expect {
-        post(endpoint_url, payload.to_json, headers)
+        post(endpoint_url, params: payload.to_json, headers: headers)
       }.to_not change(Appointment, :count)
 
       expect_not_found_response
@@ -190,7 +190,7 @@ RSpec.describe "appointments", type: :api do
       payload = query_params.merge(appointment: attributes)
 
       expect {
-        post(endpoint_url, payload.to_json, headers)
+        post(endpoint_url, params: payload.to_json, headers: headers)
       }.to_not change(Appointment, :count)
 
       expect_not_found_response
@@ -207,7 +207,7 @@ RSpec.describe "appointments", type: :api do
     it "returns 400 if JSON not provided" do
       payload = { appointment: { start_time: Time.now.utc + 1.week } }
 
-      put(endpoint_url, payload, token_auth_header)
+      put(endpoint_url, params: payload, headers: token_auth_header)
 
       expect_bad_request
     end
@@ -225,7 +225,7 @@ RSpec.describe "appointments", type: :api do
         expect(persisted_record.send(k)).not_to eq(v)
       end
 
-      put(endpoint_url, payload.to_json, headers)
+      put(endpoint_url, params: payload.to_json, headers: headers)
 
       response_record = json["appointment"]
       persisted_record.reload
@@ -248,7 +248,7 @@ RSpec.describe "appointments", type: :api do
       }
       payload = query_params.merge(appointment: new_attributes)
 
-      put(endpoint_url, payload.to_json, headers)
+      put(endpoint_url, params: payload.to_json, headers: headers)
 
       expect_bad_request
       expect(json["error"]["message"]).to match(/patient/i)
@@ -268,7 +268,7 @@ RSpec.describe "appointments", type: :api do
       }
       payload = query_params.merge(appointment: new_attributes)
 
-      put(endpoint_url, payload.to_json, headers)
+      put(endpoint_url, params: payload.to_json, headers: headers)
 
       persisted_record.reload
       expect(persisted_record.patient.name).to eq(original_patient_name)
@@ -283,7 +283,7 @@ RSpec.describe "appointments", type: :api do
       }
       payload = query_params.merge(appointment: new_attributes)
 
-      put(endpoint_url, payload.to_json, headers)
+      put(endpoint_url, params: payload.to_json, headers: headers)
 
       expect_not_found_response
     end
@@ -297,7 +297,7 @@ RSpec.describe "appointments", type: :api do
     it_behaves_like "an authentication-protected #delete endpoint"
 
     it "hard-deletes an existing persisted record" do
-      delete(endpoint_url, query_params, headers)
+      delete(endpoint_url, params: query_params, headers: headers)
 
       expect_success_response
       expect(json["message"]).to eq("Deleted")
@@ -308,7 +308,7 @@ RSpec.describe "appointments", type: :api do
     it "returns 404 if persisted record does not exist" do
       endpoint_url = "#{endpoint_root_path}/#{persisted_record.id + 1}"
 
-      delete(endpoint_url, query_params, headers)
+      delete(endpoint_url, params: query_params, headers: headers)
 
       expect_not_found_response
     end

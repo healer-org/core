@@ -1,4 +1,4 @@
-RSpec.describe "procedures", type: :api do
+RSpec.describe "procedures", type: :request do
   fixtures :cases
 
   let(:query_params) { {} }
@@ -14,7 +14,7 @@ RSpec.describe "procedures", type: :api do
     it "returns 400 if JSON not provided" do
       payload = { procedure: { case_id: the_case.id } }
 
-      post(endpoint_url, payload, token_auth_header)
+      post(endpoint_url, params: payload, headers: token_auth_header)
 
       expect_bad_request
     end
@@ -30,7 +30,7 @@ RSpec.describe "procedures", type: :api do
       payload = query_params.merge(procedure: attributes)
 
       expect {
-        post(endpoint_url, payload.to_json, headers)
+        post(endpoint_url, params: payload.to_json, headers: headers)
       }.to change(Procedure, :count).by(1)
 
       expect_created_response

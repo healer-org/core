@@ -1,4 +1,4 @@
-RSpec.describe "cases", type: :api do
+RSpec.describe "cases", type: :request do
   fixtures :cases, :patients, :procedures
 
   let(:query_params) { {} }
@@ -38,7 +38,7 @@ RSpec.describe "cases", type: :api do
       patient_1 = persisted_1.patient
       patient_2 = persisted_2.patient
 
-      get(endpoint_url, query_params, headers)
+      get(endpoint_url, params: query_params, headers: headers)
 
       expect_success_response
       expect(response_ids_for(response_records).any?(&:nil?)).to eq(false)
@@ -61,7 +61,7 @@ RSpec.describe "cases", type: :api do
     it "does not return deleted records" do
       deleted_case = cases(:fernando_deleted_right_knee)
 
-      get(endpoint_url, query_params, headers)
+      get(endpoint_url, params: query_params, headers: headers)
 
       expect_success_response
       expect(response_ids_for(json["cases"])).not_to include(deleted_case.id)
@@ -72,7 +72,7 @@ RSpec.describe "cases", type: :api do
       persisted_2 = cases(:silvia_right_foot)
       persisted_1.update_attributes!(status: "pending")
 
-      get(endpoint_url, query_params.merge(status: "pending"), headers)
+      get(endpoint_url, params: query_params.merge(status: "pending"), headers: headers)
 
       response_ids = response_ids_for(json["cases"])
 
@@ -85,7 +85,7 @@ RSpec.describe "cases", type: :api do
       persisted_1 = cases(:fernando_left_hip)
       persisted_1.update_attributes!(status: "deleted")
 
-      get(endpoint_url, query_params.merge(status: "deleted"), headers)
+      get(endpoint_url, params: query_params.merge(status: "deleted"), headers: headers)
 
       response_ids = response_ids_for(json["cases"])
 
@@ -100,7 +100,7 @@ RSpec.describe "cases", type: :api do
         document: uploaded_file
       )
 
-      get(endpoint_url, query_params, headers)
+      get(endpoint_url, params: query_params, headers: headers)
 
       expect_success_response
 
@@ -112,7 +112,7 @@ RSpec.describe "cases", type: :api do
       persisted = cases(:fernando_left_hip)
       Procedure.create!(case: persisted, data: valid_procedure_data)
 
-      get(endpoint_url, query_params, headers)
+      get(endpoint_url, params: query_params, headers: headers)
 
       expect_success_response
 
@@ -127,7 +127,7 @@ RSpec.describe "cases", type: :api do
         document: uploaded_file
       )
 
-      get(endpoint_url, query_params.merge(showAttachments: true), headers)
+      get(endpoint_url, params: query_params.merge(showAttachments: true), headers: headers)
 
       expect_success_response
 
@@ -147,7 +147,7 @@ RSpec.describe "cases", type: :api do
       expect(persisted.procedures.size).to eq(0)
       procedure = Procedure.create!(case: persisted, data: valid_procedure_data)
 
-      get(endpoint_url, query_params.merge(showProcedures: true), headers)
+      get(endpoint_url, params: query_params.merge(showProcedures: true), headers: headers)
 
       expect_success_response
 
@@ -166,7 +166,7 @@ RSpec.describe "cases", type: :api do
     it "returns a single persisted record as JSON" do
       persisted_patient = persisted_record.patient
 
-      get(endpoint_url, query_params, headers)
+      get(endpoint_url, params: query_params, headers: headers)
 
       expect_success_response
       expect(case_response_matches?(json["case"], persisted_record)).to eq(true)
@@ -176,7 +176,7 @@ RSpec.describe "cases", type: :api do
     it "returns pending cases" do
       persisted_record.update_attributes!(status: "pending")
 
-      get(endpoint_url, query_params, headers)
+      get(endpoint_url, params: query_params, headers: headers)
 
       expect_success_response
       expect(response_record["id"]).to eq(persisted_record.id)
@@ -185,13 +185,13 @@ RSpec.describe "cases", type: :api do
     it "returns 404 if there is no persisted record" do
       endpoint_url = "/v1/patients/#{persisted_record.id + 1}"
 
-      get(endpoint_url, query_params, headers)
+      get(endpoint_url, params: query_params, headers: headers)
 
       expect_not_found_response
     end
 
     it "does not return status attribute" do
-      get(endpoint_url, query_params, headers)
+      get(endpoint_url, params: query_params, headers: headers)
 
       expect_success_response
       expect(response_record.keys).not_to include("status")
@@ -204,7 +204,7 @@ RSpec.describe "cases", type: :api do
         document: uploaded_file
       )
 
-      get(endpoint_url, query_params, headers)
+      get(endpoint_url, params: query_params, headers: headers)
 
       expect_success_response
       expect(response_record.keys).not_to include("attachments")
@@ -216,7 +216,7 @@ RSpec.describe "cases", type: :api do
         document: uploaded_file
       )
 
-      get(endpoint_url, query_params.merge(showAttachments: true), headers)
+      get(endpoint_url, params: query_params.merge(showAttachments: true), headers: headers)
 
       expect_success_response
       expect(response_record["attachments"].size).to eq(1)
@@ -235,7 +235,7 @@ RSpec.describe "cases", type: :api do
         document: uploaded_file
       )
 
-      get(endpoint_url, query_params.merge(showAttachments: true), headers)
+      get(endpoint_url, params: query_params.merge(showAttachments: true), headers: headers)
 
       expect_success_response
       expect(response_record["attachments"].size).to eq(1)
@@ -252,7 +252,7 @@ RSpec.describe "cases", type: :api do
       persisted_record = cases(:fernando_deleted_right_knee)
       endpoint_url = "/v1/patients/#{persisted_record.id}"
 
-      get(endpoint_url, query_params, headers)
+      get(endpoint_url, params: query_params, headers: headers)
 
       expect_not_found_response
     end
@@ -261,7 +261,7 @@ RSpec.describe "cases", type: :api do
       persisted_record = cases(:deleted_patient_active_left_hip)
       endpoint_url = "/v1/patients/#{persisted_record.id}"
 
-      get(endpoint_url, query_params, headers)
+      get(endpoint_url, params: query_params, headers: headers)
 
       expect_not_found_response
     end
@@ -276,7 +276,7 @@ RSpec.describe "cases", type: :api do
     it "returns 400 if JSON not provided" do
       payload = { case: cases(:fernando_left_hip).attributes.dup }
 
-      post(endpoint_url, payload, token_auth_header)
+      post(endpoint_url, params: payload, headers: token_auth_header)
 
       expect_bad_request
     end
@@ -292,7 +292,7 @@ RSpec.describe "cases", type: :api do
         payload = query_params.merge(case: case_attributes)
 
         expect {
-          post(endpoint_url, payload.to_json, headers)
+          post(endpoint_url, params: payload.to_json, headers: headers)
         }.to change(Case, :count).by(1)
 
         expect_created_response
@@ -316,7 +316,7 @@ RSpec.describe "cases", type: :api do
         payload = query_params.merge(case: case_attributes)
 
         expect {
-          post(endpoint_url, payload.to_json, headers)
+          post(endpoint_url, params: payload.to_json, headers: headers)
         }.to change(Patient, :count).by(1)
 
         persisted_record = Patient.last
@@ -340,7 +340,7 @@ RSpec.describe "cases", type: :api do
         payload = query_params.merge(case: case_attributes)
 
         expect {
-          post(endpoint_url, payload.to_json, headers)
+          post(endpoint_url, params: payload.to_json, headers: headers)
         }.to_not change(Case, :count)
 
         expect_bad_request
@@ -360,7 +360,7 @@ RSpec.describe "cases", type: :api do
         payload = query_params.merge(case: case_attributes)
 
         expect {
-          post(endpoint_url, payload.to_json, headers)
+          post(endpoint_url, params: payload.to_json, headers: headers)
         }.to change(Case, :count).by(1)
 
         expect_created_response
@@ -379,7 +379,7 @@ RSpec.describe "cases", type: :api do
         payload = query_params.merge(case: case_attributes)
 
         expect {
-          post(endpoint_url, payload.to_json, headers)
+          post(endpoint_url, params: payload.to_json, headers: headers)
         }.to change(Case, :count).by(1)
 
         persisted_record = Case.last
@@ -404,7 +404,7 @@ RSpec.describe "cases", type: :api do
           payload = query_params.merge(case: case_attributes)
 
           expect {
-            post(endpoint_url, payload.to_json, headers)
+            post(endpoint_url, params: payload.to_json, headers: headers)
           }.to change(Case, :count).by(1)
 
           patient.reload
@@ -426,7 +426,7 @@ RSpec.describe "cases", type: :api do
           payload = query_params.merge(case: case_attributes)
 
           expect {
-            post(endpoint_url, payload.to_json, headers)
+            post(endpoint_url, params: payload.to_json, headers: headers)
           }.to_not change(Patient, :count)
         end
       end
@@ -438,7 +438,7 @@ RSpec.describe "cases", type: :api do
         case_attributes[:patient] = { name: "Patient Info" }
         payload = query_params.merge(case: case_attributes)
 
-        post(endpoint_url, payload.to_json, headers)
+        post(endpoint_url, params: payload.to_json, headers: headers)
 
         expect_not_found_response
       end
@@ -450,7 +450,7 @@ RSpec.describe "cases", type: :api do
         case_attributes.delete(:patient_id)
         payload = query_params.merge(case: case_attributes)
 
-        post(endpoint_url, payload.to_json, headers)
+        post(endpoint_url, params: payload.to_json, headers: headers)
 
         expect_bad_request
         expect(json["error"]["message"]).to match(/patient/i)
@@ -468,7 +468,7 @@ RSpec.describe "cases", type: :api do
     it "returns 400 if JSON not provided" do
       payload = { case: { anatomy: "hip" } }
 
-      put(endpoint_url, payload, token_auth_header)
+      put(endpoint_url, params: payload, headers: token_auth_header)
 
       expect_bad_request
     end
@@ -476,7 +476,7 @@ RSpec.describe "cases", type: :api do
     it "updates an existing case record" do
       payload = { case: { anatomy: "knee", side: "right" } }
 
-      put(endpoint_url, payload.to_json, headers)
+      put(endpoint_url, params: payload.to_json, headers: headers)
 
       persisted_record.reload
       expect(persisted_record.anatomy).to eq("knee")
@@ -496,7 +496,7 @@ RSpec.describe "cases", type: :api do
       }
       payload = query_params.merge(case: new_attributes)
 
-      put(endpoint_url, payload.to_json, headers)
+      put(endpoint_url, params: payload.to_json, headers: headers)
 
       persisted_record.reload
       expect(persisted_record.patient.reload).to eq(patient)
@@ -508,7 +508,7 @@ RSpec.describe "cases", type: :api do
       endpoint_url = "#{endpoint_root_path}/#{persisted_record.id}"
       payload = query_params.merge(case: { status: "active" })
 
-      put(endpoint_url, payload.to_json, headers)
+      put(endpoint_url, params: payload.to_json, headers: headers)
 
       persisted_record.reload
       expect(persisted_record.active?).to eq(false)
@@ -520,7 +520,7 @@ RSpec.describe "cases", type: :api do
       new_attributes = { anatomy: "hip" }
       payload = query_params.merge(case: new_attributes)
 
-      put(endpoint_url, payload.to_json, headers)
+      put(endpoint_url, params: payload.to_json, headers: headers)
 
       expect_not_found_response
       persisted_record.reload
@@ -536,7 +536,7 @@ RSpec.describe "cases", type: :api do
     it_behaves_like "an authentication-protected #delete endpoint"
 
     it "soft-deletes an existing persisted record" do
-      delete(endpoint_url, query_params, headers)
+      delete(endpoint_url, params: query_params, headers: headers)
 
       expect_success_response
       expect(json["message"]).to eq("Deleted")
@@ -547,7 +547,7 @@ RSpec.describe "cases", type: :api do
     it "returns 404 if persisted record does not exist" do
       expect(Case.find_by_id(100)).to be_nil
 
-      delete("#{endpoint_root_path}/100", query_params, headers)
+      delete("#{endpoint_root_path}/100", params: query_params, headers: headers)
 
       expect_not_found_response
     end
@@ -556,7 +556,7 @@ RSpec.describe "cases", type: :api do
       persisted_record = cases(:fernando_deleted_right_knee)
       endpoint_url = "#{endpoint_root_path}/#{persisted_record.id}"
 
-      delete(endpoint_url, query_params, headers)
+      delete(endpoint_url, params: query_params, headers: headers)
 
       expect_not_found_response
     end
