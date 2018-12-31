@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Case < Base
   include SoftDelete
 

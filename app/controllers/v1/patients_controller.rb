@@ -1,11 +1,10 @@
+# frozen_string_literal: true
+
 module V1
   class PatientsController < BaseController
-    # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
     def index
       patients = Patient.all.active
-      if params[:showCases]
-        cases_records = Case.where(patient_id: patients.map(&:id)).active
-      end
+      cases_records = Case.where(patient_id: patients.map(&:id)).active if params[:showCases]
 
       presented_patients = patients.map do |patient|
         patient_attributes = patient.attributes
@@ -23,7 +22,6 @@ module V1
         status: :ok
       )
     end
-    # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
     def show
       patient = Patient.active.find_by!(id: params[:id])
@@ -54,7 +52,7 @@ module V1
       render_one(patient.attributes)
     end
 
-    def delete
+    def destroy
       patient = Patient.active.find_by!(id: params[:id])
       patient.delete!
 

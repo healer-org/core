@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 module Healer
   class Cutover
-    def initialize(options = {})
-    end
+    def initialize(options = {}); end
 
     def banzai!
       extract

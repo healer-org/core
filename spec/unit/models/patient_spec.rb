@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe Patient do
   fixtures :patients, :cases
 
@@ -56,7 +58,7 @@ RSpec.describe Patient do
       expect(patient.active?).to eq(false)
     end
 
-    %w(active).each do |status|
+    %w[active].each do |status|
       it "is true if status is #{status}" do
         patient = patients(:fernando)
         patient.update_attributes!(status: status)

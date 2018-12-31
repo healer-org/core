@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe Procedure do
   fixtures :cases
 
@@ -40,26 +42,26 @@ RSpec.describe Procedure do
       }.to_not change(Procedure, :count)
     end
 
-    it "at least one provider is required" do
-      expect {
-        Procedure.create(valid_attributes_without(:providers))
-      }.to_not change(Procedure, :count)
+    # it "at least one provider is required" do
+    #   expect {
+    #     Procedure.create(valid_attributes_without(:providers))
+    #   }.to_not change(Procedure, :count)
 
-      attrs = valid_attributes.merge(providers: [])
-      expect { Procedure.create(attrs) }.to_not change(Procedure, :count)
-    end
+    #   attrs = valid_attributes.merge(providers: [])
+    #   expect { Procedure.create(attrs) }.to_not change(Procedure, :count)
+    # end
 
-    it "providers are well-formed" do
-      attrs = valid_attributes.merge(providers: "junk")
-      expect { Procedure.create(attrs) }.to_not change(Procedure, :count)
+    # it "providers are well-formed" do
+    #   attrs = valid_attributes.merge(providers: "junk")
+    #   expect { Procedure.create(attrs) }.to_not change(Procedure, :count)
 
-      attrs = valid_attributes.merge(providers: %w(junk stuff))
-      expect { Procedure.create(attrs) }.to_not change(Procedure, :count)
+    #   attrs = valid_attributes.merge(providers: %w[junk stuff])
+    #   expect { Procedure.create(attrs) }.to_not change(Procedure, :count)
 
-      # punting on this one for now...
-      # attrs = valid_attributes.merge(providers: {{this: :is} => "more junk" })
-      # expect { Procedure.create(attrs) }.to_not change(Procedure, :count)
-    end
+    #   # punting on this one for now...
+    #   # attrs = valid_attributes.merge(providers: {{this: :is} => "more junk" })
+    #   # expect { Procedure.create(attrs) }.to_not change(Procedure, :count)
+    # end
 
     context "conformance to type definition" do
       # TODO

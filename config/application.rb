@@ -1,4 +1,6 @@
-require File.expand_path('../boot', __FILE__)
+# frozen_string_literal: true
+
+require File.expand_path('boot', __dir__)
 
 require "rails/all"
 
@@ -12,11 +14,13 @@ module Healer
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
 
+    config.api_only = true
+
     Dir[Rails.root.join("app/middleware/**/*.rb")].each { |f| require f }
 
-    config.autoload_paths += %W(
+    config.autoload_paths += %W[
       #{config.root}/app/**/
       #{config.root}/lib
-    )
+    ]
   end
 end

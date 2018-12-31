@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe V1::ProcedureDefinitionReader do
   describe "reading a config file" do
     it "reads a configuration file into JSON" do
@@ -6,7 +8,7 @@ RSpec.describe V1::ProcedureDefinitionReader do
       )
 
       def_keys = JSON.parse(reader.definition)["properties"].keys.map(&:to_sym)
-      [:sites, :implants].each do |key|
+      %i[sites implants].each do |key|
         expect(def_keys).to include(key)
       end
     end

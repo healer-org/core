@@ -1,8 +1,11 @@
-require File.expand_path('../config/application', __FILE__)
+# frozen_string_literal: true
+
+require File.expand_path('config/application', __dir__)
 
 task :set_up_configs do
-  %w(database).each do |file_basename|
+  %w[database].each do |file_basename|
     next if File.exist?("config/#{file_basename}.yml")
+
     system(`cp config/#{file_basename}.yml.example config/#{file_basename}.yml`)
   end
 end
@@ -16,7 +19,7 @@ RuboCop::RakeTask.new(:run_rubocop) do |task|
   task.options = ["--display-cop-names", "--fail-fast"]
 end
 
-task(run_tests: %w(set_test_environment spec))
-task(default: %w(set_up_configs run_tests run_rubocop))
+task(run_tests: %w[set_test_environment spec])
+task(default: %w[set_up_configs run_tests run_rubocop])
 
 Rails.application.load_tasks

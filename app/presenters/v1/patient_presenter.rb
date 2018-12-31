@@ -1,12 +1,13 @@
+# frozen_string_literal: true
+
 module V1
   class PatientPresenter < BasePresenter
-    SIMPLE_ATTRIBUTES = %i(id name gender birth death).freeze
+    SIMPLE_ATTRIBUTES = %i[id name gender birth death].freeze
 
     def initialize(attributes)
       @attributes = HashWithIndifferentAccess.new(attributes)
     end
 
-    # rubocop:disable Metrics/MethodLength
     def present
       {}.tap do |presented|
         SIMPLE_ATTRIBUTES.each do |k|
@@ -24,7 +25,6 @@ module V1
         end
       end
     end
-    # rubocop:enable Metrics/MethodLength
 
     private
 

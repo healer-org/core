@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.shared_examples "an authentication-protected #index endpoint" do
   it "returns 401 if authentication headers are not present" do
     get(endpoint_root_path)
@@ -24,7 +26,7 @@ end
 
 RSpec.shared_examples "an authentication-protected #update endpoint" do
   it "returns 401 if authentication headers are not present" do
-    put("#{endpoint_root_path}/1", params: {}.to_json, headers: json_content_headers)
+    patch("#{endpoint_root_path}/1", params: {}.to_json, headers: json_content_headers)
 
     expect_failed_authentication
   end
