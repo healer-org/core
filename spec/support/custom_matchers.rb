@@ -36,7 +36,6 @@ module CustomMatchers
     )
   end
 
-  # rubocop:disable Metrics/AbcSize
   def response_and_record_match?(response, record, attributes, custom_types = {})
     attributes.all? do |attr|
       value = response[attr.to_s.camelize(:lower)]
@@ -49,5 +48,4 @@ module CustomMatchers
       end
     end
   end
-  # rubocop:enable Metrics/AbcSize
 end

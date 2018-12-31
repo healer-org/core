@@ -2,7 +2,6 @@
 
 module V1
   class PatientsController < BaseController
-    # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
     def index
       patients = Patient.all.active
       cases_records = Case.where(patient_id: patients.map(&:id)).active if params[:showCases]
@@ -23,7 +22,6 @@ module V1
         status: :ok
       )
     end
-    # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
     def show
       patient = Patient.active.find_by!(id: params[:id])

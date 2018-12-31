@@ -19,13 +19,12 @@ module V1
       render_one(record)
     end
 
-    # rubocop:disable Style/RaiseArgs
     def create
       validate_json_request!
 
       appointment_record = Appointment.new(appointment_params)
       unless appointment_record.patient_id
-        raise ActionController::ParameterMissing.new("Missing patient id")
+        raise ActionController::ParameterMissing, "Missing patient id"
       end
 
       Patient.active.find(appointment_record.patient_id)
@@ -33,7 +32,6 @@ module V1
       appointment_record.save!
       render_one(appointment_record, :created)
     end
-    # rubocop:enable Style/RaiseArgs
 
     def update
       validate_json_request!
@@ -83,8 +81,7 @@ module V1
       )
     end
 
-    # rubocop:disable Metrics/MethodLength
-    def appointment_params
+    def appointment_params # rubocop:disable Metrics/MethodLength
       filtered_params = params.require(:appointment).permit(
         :trip_id,
         :patient_id,
@@ -99,7 +96,6 @@ module V1
       end
       filtered_params
     end
-    # rubocop:enable Metrics/MethodLength
 
     def filter_params
       params.permit(:trip_id, :location).slice(:trip_id, :location)

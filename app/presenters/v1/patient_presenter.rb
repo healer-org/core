@@ -8,7 +8,6 @@ module V1
       @attributes = HashWithIndifferentAccess.new(attributes)
     end
 
-    # rubocop:disable Metrics/MethodLength
     def present
       {}.tap do |presented|
         SIMPLE_ATTRIBUTES.each do |k|
@@ -26,7 +25,6 @@ module V1
         end
       end
     end
-    # rubocop:enable Metrics/MethodLength
 
     private
 
