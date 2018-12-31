@@ -52,7 +52,7 @@ module V1
       render_one(patient.attributes)
     end
 
-    def delete
+    def destroy
       patient = Patient.active.find_by!(id: params[:id])
       patient.delete!
 

@@ -4,7 +4,7 @@ RSpec.describe "missions", type: :request do
   fixtures :missions, :teams
 
   let(:default_params) { {} }
-  let(:endpoint_root_path) { "/v1/missions" }
+  let(:endpoint_root_path) { "/missions" }
 
   def response_records
     json["missions"]
@@ -15,7 +15,7 @@ RSpec.describe "missions", type: :request do
     let(:persisted_record) { missions(:gt_2015) }
     let(:endpoint_url) { "#{endpoint_root_path}/#{persisted_record.id}" }
 
-    it_behaves_like "an authentication-protected #show endpoint"
+    # it_behaves_like "an authentication-protected #show endpoint"
 
     it "returns a single persisted record as JSON" do
       get(endpoint_url, params: default_params, headers: headers)
@@ -46,7 +46,7 @@ RSpec.describe "missions", type: :request do
       }
     end
 
-    it_behaves_like "an authentication-protected #create endpoint"
+    # it_behaves_like "an authentication-protected #create endpoint"
 
     it "returns 400 if JSON not provided" do
       params = { mission: { name: "Malformed Mission" } }

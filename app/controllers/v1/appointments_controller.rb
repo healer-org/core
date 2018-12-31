@@ -49,7 +49,7 @@ module V1
       params[:patient_id] && params[:patient_id] != appointment_record.patient_id
     end
 
-    def delete
+    def destroy
       persisted_record = Appointment.find(params[:id])
       persisted_record.destroy
 

@@ -15,7 +15,7 @@ class Procedure < Base
   validates :case, presence: true
   validates :type, presence: true
   validates :version, presence: true
-  validate :providers_correctly_formatted
+  # validate :providers_correctly_formatted
   validate :conforms_to_definition
 
   def method_missing(method_name, *args)
@@ -24,9 +24,9 @@ class Procedure < Base
 
   private
 
-  def providers_correctly_formatted
-    errors.add(:providers, "are malformed") unless providers.is_a?(Hash)
-  end
+  # def providers_correctly_formatted
+  #   errors.add(:providers, "are malformed") unless providers.is_a?(Hash)
+  # end
 
   def conforms_to_definition
     JSON::Validator.fully_validate(

@@ -46,7 +46,7 @@ module V1
       render_one(case_record)
     end
 
-    def delete
+    def destroy
       case_record = Case.active.find(params[:id])
       case_record.delete!
 
