@@ -1,8 +1,12 @@
+# frozen_string_literal: true
+
 def validate_response_matches(response, record)
   expect(appointment_response_matches?(response, record)).to eq(true)
-  expect(
-    patient_response_matches?(response["patient"], record.patient)
-  ).to eq(true) if record.patient
+  if record.patient
+    expect(
+      patient_response_matches?(response["patient"], record.patient)
+    ).to eq(true)
+  end
 end
 
 RSpec.describe "appointments", type: :request do

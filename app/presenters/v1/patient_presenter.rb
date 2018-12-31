@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module V1
   class PatientPresenter < BasePresenter
-    SIMPLE_ATTRIBUTES = %i(id name gender birth death).freeze
+    SIMPLE_ATTRIBUTES = %i[id name gender birth death].freeze
 
     def initialize(attributes)
       @attributes = HashWithIndifferentAccess.new(attributes)

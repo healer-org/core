@@ -1,13 +1,15 @@
+# frozen_string_literal: true
+
 module V1
   class AttachmentPresenter < BasePresenter
-    SIMPLE_ATTRIBUTES = %i(
+    SIMPLE_ATTRIBUTES = %i[
       id
       description
       documentContentType
       documentFileName
       documentFileSize
       createdAt
-    ).freeze
+    ].freeze
 
     def initialize(attributes)
       @attributes = HashWithIndifferentAccess.new(attributes)

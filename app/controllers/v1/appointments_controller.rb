@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 module V1
   class AppointmentsController < BaseController
@@ -68,7 +69,7 @@ module V1
 
     def presented(appointment)
       attributes = appointment.attributes
-      %w(start end).each do |k|
+      %w[start end].each do |k|
         attributes[k] = attributes[k].to_s(:iso8601) if attributes[k]
       end
       attributes[:patient] = appointment.patient.attributes
@@ -90,9 +91,10 @@ module V1
         :start,
         :order,
         :location,
-        :end)
+        :end
+      )
 
-      [:start, :end].each do |param|
+      %i[start end].each do |param|
         filtered_params[param] = DateTime.parse(filtered_params[param]) if filtered_params[param]
       end
       filtered_params

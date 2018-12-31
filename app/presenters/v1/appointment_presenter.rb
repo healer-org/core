@@ -1,12 +1,14 @@
+# frozen_string_literal: true
+
 module V1
   class AppointmentPresenter < BasePresenter
-    SIMPLE_ATTRIBUTES = %i(
+    SIMPLE_ATTRIBUTES = %i[
       id
       start
       order
       end
       location
-    ).freeze
+    ].freeze
 
     def initialize(attributes)
       @attributes = attributes

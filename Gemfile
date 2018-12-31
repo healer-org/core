@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 source "https://rubygems.org"
 
 ruby File.read(
@@ -9,18 +11,18 @@ ruby File.read(
   )
 ).split("-").last.chomp
 
-gem "rails", "~> 5.2"
 gem "json-schema"
+gem "rails", "~> 5.2"
 
 gem "paperclip", "~> 5.2.0"
 
 gem "pg"
 
 group :development, :test do
-  gem "spring"
-  gem "rspec-rails", "~> 3.7.0"
+  gem "byebug"
   gem "database_cleaner", "~> 1.6.0"
   gem "faker"
-  gem "byebug"
+  gem "rspec-rails", "~> 3.7.0"
   gem "rubocop"
+  gem "spring"
 end

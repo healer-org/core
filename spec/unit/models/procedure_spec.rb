@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe Procedure do
   fixtures :cases
 
@@ -53,7 +55,7 @@ RSpec.describe Procedure do
       attrs = valid_attributes.merge(providers: "junk")
       expect { Procedure.create(attrs) }.to_not change(Procedure, :count)
 
-      attrs = valid_attributes.merge(providers: %w(junk stuff))
+      attrs = valid_attributes.merge(providers: %w[junk stuff])
       expect { Procedure.create(attrs) }.to_not change(Procedure, :count)
 
       # punting on this one for now...

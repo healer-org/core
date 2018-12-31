@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module V1
   class CasesController < BaseController
     def index
@@ -70,12 +72,8 @@ module V1
     def presented(case_record)
       attributes = case_record.attributes
       attributes[:patient] = case_record.patient.attributes
-      if show_attachments?
-        attributes[:attachments] = case_record.attachments.map.map(&:attributes)
-      end
-      if show_procedures?
-        attributes[:procedures] = case_record.procedures.map(&:attributes)
-      end
+      attributes[:attachments] = case_record.attachments.map.map(&:attributes) if show_attachments?
+      attributes[:procedures] = case_record.procedures.map(&:attributes) if show_procedures?
 
       CasePresenter.new(attributes).present
     end

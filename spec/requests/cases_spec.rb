@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe "cases", type: :request do
   fixtures :cases, :patients, :procedures
 

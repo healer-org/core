@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module V1
   class AttachmentsController < BaseController
     # rubocop:disable Style/RaiseArgs
@@ -29,8 +31,8 @@ module V1
     end
 
     def required_params_missing?
-      @missing_params = %i(record_id record_type data content_type file_name).select do |req|
-        !params[:attachment][req].present?
+      @missing_params = %i[record_id record_type data content_type file_name].reject do |req|
+        params[:attachment][req].present?
       end
 
       @missing_params.present?

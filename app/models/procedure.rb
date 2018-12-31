@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Procedure < Base
   belongs_to :appointment
   belongs_to :case
@@ -45,7 +47,7 @@ class Procedure < Base
 
   def definition_reader_for(type)
     V1::ProcedureDefinitionReader.new(type.to_sym).definition
-  rescue
+  rescue StandardError
     {}.to_json
   end
 end

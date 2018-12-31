@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 Rails.application.routes.draw do
   namespace :v1 do
     get     "appointments"     => "appointments#index"
     get     "appointments/:id" => "appointments#show"
     post    "appointments"     => "appointments#create"
-    patch     "appointments/:id" => "appointments#update"
+    patch "appointments/:id" => "appointments#update"
     delete  "appointments/:id" => "appointments#delete"
 
     post    "attachments" => "attachments#create"
@@ -11,7 +13,7 @@ Rails.application.routes.draw do
     get     "cases"     => "cases#index"
     get     "cases/:id" => "cases#show"
     post    "cases"     => "cases#create"
-    patch     "cases/:id" => "cases#update"
+    patch "cases/:id" => "cases#update"
     delete  "cases/:id" => "cases#delete"
 
     get     "missions/:id" => "missions#show"
@@ -21,8 +23,8 @@ Rails.application.routes.draw do
     get     "patients"        => "patients#index"
     get     "patients/:id"    => "patients#show"
     post    "patients"        => "patients#create"
-    patch     "patients/:id"    => "patients#update"
-    delete  "patients/:id"    => "patients#delete"
+    patch "patients/:id" => "patients#update"
+    delete  "patients/:id" => "patients#delete"
 
     post    "procedures" => "procedures#create"
 

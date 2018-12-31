@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module V1
   class CasePresenter < BasePresenter
-    SIMPLE_ATTRIBUTES = %i(id anatomy side).freeze
+    SIMPLE_ATTRIBUTES = %i[id anatomy side].freeze
 
     def initialize(case_attributes)
       @case_attributes = case_attributes

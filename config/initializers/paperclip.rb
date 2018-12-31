@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 if Rails.env.test?
   Paperclip::Attachment.default_options.merge!(
     url: "/system/:rails_env/:class/:attachment/:id_partition/:style/:filename",

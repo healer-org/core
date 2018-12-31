@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 def setup_attachment_attributes(record_type, record_id)
   file_path = "#{Rails.root}/spec/attachments/1x1.png"
   file = File.open(file_path, "rb")
@@ -56,7 +58,7 @@ RSpec.describe "attachments", type: :request do
       expect_not_found_response
     end
 
-    %i(record_id record_type data content_type file_name).each do |required|
+    %i[record_id record_type data content_type file_name].each do |required|
       it "returns 400 if #{required} attribute is not supplied" do
         persisted_case = cases(:fernando_left_hip)
         setup_attachment_attributes("Case", persisted_case.id)

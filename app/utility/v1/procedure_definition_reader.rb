@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module V1
   class ProcedureDefinitionReader
     class ConfigNotFound < StandardError; end
@@ -18,7 +20,7 @@ module V1
     def read_definition
       raise ConfigNotFound unless File.exist?(config_file_path)
 
-      YAML.load(
+      YAML.safe_load(
         File.read(config_file_path)
       ).deep_symbolize_keys![definition_name]
     end

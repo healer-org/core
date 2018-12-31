@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # TODO: messaging & logging behavior
 # TODO: undelete functionality for administrator clients
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe Case do
   fixtures :cases
 
@@ -28,7 +30,7 @@ RSpec.describe Case do
       expect(a_case.active?).to eq(false)
     end
 
-    %w(active).each do |status|
+    %w[active].each do |status|
       it "is true if status is #{status}" do
         a_case = cases(:fernando_left_hip)
         a_case.update_attributes!(status: status)

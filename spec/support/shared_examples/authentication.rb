@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.shared_examples "an authentication-protected #index endpoint" do
   it "returns 401 if authentication headers are not present" do
     get(endpoint_root_path)

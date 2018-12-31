@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 module SoftDelete
-  ACTIVE_STATUSES = %w(active).freeze
+  ACTIVE_STATUSES = %w[active].freeze
 
   extend ActiveSupport::Concern
 
