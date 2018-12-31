@@ -1,16 +1,16 @@
 class ApplicationController < ActionController::API
   BAD_REQUESTS = [
-    ActionController::BadRequest,
-    ActiveRecord::RecordInvalid,
-    ActionController::ParameterMissing,
-    Errors::MismatchedPatient
+    "ActionController::BadRequest",
+    "ActiveRecord::RecordInvalid",
+    "ActionController::ParameterMissing",
+    "Errors::MismatchedPatient"
   ].freeze
 
   NOT_FOUND_REQUESTS = [
-    ActiveRecord::RecordNotFound
+    "ActiveRecord::RecordNotFound"
   ].freeze
 
-  after_filter :set_access_control_headers
+  after_action :set_dev_access_control_headers, if: -> { Rails.env == "development" }
 
   rescue_from(*NOT_FOUND_REQUESTS) do
     render_error(code: :not_found, message: "Not Found")
@@ -41,8 +41,7 @@ class ApplicationController < ActionController::API
 
   private
 
-  def set_access_control_headers
-    return unless Rails.env == "development"
+  def set_dev_access_control_headers
     headers["Access-Control-Allow-Origin"] = "*"
     headers["Access-Control-Request-Method"] = "*"
   end

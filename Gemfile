@@ -1,19 +1,26 @@
 source "https://rubygems.org"
 
-gem "rails", "~> 4.2"
-gem "rails-api"
-gem "hashie"
+ruby File.read(
+  File.expand_path(
+    File.join(
+      File.dirname(__FILE__),
+      ".ruby-version"
+    )
+  )
+).split("-").last.chomp
+
+gem "rails", "~> 5.1"
 gem "json-schema"
 
-gem "paperclip", "~> 4.2"
+gem "paperclip", "~> 5.1"
 
 gem "pg"
 
 group :development, :test do
   gem "spring"
-  gem "rspec-rails", "3.1.0"
-  gem "database_cleaner", "1.3.0"
+  gem "rspec-rails", "~> 3.7.0"
+  gem "database_cleaner", "~> 1.6.0"
   gem "faker"
-  gem "pry"
+  gem "byebug"
   gem "rubocop"
 end

@@ -5,10 +5,10 @@ class Procedure < Base
   store_accessor :data,
                  :date,
                  :providers,
+                 :sites,
+                 :title,
                  :type,
                  :version
-
-  serialize :data, ProcedureSerializer
 
   validates :case, presence: true
   validates :type, presence: true
