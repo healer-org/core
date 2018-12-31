@@ -14,6 +14,8 @@ module Healer
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
 
+    config.api_only = true
+
     Dir[Rails.root.join("app/middleware/**/*.rb")].each { |f| require f }
 
     config.autoload_paths += %W[
