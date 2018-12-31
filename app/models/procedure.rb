@@ -37,9 +37,6 @@ class Procedure < Base
   end
 
   def definition
-    # TODO: the V1 namespace will eventually be replaced by "version"
-    #      which will require some error checking
-
     # inline rescue is to alleviate missing type, which is responsible for
     # determining which definition to use. maybe raise after_initialize instead?
     @definition ||= definition_reader_for(type)

@@ -14,13 +14,15 @@ RSpec.describe "appointments", type: :request do
 
   let(:query_params) { {} }
   let(:endpoint_root_path) { "/appointments" }
+  let(:headers) do
+    v1_accept_header.merge(token_auth_header).merge(json_content_headers)
+  end
 
   def response_records
     json["appointments"]
   end
 
   describe "GET index" do
-    let(:headers) { token_auth_header }
     let(:endpoint_url) { endpoint_root_path }
 
     before(:each) do
@@ -90,7 +92,6 @@ RSpec.describe "appointments", type: :request do
   end
 
   describe "GET show" do
-    let(:headers) { token_auth_header }
     let(:persisted_record) { appointments(:fernando_gt15) }
     let(:endpoint_url) { "#{endpoint_root_path}/#{persisted_record.id}" }
 
@@ -124,7 +125,6 @@ RSpec.describe "appointments", type: :request do
   end
 
   describe "POST create" do
-    let(:headers) { token_auth_header.merge(json_content_headers) }
     let(:endpoint_url) { endpoint_root_path }
 
     # it_behaves_like "an authentication-protected #create endpoint"
@@ -202,7 +202,6 @@ RSpec.describe "appointments", type: :request do
   end
 
   describe "PATCH update" do
-    let(:headers) { token_auth_header.merge(json_content_headers) }
     let(:persisted_record) { appointments(:fernando_gt15) }
     let(:endpoint_url) { "#{endpoint_root_path}/#{persisted_record.id}" }
 
@@ -294,7 +293,6 @@ RSpec.describe "appointments", type: :request do
   end
 
   describe "DELETE" do
-    let(:headers) { token_auth_header }
     let(:persisted_record) { appointments(:fernando_gt15) }
     let(:endpoint_url) { "#{endpoint_root_path}/#{persisted_record.id}" }
 

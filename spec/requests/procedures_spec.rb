@@ -5,9 +5,11 @@ RSpec.describe "procedures", type: :request do
 
   let(:query_params) { {} }
   let(:endpoint_root_path) { "/procedures" }
+  let(:headers) do
+    v1_accept_header.merge(token_auth_header).merge(json_content_headers)
+  end
 
   describe "POST create" do
-    let(:headers) { token_auth_header.merge(json_content_headers) }
     let(:endpoint_url) { endpoint_root_path }
     let(:the_case) { cases(:fernando_left_hip) }
 

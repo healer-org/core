@@ -5,13 +5,15 @@ RSpec.describe "missions", type: :request do
 
   let(:default_params) { {} }
   let(:endpoint_root_path) { "/missions" }
+  let(:headers) do
+    v1_accept_header.merge(token_auth_header).merge(json_content_headers)
+  end
 
   def response_records
     json["missions"]
   end
 
   describe "GET show" do
-    let(:headers) { token_auth_header }
     let(:persisted_record) { missions(:gt_2015) }
     let(:endpoint_url) { "#{endpoint_root_path}/#{persisted_record.id}" }
 
@@ -36,7 +38,6 @@ RSpec.describe "missions", type: :request do
   end
 
   describe "POST create" do
-    let(:headers) { token_auth_header.merge(json_content_headers) }
     let(:endpoint_url) { endpoint_root_path }
     let(:mission) { missions(:gt_2015) }
     let(:valid_attrs) do

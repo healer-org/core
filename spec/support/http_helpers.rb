@@ -47,10 +47,15 @@ module HTTP
       }
     end
 
+    def v1_accept_header
+      {
+        "Accept" => "application/vnd.healer-api.v1+json"
+      }
+    end
+
     def json_content_headers
       {
-        "Content-Type" => "application/json",
-        "CONTENT_TYPE" => "application/json"
+        "Content-Type" => "application/json"
       }
     end
   end

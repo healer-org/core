@@ -5,6 +5,9 @@ RSpec.describe "cases", type: :request do
 
   let(:query_params) { {} }
   let(:endpoint_root_path) { "/cases" }
+  let(:headers) do
+    v1_accept_header.merge(token_auth_header).merge(json_content_headers)
+  end
 
   def uploaded_file
     extend ActionDispatch::TestProcess
@@ -20,7 +23,6 @@ RSpec.describe "cases", type: :request do
   end
 
   describe "GET index" do
-    let(:headers) { token_auth_header }
     let(:endpoint_url) { endpoint_root_path }
     let(:valid_procedure_data) do
       {
@@ -161,7 +163,6 @@ RSpec.describe "cases", type: :request do
   end
 
   describe "GET show" do
-    let(:headers) { token_auth_header }
     let(:persisted_record) { cases(:fernando_left_hip) }
     let(:endpoint_url) { "#{endpoint_root_path}/#{persisted_record.id}" }
 
@@ -270,7 +271,6 @@ RSpec.describe "cases", type: :request do
   end
 
   describe "POST create" do
-    let(:headers) { token_auth_header.merge(json_content_headers) }
     let(:endpoint_url) { endpoint_root_path }
 
     # it_behaves_like "an authentication-protected #create endpoint"
