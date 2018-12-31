@@ -14,7 +14,7 @@ RSpec.describe V1::ProcedureDefinitionReader do
     it "raises error if config definition is not present" do
       reader = V1::ProcedureDefinitionReader.new(:derp)
 
-      expect { reader.definition[:input_values] }.to raise_error
+      expect { reader.definition[:input_values] }.to raise_error(V1::ProcedureDefinitionReader::ConfigNotFound)
     end
   end
 end

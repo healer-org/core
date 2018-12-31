@@ -28,13 +28,13 @@ RSpec.describe Patient do
     it "does not swallow errors if case fails to be deleted" do
       allow_any_instance_of(Case).to receive(:delete!).and_raise "Fail"
 
-      expect { @patient.delete! }.to raise_error
+      expect { @patient.delete! }.to raise_error("Fail")
     end
 
     it "does not delete patient case fails to be deleted" do
       allow_any_instance_of(Case).to receive(:delete!).and_raise "Fail"
 
-      expect { @patient.delete! }.to raise_error
+      expect { @patient.delete! }.to raise_error("Fail")
 
       expect(@patient.reload.active?).to eq(true)
     end

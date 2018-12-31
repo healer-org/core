@@ -6,10 +6,6 @@ module HTTP
   end
 
   module ResponseHelpers
-    def response
-      last_response
-    end
-
     def expect_success_response
       expect(response.status).to eq(200)
     end
