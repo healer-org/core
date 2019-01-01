@@ -1,0 +1,19 @@
+version: "2"
+services:
+  core:
+    build: .
+    volumes:
+      - "$PWD:/app"
+    ports:
+      - 9292:9292
+    environment:
+      - PG_HOST=postgres
+      - PG_USER=postgres
+      - PG_PORT=5432
+      - PG_DB=healer_core_development
+  postgres:
+    image: postgres:9.5
+    volumes:
+      - "$PWD/.docker-volumes/pgdata:/var/lib/postgresql/data"
+    ports:
+      - 5432:5432
