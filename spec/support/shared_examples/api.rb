@@ -1,45 +1,66 @@
 # frozen_string_literal: true
 
-RSpec.shared_examples "a standard JSON-compliant endpoint" do |verb|
+RSpec.shared_examples "an endpoint that supports JSON, form, and text exchange" do |verb|
   def call_api(verb, path, params, headers)
     if params
-      send(verb, path, params: params.to_json, headers: headers)
+      params = params.to_json if headers["Content-Type"] == "application/json"
+      send(verb, path, params: params, headers: headers)
     else
       send(verb, path, headers: headers)
     end
   end
 
-  it "is valid with a content-type header that is accepted" do
-    call_api(verb, path, (defined?(valid_params) ? valid_params: nil), default_headers)
+  if %i[get].include?(verb)
+    # GET requests should support text/plain or application/json
+    it "is valid with a 'text/plain' content-type header" do
+      headers = default_headers
+      headers["Content-Type"] = "text/plain"
+      call_api(verb, path, (defined?(valid_params) ? valid_params : nil), headers)
 
-    expect(response.successful?).to be(true), "expected successful response, got #{response.body}"
-  end
-
-  it "is invalid with a content-type header that is not accepted" do
-    bad_headers = default_headers
-    bad_headers["Content-Type"] = "text/plain"
-    call_api(verb, path, (defined?(valid_params) ? valid_params : nil), bad_headers)
-
-    expect(response).to have_http_status(:bad_request)
-    expect(json.dig("error", "message")).to eq("Content-Type must be application/json")
-  end
-
-  if %i[get delete].include?(verb)
-    it "is valid without a content-type header" do
-      bad_headers = default_headers
-      bad_headers.delete("Content-Type")
-      call_api(verb, path, (defined?(valid_params) ? valid_params : nil), bad_headers)
-
-      expect(response).to have_http_status(:ok)
+      expect(response.successful?).to be(true), "expected successful response, got #{response.body}"
     end
-  else
-    it "is invalid without a content-type header" do
-      bad_headers = default_headers
-      bad_headers.delete("Content-Type")
-      call_api(verb, path, (defined?(valid_params) ? valid_params : nil), bad_headers)
+
+    it "is valid with a 'application/json' content-type header" do
+      headers = default_headers
+      headers["Content-Type"] = "application/json"
+      call_api(verb, path, (defined?(valid_params) ? valid_params : nil), headers)
+
+      expect(response.successful?).to be(true), "expected successful response, got #{response.body}"
+    end
+
+    it "is not valid with other content-type headers" do
+      headers = default_headers
+      headers["Content-Type"] = "text/html"
+      call_api(verb, path, (defined?(valid_params) ? valid_params : nil), headers)
 
       expect(response).to have_http_status(:bad_request)
-      expect(json.dig("error", "message")).to eq("Content-Type must be application/json")
+      expect(json.dig("error", "message")).to eq("Invalid content type")
+    end
+  else
+    # non-GET requests should support application/json or application/x-www-form-urlencoded
+    it "is valid with a 'application/x-www-form-urlencoded' content-type header" do
+      headers = default_headers
+      headers["Content-Type"] = "application/x-www-form-urlencoded"
+      call_api(verb, path, (defined?(valid_params) ? valid_params : nil), headers)
+
+      expect(response.successful?).to be(true), "expected successful response, got #{response.body}"
+    end
+
+    it "is valid with a 'application/json' content-type header" do
+      headers = default_headers
+      headers["Content-Type"] = "application/json"
+      call_api(verb, path, (defined?(valid_params) ? valid_params : nil), headers)
+
+      expect(response.successful?).to be(true), "expected successful response, got #{response.body}"
+    end
+
+    it "is not valid with other content-type headers" do
+      headers = default_headers
+      headers["Content-Type"] = "text/html"
+      call_api(verb, path, (defined?(valid_params) ? valid_params : nil), headers)
+
+      expect(response).to have_http_status(:bad_request)
+      expect(json.dig("error", "message")).to eq("Invalid content type")
     end
   end
 

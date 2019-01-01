@@ -2,7 +2,7 @@
 
 module V1
   class BaseController < ApplicationController
-    before_action :validate_json_content_type!, only: [:index, :show, :create, :update, :destroy]
+    before_action :validate_content_type!, only: [:index, :show, :create, :update, :destroy]
     # use(Middleware::Authentication) do |config|
     #   config[:authenticator] = lambda do |req|
     #     auth_data = req.env["HTTP_AUTHORIZATION"]
@@ -14,12 +14,11 @@ module V1
     #   end
     # end
 
-    def validate_json_content_type!
-      return if !request.content_type && (request.get? || request.delete?)
-      if request.content_type != "application/json"
-        return if request.delete? && request.content_type == "application/x-www-form-urlencoded" # allow internet defaults
-        raise ActionController::BadRequest, "Content-Type must be application/json"
-      end
+    def validate_content_type!
+      return if request.content_type == "application/json"
+      return if request.get? && request.content_type == "text/plain"
+      return if !request.get? && request.content_type == "application/x-www-form-urlencoded"
+      raise ActionController::BadRequest, "Invalid content type"
     end
   end
 end

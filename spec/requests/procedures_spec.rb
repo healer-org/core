@@ -20,7 +20,7 @@ RSpec.describe "procedures", type: :request do
       }
     end
 
-    it_behaves_like "a standard JSON-compliant endpoint", :post
+    it_behaves_like "an endpoint that supports JSON, form, and text exchange", :post
 
     it "persists a new case-associated record and returns JSON" do
       attributes = {

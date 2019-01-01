@@ -42,7 +42,7 @@ module V1
     end
 
     def mismatched_patient?(appointment_record, params)
-      params[:patient_id] && params[:patient_id] != appointment_record.patient_id
+      params[:patient_id] && params[:patient_id].to_i != appointment_record.patient_id
     end
 
     def destroy

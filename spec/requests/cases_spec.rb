@@ -31,7 +31,7 @@ RSpec.describe "cases", type: :request do
       }
     end
 
-    it_behaves_like "a standard JSON-compliant endpoint", :get
+    it_behaves_like "an endpoint that supports JSON, form, and text exchange", :get
 
     it "returns all records as JSON" do
       persisted_1 = cases(:fernando_left_hip)
@@ -164,7 +164,7 @@ RSpec.describe "cases", type: :request do
     let(:persisted_record) { cases(:fernando_left_hip) }
     let(:path) { "#{endpoint_root_path}/#{persisted_record.id}" }
 
-    it_behaves_like "a standard JSON-compliant endpoint", :get
+    it_behaves_like "an endpoint that supports JSON, form, and text exchange", :get
 
     it "returns a single persisted record as JSON" do
       persisted_patient = persisted_record.patient
@@ -282,7 +282,7 @@ RSpec.describe "cases", type: :request do
       { case: case_attributes }
     end
 
-    it_behaves_like "a standard JSON-compliant endpoint", :post
+    it_behaves_like "an endpoint that supports JSON, form, and text exchange", :post
 
     context "when patient is posted as nested attribute" do
       it "creates a new active persisted record for the case and returns JSON" do
@@ -468,7 +468,7 @@ RSpec.describe "cases", type: :request do
       { case: { anatomy: "hip" } }
     end
 
-    it_behaves_like "a standard JSON-compliant endpoint", :patch
+    it_behaves_like "an endpoint that supports JSON, form, and text exchange", :patch
 
     it "updates an existing case record" do
       payload = { case: { anatomy: "knee", side: "right" } }
@@ -529,7 +529,7 @@ RSpec.describe "cases", type: :request do
     let(:persisted_record) { cases(:fernando_left_hip) }
     let(:path) { "#{endpoint_root_path}/#{persisted_record.id}" }
 
-    it_behaves_like "a standard JSON-compliant endpoint", :delete
+    it_behaves_like "an endpoint that supports JSON, form, and text exchange", :delete
 
     it "soft-deletes an existing persisted record" do
       delete(path, headers: headers)

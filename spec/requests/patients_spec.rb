@@ -23,7 +23,7 @@ RSpec.describe "patients", type: :request do
     let(:persisted_record_1) { patients(:fernando) }
     let(:persisted_record_2) { patients(:silvia) }
 
-    it_behaves_like "a standard JSON-compliant endpoint", :get
+    it_behaves_like "an endpoint that supports JSON, form, and text exchange", :get
 
     it "returns all records as JSON" do
       get(path, params: query_params, headers: headers)
@@ -84,7 +84,7 @@ RSpec.describe "patients", type: :request do
     let(:persisted_record) { patients(:fernando) }
     let(:path) { "#{endpoint_root_path}/#{persisted_record.id}" }
 
-    it_behaves_like "a standard JSON-compliant endpoint", :get
+    it_behaves_like "an endpoint that supports JSON, form, and text exchange", :get
 
     it "returns a single persisted record as JSON" do
       get(path, params: query_params, headers: headers)
@@ -149,13 +149,30 @@ RSpec.describe "patients", type: :request do
     let(:path) { endpoint_root_path }
     let(:valid_params) { { patient: patients(:fernando).attributes } }
 
-    it_behaves_like "a standard JSON-compliant endpoint", :post
+    it_behaves_like "an endpoint that supports JSON, form, and text exchange", :post
 
     it "creates a new active persisted record and returns JSON" do
       payload = query_params.merge(patient: patients(:fernando).attributes)
 
       expect {
         post(path, params: payload.to_json, headers: headers)
+      }.to change(Patient, :count).by(1)
+
+      expect(response).to have_http_status(:created)
+
+      persisted_record = Patient.last
+      expect(persisted_record.active?).to eq(true)
+
+      expect(patient_response_matches?(response_record, persisted_record)).to eq(true)
+    end
+
+    it "allows attributes to be sent as form values to the POST" do
+      form_headers = headers
+      form_headers["Content-Type"] = "application/x-www-form-urlencoded"
+      payload = query_params.merge(patient: patients(:fernando).attributes)
+
+      expect {
+        post(path, params: payload, headers: form_headers)
       }.to change(Patient, :count).by(1)
 
       expect(response).to have_http_status(:created)
@@ -193,7 +210,7 @@ RSpec.describe "patients", type: :request do
     let(:path) { "#{endpoint_root_path}/#{persisted_record.id}" }
     let(:valid_params) { { patient: { name: "Jon Marko" } } }
 
-    it_behaves_like "a standard JSON-compliant endpoint", :patch
+    it_behaves_like "an endpoint that supports JSON, form, and text exchange", :patch
 
     it "updates an existing persisted record" do
       attributes = {
@@ -273,7 +290,7 @@ RSpec.describe "patients", type: :request do
     let(:persisted_record) { patients(:fernando) }
     let(:path) { "#{endpoint_root_path}/#{persisted_record.id}" }
 
-    it_behaves_like "a standard JSON-compliant endpoint", :delete
+    it_behaves_like "an endpoint that supports JSON, form, and text exchange", :delete
 
     it "soft-deletes an existing persisted record" do
       delete(path, headers: headers)

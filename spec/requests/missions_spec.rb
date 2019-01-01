@@ -15,7 +15,7 @@ RSpec.describe "missions", type: :request do
     let(:persisted_record) { missions(:gt_2015) }
     let(:path) { "#{endpoint_root_path}/#{persisted_record.id}" }
 
-    it_behaves_like "a standard JSON-compliant endpoint", :get
+    it_behaves_like "an endpoint that supports JSON, form, and text exchange", :get
 
     it "returns a single persisted record as JSON" do
       get(path, params: default_params, headers: headers)
@@ -47,7 +47,7 @@ RSpec.describe "missions", type: :request do
       }
     end
 
-    it_behaves_like "a standard JSON-compliant endpoint", :post
+    it_behaves_like "an endpoint that supports JSON, form, and text exchange", :post
 
     it "persists a new mission record and returns JSON" do
       params = default_params.merge(valid_params)
