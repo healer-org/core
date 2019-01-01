@@ -9,15 +9,16 @@ default: &default
   # read/write timeouts in ms
   read_timeout: 1000
   write_timeout: 1000
+  host: <%= ENV['PG_HOST'] %>
+  user: <%= ENV['PG_USER'] %>
+  port: <%= ENV['PG_PORT'] %>
+  database: <%= ENV['PG_DB'] %>
 
 development:
   <<: *default
-  database: healer_core_development
 
 test:
   <<: *default
-  database: healer_core_test
 
 production:
   <<: *default
-  database: healer_core_production
