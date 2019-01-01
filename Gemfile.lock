@@ -99,6 +99,7 @@ GEM
     pg (1.1.3)
     powerpack (0.1.2)
     public_suffix (3.0.3)
+    puma (3.12.0)
     rack (2.0.6)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
@@ -183,7 +184,9 @@ DEPENDENCIES
   json-schema
   paperclip (~> 5.2.0)
   pg
+  puma
   rails (~> 5.2)
+  rake
   rspec-rails (~> 3.7.0)
   rubocop
   spring
@@ -192,4 +195,4 @@ RUBY VERSION
    ruby 2.5.3p105
 
 BUNDLED WITH
-   1.17.1
+   1.17.3

@@ -18,6 +18,8 @@ gem "rails", "~> 5.2"
 gem "paperclip", "~> 5.2.0"
 
 gem "pg"
+gem "puma"
+gem "rake"
 
 group :development, :test do
   gem "byebug"
