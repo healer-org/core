@@ -182,6 +182,7 @@ DEPENDENCIES
   dotenv-rails
   faker
   json-schema
+  mimemagic
   paperclip (~> 5.2.0)
   pg
   puma

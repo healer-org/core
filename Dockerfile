@@ -6,12 +6,13 @@ WORKDIR /app
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-          build-essential \
-        libcurl3 \
-        libpq-dev \
-          libxml2-dev \
-          libxslt-dev \
-          tzdata && \
+    build-essential \
+    file \
+    libcurl3 \
+    libpq-dev \
+    libxml2-dev \
+    libxslt-dev \
+    tzdata && \
     bundle install && \
     apt-get remove -y --purge build-essential && \
     apt autoremove -y && \

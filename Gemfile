@@ -13,12 +13,11 @@ ruby File.read(
 
 gem "dotenv-rails"
 gem "json-schema"
-gem "rails", "~> 5.2"
-
+gem "mimemagic"
 gem "paperclip", "~> 5.2.0"
-
 gem "pg"
 gem "puma"
+gem "rails", "~> 5.2"
 gem "rake"
 
 group :development, :test do
