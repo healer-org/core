@@ -11,6 +11,7 @@ ruby File.read(
   )
 ).split("-").last.chomp
 
+gem "dotenv-rails"
 gem "json-schema"
 gem "rails", "~> 5.2"
 

@@ -1,3 +1,0 @@
-# frozen_string_literal: true
-
-Healer::Application.config.secret_key_base = '84d51184a04073c3d67278ececb64817a75f28a30dbb75c1b151ca6949e6f0cf6e59e40dbeb21c396007a38e04874f2e734147bf1245be21db6200f1798f2ab2'
