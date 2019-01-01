@@ -2,7 +2,7 @@
 
 RSpec.shared_examples "a standard JSON-compliant endpoint" do |verb|
   def call_api(verb, path, params, headers)
-    if defined?(params)
+    if params
       send(verb, path, params: params.to_json, headers: headers)
     else
       send(verb, path, headers: headers)
@@ -18,7 +18,7 @@ RSpec.shared_examples "a standard JSON-compliant endpoint" do |verb|
   it "is invalid with a content-type header that is not accepted" do
     bad_headers = default_headers
     bad_headers["Content-Type"] = "text/plain"
-    call_api(verb, path, (defined?(valid_params) ? valid_params: nil), bad_headers)
+    call_api(verb, path, (defined?(valid_params) ? valid_params : nil), bad_headers)
 
     expect(response).to have_http_status(:bad_request)
     expect(json.dig("error", "message")).to eq("Content-Type must be application/json")
@@ -28,7 +28,7 @@ RSpec.shared_examples "a standard JSON-compliant endpoint" do |verb|
     it "is valid without a content-type header" do
       bad_headers = default_headers
       bad_headers.delete("Content-Type")
-      call_api(verb, path, (defined?(valid_params) ? valid_params: nil), bad_headers)
+      call_api(verb, path, (defined?(valid_params) ? valid_params : nil), bad_headers)
 
       expect(response).to have_http_status(:ok)
     end
@@ -36,7 +36,7 @@ RSpec.shared_examples "a standard JSON-compliant endpoint" do |verb|
     it "is invalid without a content-type header" do
       bad_headers = default_headers
       bad_headers.delete("Content-Type")
-      call_api(verb, path, (defined?(valid_params) ? valid_params: nil), bad_headers)
+      call_api(verb, path, (defined?(valid_params) ? valid_params : nil), bad_headers)
 
       expect(response).to have_http_status(:bad_request)
       expect(json.dig("error", "message")).to eq("Content-Type must be application/json")
@@ -46,7 +46,7 @@ RSpec.shared_examples "a standard JSON-compliant endpoint" do |verb|
   it "responds with V1 API by default if no accept header is provided" do
     headers = default_headers
     headers.delete("Accept")
-    call_api(verb, path, (defined?(valid_params) ? valid_params: nil), headers)
+    call_api(verb, path, (defined?(valid_params) ? valid_params : nil), headers)
 
     expect(response.successful?).to be(true), "expected successful response, got #{response.body}"
   end
@@ -54,7 +54,7 @@ RSpec.shared_examples "a standard JSON-compliant endpoint" do |verb|
   it "responds with v1 API if V1 accept header is specified" do
     headers = default_headers
     headers["Accept"] = "application/vnd.healer-api.v1+json"
-    call_api(verb, path, (defined?(valid_params) ? valid_params: nil), headers)
+    call_api(verb, path, (defined?(valid_params) ? valid_params : nil), headers)
 
     expect(request.controller_class.parent).to eq(V1)
   end
@@ -64,7 +64,7 @@ RSpec.shared_examples "a standard JSON-compliant endpoint" do |verb|
   it "responds with v1 API if V2 accept header is specified" do
     headers = default_headers
     headers["Accept"] = "application/vnd.healer-api.v2+json"
-    call_api(verb, path, (defined?(valid_params) ? valid_params: nil), headers)
+    call_api(verb, path, (defined?(valid_params) ? valid_params : nil), headers)
 
     expect(request.controller_class.parent).to eq(V1)
   end

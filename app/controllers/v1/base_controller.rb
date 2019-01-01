@@ -2,6 +2,7 @@
 
 module V1
   class BaseController < ApplicationController
+    before_action :validate_json_content_type!, only: [:index, :show, :create, :update, :destroy]
     # use(Middleware::Authentication) do |config|
     #   config[:authenticator] = lambda do |req|
     #     auth_data = req.env["HTTP_AUTHORIZATION"]
