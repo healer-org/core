@@ -80,7 +80,7 @@ RSpec.shared_examples "an endpoint that supports JSON, form, and text exchange" 
     expect(request.controller_class.parent).to eq(V1)
   end
 
-  # TODO this will necessarily change when API is versioned; at that point a new
+  # TODO: this will necessarily change when API is versioned; at that point a new
   # default test should be introduced as a replica of this one
   it "responds with v1 API if V2 accept header is specified" do
     headers = default_headers

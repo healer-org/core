@@ -23,8 +23,8 @@ module V1
     end
 
     def record_not_found?
-      attachment_params[:record_type].constantize.find_by_id(
-        attachment_params[:record_id]
+      attachment_params[:record_type].constantize.find_by(
+        id: attachment_params[:record_id]
       ).nil?
     end
 
@@ -37,13 +37,13 @@ module V1
     end
 
     def prep_document
-      if params[:attachment] && params[:attachment][:data]
-        data = StringIO.new(Base64.decode64(params[:attachment][:data]))
-        data.class.class_eval { attr_accessor :original_filename, :content_type }
-        data.original_filename = params[:attachment][:file_name]
-        data.content_type = params[:attachment][:content_type]
-        params[:attachment][:document] = data
-      end
+      return if !params[:attachment] && !params[:attachment][:data]
+
+      data = StringIO.new(Base64.decode64(params[:attachment][:data]))
+      data.class.class_eval { attr_accessor :original_filename, :content_type }
+      data.original_filename = params[:attachment][:file_name]
+      data.content_type = params[:attachment][:content_type]
+      params[:attachment][:document] = data
     end
   end
 end

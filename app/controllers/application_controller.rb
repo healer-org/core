@@ -29,7 +29,6 @@ class ApplicationController < ActionController::API
     data = { http_code: Rack::Utils.status_code(code) }
     data[:message] = message if message
 
-    # logger.error(response)
     render(
       json: Response.new(data: data, root: "error"),
       status: code
@@ -50,7 +49,7 @@ class ApplicationController < ActionController::API
 end
 
 class Response
-  def initialize(data: {}, root: nil) # , pagination: nil)
+  def initialize(data: {}, root: nil)
     @data = data
     @root = root
     # @pagination = pagination

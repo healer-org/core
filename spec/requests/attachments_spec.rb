@@ -3,10 +3,11 @@
 def attachment_attributes_for(record_type, record_id)
   file_path = "#{Rails.root}/spec/attachments/1x1.png"
   file = File.open(file_path, "rb")
+  content_type = MimeMagic.by_magic(file).type
   {
     data: Base64.encode64(file.read),
     file_name: File.basename(file_path),
-    content_type: `file -Ib #{file_path}`.delete("\n"),
+    content_type: content_type,
     record_id: record_id,
     record_type: record_type
   }

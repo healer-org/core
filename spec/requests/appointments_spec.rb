@@ -2,11 +2,11 @@
 
 def validate_response_matches(response, record)
   expect(appointment_response_matches?(response, record)).to eq(true)
-  if record.patient
-    expect(
-      patient_response_matches?(response["patient"], record.patient)
-    ).to eq(true)
-  end
+  return unless record.patient
+
+  expect(
+    patient_response_matches?(response["patient"], record.patient)
+  ).to eq(true)
 end
 
 RSpec.describe "appointments", type: :request do

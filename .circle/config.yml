@@ -1,0 +1,33 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/ruby:2.5.3-stretch-node
+        environment:
+          BUNDLE_PATH: vendor/bundle
+          PG_HOST: localhost
+          PG_USER: postgres
+          PG_PORT: 5432
+          PG_DB: healer_core_test
+          RAILS_ENV: test
+          RACK_ENV: test
+
+      - image: circleci/postgres:9.5-alpine
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: postgres
+          POSTGRES_PASSWORD: ""
+
+    steps:
+      - checkout
+
+      - run:
+          name: Postgres
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+
+      - run:
+          name: PG setup
+          command: bin/rails db:create db:migrate --trace
+
+      - run: |
+          bin/rake

@@ -4,8 +4,6 @@ module V1
   class ProcedureDefinitionReader
     class ConfigNotFound < StandardError; end
 
-    attr_reader :definition
-
     def initialize(definition_name)
       @definition_name = definition_name.to_sym
     end

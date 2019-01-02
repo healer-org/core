@@ -19,7 +19,15 @@ class Procedure < Base
   validate :conforms_to_definition
 
   def method_missing(method_name, *args)
-    data.send(method_name, *args)
+    if data.respond_to?(method_name)
+      data.send(method_name, *args)
+    else
+      super
+    end
+  end
+
+  def respond_to_missing?(method_name, _include_private = false)
+    data.respond_to?(method_name)
   end
 
   private
