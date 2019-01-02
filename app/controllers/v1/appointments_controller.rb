@@ -77,7 +77,7 @@ module V1
       )
     end
 
-    def appointment_params # rubocop:disable Metrics/MethodLength
+    def appointment_params
       filtered_params = params.require(:appointment).permit(
         :trip_id,
         :patient_id,

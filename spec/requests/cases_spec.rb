@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe "cases", type: :request do
+  extend ActionDispatch::TestProcess
+
   fixtures :cases, :patients, :procedures
 
   let(:query_params) { {} }
@@ -8,7 +10,6 @@ RSpec.describe "cases", type: :request do
   let(:headers) { default_headers }
 
   def uploaded_file
-    extend ActionDispatch::TestProcess
     fixture_file_upload("../attachments/1x1.png", "image/png")
   end
 

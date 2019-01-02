@@ -6,20 +6,42 @@ AllCops:
     - "vendor/**/*"
 
 Documentation:
-    Enabled: false
+  Enabled: false
 
 Style/StringLiterals:
   Enabled: false
+
+Naming/VariableNumber:
+  Enabled: false
+
+Style/SymbolArray:
+  Enabled: false
+
+Metrics/AbcSize:
+  Enabled: false
+
+Style/IdenticalConditionalBranches:
+  Exclude:
+    - "spec/**/*.rb"
 
 Style/BlockDelimiters:
   Exclude:
     - "spec/**/*_spec.rb"
 
-Style/SpaceBeforeFirstArg:
+Layout/SpaceBeforeFirstArg:
   Exclude:
     - "config/routes.rb"
 
+Metrics/BlockLength:
+ Exclude:
+    - "spec/**/*.rb"
+
+Metrics/MethodLength:
+  Max: 20
+
 Metrics/LineLength:
+  Exclude:
+    - "spec/**/*_spec.rb"
   Max: 100
   # To make it possible to copy or click on URIs in the code, we allow lines
   # contaning a URI to be longer than Max.

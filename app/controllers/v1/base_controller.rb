@@ -18,6 +18,7 @@ module V1
       return if request.content_type == "application/json"
       return if request.get? && request.content_type == "text/plain"
       return if !request.get? && request.content_type == "application/x-www-form-urlencoded"
+
       raise ActionController::BadRequest, "Invalid content type"
     end
   end
