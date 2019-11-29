@@ -1,14 +1,8 @@
-![](https://github.com/sisk/healer-core/blob/master/app/assets/images/healer_logo_trans.png)
+![](https://github.com/sisk/healer-core/blob/master/app/assets/images/healer_logo.png)
 
 # healer-core
 
-This is Healer's core API. Its serves JSON to provide information about medical teams, patients, clinical case work, and appointment scheduling.
-
-## What is Healer?
-Healer is an emerging nonprofit technology initiative facilitating the efforts of volunteer medical workers worldwide.
-
-## Where can I get more information?
-This document is pretty much it for right now. If you'd like to get in touch with a human, [look here](https://github.com/sisk).
+This is the core API for [Healer](https://www.healer.global). It provides utility to facilitate medical teams, patients, clinical case work, and appointment scheduling for humanitarian and missionary groups.
 
 # Development
 ## Requirements
