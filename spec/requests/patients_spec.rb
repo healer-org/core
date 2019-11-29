@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-# TODO: messaging & logging behavior
-# TODO: undelete functionality for administrator clients
-
 RSpec.describe "patients", type: :request do
   fixtures :patients, :cases
 

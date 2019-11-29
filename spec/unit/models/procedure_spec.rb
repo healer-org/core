@@ -64,7 +64,6 @@ RSpec.describe Procedure do
     # end
 
     context "conformance to type definition" do
-      # TODO
       # these tests are coupled to the total_knee_replacement definition for now
       # improve them by writing a new config file and asserting on that
 

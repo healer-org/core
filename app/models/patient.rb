@@ -9,7 +9,6 @@ class Patient < Base
     def search(query)
       return [] unless query
 
-      # TODO: this should probably delegate to something like Sphinx
       active.where("lower(name) like ?", "%#{query.to_s.downcase}%")
     end
   end

@@ -9,7 +9,6 @@ module V1
     end
 
     def definition
-      # TODO: memoization might not be necessary here
       @definition ||= read_definition.to_json
     end
 
