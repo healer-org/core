@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/ruby:2.5.3-stretch-node
+      - image: circleci/ruby:2.6.5-stretch-node
         environment:
           BUNDLE_PATH: vendor/bundle
           PG_HOST: localhost

@@ -12,7 +12,7 @@ This document is pretty much it for right now. If you'd like to get in touch wit
 
 # Development
 ## Requirements
-* Ruby 2.5.3
+* Ruby 2.6.5
 * Bundler
 * Docker
 
