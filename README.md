@@ -1,5 +1,3 @@
-![](https://github.com/sisk/healer-core/blob/master/app/assets/images/healer_logo.png)
-
 # healer-core
 
 This is the core API for [Healer](https://www.healer.global). It provides utility to facilitate medical teams, patients, clinical case work, and appointment scheduling for humanitarian and missionary groups.
