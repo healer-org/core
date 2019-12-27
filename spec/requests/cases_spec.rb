@@ -27,7 +27,7 @@ RSpec.describe "cases", type: :request do
       {
         date: Date.today,
         type: "a_procedure",
-        version: "v1",
+        version: "v1"
       }
     end
 
@@ -99,7 +99,7 @@ RSpec.describe "cases", type: :request do
       persisted = cases(:fernando_left_hip)
       Attachment.create!(
         record: persisted,
-        document: uploaded_file,
+        document: uploaded_file
       )
 
       get(path, params: query_params, headers: headers)
@@ -126,7 +126,7 @@ RSpec.describe "cases", type: :request do
       persisted = cases(:fernando_left_hip)
       attachment = Attachment.create!(
         record: persisted,
-        document: uploaded_file,
+        document: uploaded_file
       )
 
       get(path, params: query_params.merge(showAttachments: true), headers: headers)
@@ -204,7 +204,7 @@ RSpec.describe "cases", type: :request do
     it "does not include attachments in the output" do
       Attachment.create!(
         record: persisted_record,
-        document: uploaded_file,
+        document: uploaded_file
       )
 
       get(path, params: query_params, headers: headers)
@@ -216,7 +216,7 @@ RSpec.describe "cases", type: :request do
     it "returns attachments in JSON payload when showAttachments param is true" do
       attachment = Attachment.create!(
         record: persisted_record,
-        document: uploaded_file,
+        document: uploaded_file
       )
 
       get(path, params: query_params.merge(showAttachments: true), headers: headers)
@@ -235,7 +235,7 @@ RSpec.describe "cases", type: :request do
     it "returns procedures in JSON payload when showProcedures param is true" do
       attachment = Attachment.create!(
         record: persisted_record,
-        document: uploaded_file,
+        document: uploaded_file
       )
 
       get(path, params: query_params.merge(showAttachments: true), headers: headers)
@@ -402,7 +402,7 @@ RSpec.describe "cases", type: :request do
           case_attributes[:patient_id] = patient.id
           case_attributes[:patient] = {
             name: "Changed #{original_patient_name}",
-            status: "deleted",
+            status: "deleted"
           }
           payload = query_params.merge(case: case_attributes)
 
@@ -488,8 +488,8 @@ RSpec.describe "cases", type: :request do
         side: "right",
         patient_id: patient.id,
         patient: {
-          name: "New Patient Name",
-        },
+          name: "New Patient Name"
+        }
       }
       payload = query_params.merge(case: new_attributes)
 

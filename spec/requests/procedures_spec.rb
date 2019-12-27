@@ -15,8 +15,8 @@ RSpec.describe "procedures", type: :request do
         procedure: {
           case_id: the_case.id,
           type: "total_knee_replacement",
-          version: "v1",
-        },
+          version: "v1"
+        }
       }
     end
 
@@ -26,7 +26,7 @@ RSpec.describe "procedures", type: :request do
       attributes = {
         case_id: the_case.id,
         type: "a_procedure",
-        version: "opwalk_2015",
+        version: "opwalk_2015"
       }
 
       payload = query_params.merge(procedure: attributes)

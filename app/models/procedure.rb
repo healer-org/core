@@ -33,7 +33,7 @@ class Procedure < Base
 
   def conforms_to_definition
     JSON::Validator.fully_validate(
-      definition, data, errors_as_objects: true,
+      definition, data, errors_as_objects: true
     ).each do |error|
       errors.add(error[:fragment], error[:message])
     end

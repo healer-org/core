@@ -10,7 +10,7 @@ RSpec.describe Procedure do
       type: :total_knee_replacement,
       title: "A great operation",
       version: :v1,
-      sites: [{ body_part: "knee", side: "L" }],
+      sites: [{ body_part: "knee", side: "L" }]
     }
   end
 
