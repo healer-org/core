@@ -145,7 +145,7 @@ RSpec.describe "cases", type: :request do
     end
 
     it "returns procedures in JSON payload when showProcedures param is true" do
-      persisted = cases(:silvia_right_foot)
+      persisted = cases(:silvia_left_foot)
       expect(persisted.procedures.size).to eq(0)
       procedure = Procedure.create!(case: persisted, data: valid_procedure_data)
 
