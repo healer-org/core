@@ -45,7 +45,7 @@ RSpec.describe "appointments", type: :request do
     end
 
     it "filters by location" do
-      @persisted_2.update_attributes!(location: "room 1")
+      @persisted_2.update!(location: "room 1")
 
       get(path, params: query_params.merge(location: "room 1"), headers: headers)
 
@@ -55,7 +55,7 @@ RSpec.describe "appointments", type: :request do
     end
 
     it "filters by trip_id" do
-      @persisted_1.update_attributes!(trip_id: "2")
+      @persisted_1.update!(trip_id: "2")
 
       get(path, params: query_params.merge(trip_id: "2"), headers: headers)
 
@@ -65,8 +65,8 @@ RSpec.describe "appointments", type: :request do
     end
 
     it "filters by multiple criteria" do
-      @persisted_1.update_attributes!(location: "room 1", trip_id: "1")
-      @persisted_2.update_attributes!(location: "room 1", trip_id: "2")
+      @persisted_1.update!(location: "room 1", trip_id: "1")
+      @persisted_2.update!(location: "room 1", trip_id: "2")
 
       get(
         path,

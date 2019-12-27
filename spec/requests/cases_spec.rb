@@ -72,7 +72,7 @@ RSpec.describe "cases", type: :request do
     it "filters by status" do
       persisted_1 = cases(:fernando_left_hip)
       persisted_2 = cases(:silvia_right_foot)
-      persisted_1.update_attributes!(status: "pending")
+      persisted_1.update!(status: "pending")
 
       get(path, params: query_params.merge(status: "pending"), headers: headers)
 
@@ -85,7 +85,7 @@ RSpec.describe "cases", type: :request do
 
     it "does not return results for deleted records, even if asked" do
       persisted_1 = cases(:fernando_left_hip)
-      persisted_1.update_attributes!(status: "deleted")
+      persisted_1.update!(status: "deleted")
 
       get(path, params: query_params.merge(status: "deleted"), headers: headers)
 
@@ -177,7 +177,7 @@ RSpec.describe "cases", type: :request do
     end
 
     it "returns pending cases" do
-      persisted_record.update_attributes!(status: "pending")
+      persisted_record.update!(status: "pending")
 
       get(path, params: query_params, headers: headers)
 

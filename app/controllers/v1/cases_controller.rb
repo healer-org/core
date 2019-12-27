@@ -37,7 +37,7 @@ module V1
       params = case_params
       params.delete(:patient_id) if params[:patient_id]
 
-      case_record.update_attributes!(params)
+      case_record.update!(params)
 
       render_one(case_record)
     end

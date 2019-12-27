@@ -37,7 +37,7 @@ module V1
       params = appointment_params
       raise Errors::MismatchedPatient if mismatched_patient?(appointment_record, params)
 
-      appointment_record.update_attributes!(params)
+      appointment_record.update!(params)
       render_one(appointment_record)
     end
 

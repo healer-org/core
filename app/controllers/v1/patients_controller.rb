@@ -43,7 +43,7 @@ module V1
 
     def update
       patient = Patient.active.find(params[:id])
-      patient.update_attributes!(patient_params)
+      patient.update!(patient_params)
 
       render_one(patient.attributes)
     end

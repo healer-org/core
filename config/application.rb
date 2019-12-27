@@ -16,7 +16,7 @@ module Healer
 
     config.api_only = true
 
-    Dir[Rails.root.join("app/middleware/**/*.rb")].each { |f| require f }
+    Dir[Rails.root.join("app/middleware/**/*.rb")].sort.each { |f| require f }
 
     config.autoload_paths += %W[
       #{config.root}/app/**/

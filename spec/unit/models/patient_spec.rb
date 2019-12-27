@@ -61,7 +61,7 @@ RSpec.describe Patient do
     %w[active].each do |status|
       it "is true if status is #{status}" do
         patient = patients(:fernando)
-        patient.update_attributes!(status: status)
+        patient.update!(status: status)
 
         expect(patient.active?).to eq(true)
       end

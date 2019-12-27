@@ -15,7 +15,7 @@ module SoftDelete
 
   def delete!
     transaction do
-      update_attributes!(status: "deleted")
+      update!(status: "deleted")
       delete_associations!
       log_delete
     end

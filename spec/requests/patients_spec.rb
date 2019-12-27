@@ -329,7 +329,7 @@ RSpec.describe "patients", type: :request do
     end
 
     it "returns patients by full name" do
-      persisted_record.update_attributes!(name: "Ramon")
+      persisted_record.update!(name: "Ramon")
 
       search_query = { q: "Ramon" }
       get(path, params: query_params.merge(search_query), headers: headers)
@@ -344,8 +344,8 @@ RSpec.describe "patients", type: :request do
 
     it "returns only patients that match the query" do
       other_persisted_record = patients(:silvia)
-      persisted_record.update_attributes!(name: "DeBarge")
-      other_persisted_record.update_attributes!(name: "Ramon")
+      persisted_record.update!(name: "DeBarge")
+      other_persisted_record.update!(name: "Ramon")
 
       search_query = { q: "Ramon" }
       get(path, params: query_params.merge(search_query), headers: headers)
@@ -358,7 +358,7 @@ RSpec.describe "patients", type: :request do
     end
 
     it "performs case-insensitive lookup" do
-      persisted_record.update_attributes!(name: "Ramon")
+      persisted_record.update!(name: "Ramon")
 
       search_query = { q: "raMon" }
       get(path, params: query_params.merge(search_query), headers: headers)
@@ -373,7 +373,7 @@ RSpec.describe "patients", type: :request do
 
     it "performs unicode-insensitive lookup" do
       skip("This feature may require some DB trickery or Sphinx conversion")
-      persisted_record.update_attributes!(name: "Ramón")
+      persisted_record.update!(name: "Ramón")
 
       search_query = { q: "Ramon" }
       get(path, params: query_params.merge(search_query), headers: headers)
@@ -387,7 +387,7 @@ RSpec.describe "patients", type: :request do
     end
 
     it "searches by name containing spaces" do
-      persisted_record.update_attributes!(name: "Ramon Johnson")
+      persisted_record.update!(name: "Ramon Johnson")
 
       search_query = { q: "ramon johnson" }
       get(path, params: query_params.merge(search_query), headers: headers)
@@ -401,7 +401,7 @@ RSpec.describe "patients", type: :request do
     end
 
     it "searches by partial name" do
-      persisted_record.update_attributes!(name: "Ramon Johnson")
+      persisted_record.update!(name: "Ramon Johnson")
 
       search_query = { q: "ramon" }
       get(path, params: query_params.merge(search_query), headers: headers)
@@ -415,7 +415,7 @@ RSpec.describe "patients", type: :request do
     end
 
     it "searches by partial name" do
-      persisted_record.update_attributes!(name: "Ramon Johnson")
+      persisted_record.update!(name: "Ramon Johnson")
 
       search_query = { q: "johnson" }
       get(path, params: query_params.merge(search_query), headers: headers)
@@ -430,7 +430,7 @@ RSpec.describe "patients", type: :request do
 
     it "searches by fragments of name" do
       skip("Snakes in the burning pet shop")
-      persisted_record.update_attributes!(name: "Ramon The Rock Johnson")
+      persisted_record.update!(name: "Ramon The Rock Johnson")
 
       search_query = { q: "ramon johnson" }
       get(path, params: query_params.merge(search_query), headers: headers)

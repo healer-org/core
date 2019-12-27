@@ -77,7 +77,7 @@ RSpec.shared_examples "an endpoint that supports JSON, form, and text exchange" 
     headers["Accept"] = "application/vnd.healer-api.v1+json"
     call_api(verb, path, (defined?(valid_params) ? valid_params : nil), headers)
 
-    expect(request.controller_class.parent).to eq(V1)
+    expect(request.controller_class.module_parent).to eq(V1)
   end
 
   it "responds with v1 API if V2 accept header is specified" do
@@ -85,6 +85,6 @@ RSpec.shared_examples "an endpoint that supports JSON, form, and text exchange" 
     headers["Accept"] = "application/vnd.healer-api.v2+json"
     call_api(verb, path, (defined?(valid_params) ? valid_params : nil), headers)
 
-    expect(request.controller_class.parent).to eq(V1)
+    expect(request.controller_class.module_parent).to eq(V1)
   end
 end

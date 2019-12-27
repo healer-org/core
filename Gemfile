@@ -11,14 +11,13 @@ ruby File.read(
   )
 ).split("-").last.chomp
 
-gem "actionview", ">= 5.2.2.1"
 gem "dotenv-rails"
 gem "json-schema"
 gem "mimemagic"
 gem "paperclip", "~> 5.2.0"
 gem "pg"
 gem "puma"
-gem "rails", "~> 5.2"
+gem "rails", "~> 6"
 gem "rake"
 
 group :development, :test do
