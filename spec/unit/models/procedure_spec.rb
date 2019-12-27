@@ -10,8 +10,7 @@ RSpec.describe Procedure do
       type: :total_knee_replacement,
       title: "A great operation",
       version: :v1,
-      providers: { "provider_id_1" => { role: :primary } },
-      sites: [{ body_part: "knee", side: "L" }]
+      sites: [{ body_part: "knee", side: "L" }],
     }
   end
 
@@ -41,27 +40,6 @@ RSpec.describe Procedure do
         Procedure.create(valid_attributes_without(:version))
       }.to_not change(Procedure, :count)
     end
-
-    # it "at least one provider is required" do
-    #   expect {
-    #     Procedure.create(valid_attributes_without(:providers))
-    #   }.to_not change(Procedure, :count)
-
-    #   attrs = valid_attributes.merge(providers: [])
-    #   expect { Procedure.create(attrs) }.to_not change(Procedure, :count)
-    # end
-
-    # it "providers are well-formed" do
-    #   attrs = valid_attributes.merge(providers: "junk")
-    #   expect { Procedure.create(attrs) }.to_not change(Procedure, :count)
-
-    #   attrs = valid_attributes.merge(providers: %w[junk stuff])
-    #   expect { Procedure.create(attrs) }.to_not change(Procedure, :count)
-
-    #   # punting on this one for now...
-    #   # attrs = valid_attributes.merge(providers: {{this: :is} => "more junk" })
-    #   # expect { Procedure.create(attrs) }.to_not change(Procedure, :count)
-    # end
 
     context "conformance to type definition" do
       # these tests are coupled to the total_knee_replacement definition for now

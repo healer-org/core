@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2016_03_27_101859) do
+ActiveRecord::Schema.define(version: 2019_12_27_132546) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -85,6 +85,24 @@ ActiveRecord::Schema.define(version: 2016_03_27_101859) do
     t.integer "case_id", null: false
     t.integer "appointment_id"
     t.jsonb "data"
+  end
+
+  create_table "procedures_providers", force: :cascade do |t|
+    t.integer "procedure_id", null: false
+    t.integer "provider_id", null: false
+    t.index ["procedure_id"], name: "index_procedures_providers_on_procedure_id"
+    t.index ["provider_id"], name: "index_procedures_providers_on_provider_id"
+  end
+
+  create_table "providers", force: :cascade do |t|
+    t.string "name"
+  end
+
+  create_table "providers_teams", force: :cascade do |t|
+    t.integer "provider_id", null: false
+    t.integer "team_id", null: false
+    t.index ["provider_id"], name: "index_providers_teams_on_provider_id"
+    t.index ["team_id"], name: "index_providers_teams_on_team_id"
   end
 
   create_table "teams", id: :serial, force: :cascade do |t|
