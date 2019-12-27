@@ -11,6 +11,7 @@ ruby File.read(
   )
 ).split("-").last.chomp
 
+gem "actionview", ">= 5.2.2.1"
 gem "dotenv-rails"
 gem "json-schema"
 gem "mimemagic"
