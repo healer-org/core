@@ -22,9 +22,12 @@ gem "rake"
 
 group :development, :test do
   gem "byebug"
-  gem "database_cleaner", "~> 1.6.0"
   gem "faker"
-  gem "rspec-rails", "~> 3.7.0"
   gem "rubocop"
   gem "spring"
+end
+
+group :test do
+  gem "database_cleaner"#, "~> 1.6.0"
+  gem "rspec-rails"#, "~> 3.7.0"
 end
