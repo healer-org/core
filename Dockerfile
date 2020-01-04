@@ -1,14 +1,16 @@
-FROM ruby:2.5-slim
+FROM ruby:2.6-slim
 
 COPY .ruby-version /app/
 COPY Gemfile* /app/
 WORKDIR /app
 
+RUN gem install bundler -v "$(grep -A 1 "BUNDLED WITH" Gemfile.lock | tail -n 1)"
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
     file \
-    libcurl3 \
+    libcurl4 \
     libpq-dev \
     libxml2-dev \
     libxslt-dev \
