@@ -11,14 +11,17 @@ ruby File.read(
   )
 ).split("-").last.chomp
 
-gem "dotenv-rails"
-gem "json-schema"
-gem "mimemagic"
+gem "dotenv-rails", "~> 2.7.5"
+gem "json-schema", "~> 2.8.1"
+gem "mimemagic", "~> 0.3.3"
 gem "paperclip", "~> 5.2.0"
-gem "pg"
-gem "puma"
-gem "rails", "~> 6"
-gem "rake"
+gem "pg", "~> 1.2.1"
+gem "rails", "~> 6.0.2.1"
+gem "rake", "~> 13.0.1"
+
+group :development, :test do
+  gem "puma", "~> 4.3.1"
+end
 
 group :development, :test do
   gem "byebug"
@@ -28,6 +31,6 @@ group :development, :test do
 end
 
 group :test do
-  gem "database_cleaner"#, "~> 1.6.0"
-  gem "rspec-rails"#, "~> 3.7.0"
+  gem "database_cleaner", "~> 1.7.0"
+  gem "rspec-rails", "~> 3.9.0"
 end
