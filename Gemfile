@@ -33,4 +33,5 @@ end
 group :test do
   gem "database_cleaner", "~> 1.7.0"
   gem "rspec-rails", "~> 3.9.0"
+  gem "guard-rspec", "~> 4.7.3"
 end
