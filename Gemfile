@@ -20,7 +20,7 @@ gem "rails", "~> 6.0.2.1"
 gem "rake", "~> 13.0.1"
 
 group :development, :test do
-  gem "puma", "~> 4.3.1"
+  gem "puma", "~> 5.3.1"
 end
 
 group :development, :test do
